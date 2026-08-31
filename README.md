@@ -1,23 +1,24 @@
-# Curso-Integrador-II---Desarrollo-de-Pag-Web
-Repositorio oficial para el desarrollo del proyecto de la página web del Curso Integrador II.
+# GTEL Talento - Sistema Web de Reclutamiento y ATS
 
-GUIA PARA SUBIR A LA RAMA DEVELOP:
-Git Bash
-Mantener actualizada la rama principal localmente antes de crear cambios:
+Plataforma web responsiva desarrollada para centralizar la gestión de postulantes, ofertas laborales y procesos de selección (ATS) de **GTEL Telecomunicaciones E.I.R.L.** (campañas de Claro Hogar y Portabilidad). El sistema está estructurado mediante una arquitectura modular basada en **Atomic Design**, utilizando React para el frontend y una base de datos relacional MySQL.
 
-Bash
-git checkout main
-git pull origin main
-Crear y cambiarte a una nueva rama de trabajo específica para la tarea o característica que vas a desarrollar (por ejemplo, para la estructura base o el frontend):
+---
 
-Bash
-git checkout -b feature/estructura-frontend
-(Nota: Los prefijos comunes son feature/ para nuevas funciones, fix/ para corrección de errores, o docs/ para documentación).
+##Estructura del Repositorio
 
-Trabajar, guardar y subir tus cambios con normalidad a esa rama remota:
+El proyecto se encuentra dividido en dos entornos principales ubicados en la raíz del repositorio:
+* `/frontend`: Aplicación cliente desarrollada en React.
+* `/backend`: Servidor y lógica de conexión con MySQL Workbench.
 
-Bash
-git add .
-git commit -m "feat: configurar estructura inicial de carpetas y proyecto"
-git push origin feature/estructura-frontend
-Ir al repositorio en GitHub (o GitLab) para abrir un Pull Request (PR) o Merge Request desde tu rama (feature/estructura-frontend) hacia la rama main.
+---
+
+## Guía de Flujo de Trabajo Colaborativo (Git Branching Strategy)
+
+Este proyecto utiliza un modelo de ramas basado en `develop` para asegurar la estabilidad del código y un control de cambios ordenado antes de llegar a producción (`main`).
+
+### 1. Preparación Inicial
+Antes de comenzar a programar cualquier tarea o característica, asegúrate de tener tu entorno local sincronizado con la rama de desarrollo:
+
+```bash
+git checkout develop
+git pull origin develop
