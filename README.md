@@ -1,210 +1,123 @@
-# GTEL Talento - Sistema Web de Reclutamiento y ATS
+# GTEL Talento — Sistema de Reclutamiento (ATS)
 
-Plataforma web responsiva desarrollada para centralizar la gestión de postulantes, ofertas laborales y procesos de selección (ATS) de **GTEL Telecomunicaciones E.I.R.L.** (campañas de Claro Hogar y Portabilidad). El sistema está estructurado mediante una arquitectura modular basada en **Atomic Design**, utilizando React para el frontend y una base de datos relacional MySQL.
+**Curso:** Curso Integrador II - Desarrollo de Páginas Web
+**Docente:** [nombre del docente]
+**Stack Frontend:** React + Vite + Tailwind CSS v4 + React Router
+**Stack Backend:** Spring Boot (Java) + MySQL *(en desarrollo)*
+
+> GTEL Talento es un sistema ATS (Applicant Tracking System) para un call
+> center de telecomunicaciones. Permite a candidatos postular a ofertas
+> laborales y dar seguimiento a sus procesos, y a reclutadores gestionar
+> vacantes, candidatos, entrevistas y evaluaciones desde un panel
+> administrativo.
 
 ---
 
-##Estructura del Repositorio
+## 1. Prerequisitos
 
-El proyecto se encuentra dividido en dos entornos principales ubicados en la raíz del repositorio:
-* `/frontend`: Aplicación cliente desarrollada en React.
-* `/backend`: Servidor y lógica de conexión con MySQL Workbench.
+| Herramienta | Versión |
+|---|---|
+| Node.js | 20+ |
+| npm | 10+ |
 
 ---
 
-## Guía de Flujo de Trabajo Colaborativo (Git Branching Strategy)
-
-Este proyecto utiliza un modelo de ramas basado en `develop` para asegurar la estabilidad del código y un control de cambios ordenado antes de llegar a producción (`main`).
-
-### 1. Preparación Inicial
-Antes de comenzar a programar cualquier tarea o característica, asegúrate de tener tu entorno local sincronizado con la rama de desarrollo:
+## 2. Instalación
 
 ```bash
-git checkout develop
-git pull origin develop
+git clone https://github.com/AngeloPradoM/IntegradorII-DesarrolloWeb-FullStack-GTEL.git
+cd IntegradorII-DesarrolloWeb-FullStack-GTEL/frontend
+npm install
+```
 
-## Subir avances al repositorio
+---
 
-Todos los avances deben realizarse mediante una rama propia y posteriormente integrarse a la rama `develop` mediante un Pull Request.
-
-### 1. Actualizar la rama `develop`
-
-Antes de comenzar cualquier tarea, actualizar la versión local del proyecto:
+## 3. Levantar en desarrollo
 
 ```bash
-git checkout develop
-git pull origin develop
+npm run dev
 ```
 
-### 2. Crear una rama para el avance
+Abrir `http://localhost:5173`.
 
-Crear una nueva rama a partir de `develop`:
+---
+
+## 4. Build de producción
 
 ```bash
-git checkout -b feature/nombre-del-avance
+npm run build
 ```
 
-Ejemplo:
+Salida en `frontend/dist/`.
 
-```bash
-git checkout -b feature/login
-```
+---
 
-La rama debe tener un nombre descriptivo y no debe contener espacios.
+## 5. Backend
 
-### 3. Realizar los cambios
+El backend se está desarrollando en `backend/` con **Spring Boot + MySQL**
+(diseñado con MySQL Workbench). Actualmente en construcción — la
+integración con el frontend (Axios → Spring Boot → JPA/Hibernate → MySQL)
+se documentará aquí una vez esté disponible.
 
-Desarrollar la tarea correspondiente dentro de la nueva rama.
+---
 
-Para verificar los archivos modificados:
+## 6. Estructura
+frontend/src/
+├── components/
+│ ├── common/ # Componentes reutilizables (Button, Badge, SearchBar)
+│ ├── layout/ # Piezas estructurales (Footer)
+│ └── sections/ # Bloques grandes propios de una pantalla (Hero, JobCard, etc.)
+├── layouts/ # Moldes de página (PublicLayout, DashboardLayout)
+├── pages/
+│ ├── candidato/ # Home, Ofertas, Postulación, Mis Postulaciones
+│ ├── reclutador/ # Panel ATS (Dashboard, Publicar Oferta, etc.)
+│ └── auth/ # Login unificado
+├── routes/ # Rutas centralizadas (AppRoutes.jsx)
+├── hooks/
+├── services/ # Llamadas a la API (cuando el backend esté listo)
+├── context/
+└── utils/
 
-```bash
-git status
-```
+---
 
-### 4. Agregar los cambios
+## 7. Pantallas del sistema
 
-Cuando el avance esté listo:
+**Vista Candidato**
+- Landing Page (Home)
+- Ofertas Laborales
+- Formulario de Postulación
+- Mis Postulaciones
 
-```bash
-git add .
-```
+**Acceso común**
+- Login Unificado (Soy Candidato / Soy Reclutador)
 
-### 5. Crear el commit
+**Vista Reclutador (Panel ATS)**
+- Dashboard
+- Publicar Oferta
+- Directorio de Postulantes
+- Agenda de Entrevistas
+- Evaluaciones
+- Perfil del Candidato
 
-Registrar los cambios con un mensaje descriptivo:
+---
 
-```bash
-git commit -m "feat: descripcion del avance"
-```
+## 8. Guía de estilo
 
-Ejemplo:
+| Elemento | Valor |
+|---|---|
+| Fondo general | `#F8FAFC` |
+| Tarjetas | `#FFFFFF` |
+| Acento / botones | `#D32F2F` (rojo corporativo) |
+| Textos / menús | `#1E293B` (azul marino) |
+| Texto secundario | `#475569` |
+| Tipografía | Inter |
 
-```bash
-git commit -m "feat: agregar formulario de login"
-```
+---
 
-### 6. Subir la rama a GitHub
+## 9. Convenciones de Git
 
-Subir la rama al repositorio remoto:
-
-```bash
-git push -u origin feature/nombre-del-avance
-```
-
-Ejemplo:
-
-```bash
-git push -u origin feature/login
-```
-
-### 7. Crear el Pull Request
-
-Ingresar al repositorio en GitHub y crear un Pull Request con la siguiente configuración:
-
-```text
-Base: develop
-Compare: feature/nombre-del-avance
-```
-
-La rama de trabajo siempre debe solicitar la integración hacia `develop`.
-
-### 8. Revisión del Pull Request
-
-El Pull Request debe ser revisado por otro integrante del equipo.
-
-Si se solicitan cambios, realizar las modificaciones en la misma rama:
-
-```bash
-git add .
-git commit -m "fix: corregir observaciones del pull request"
-git push
-```
-
-Los nuevos cambios se agregarán automáticamente al Pull Request existente.
-
-### 9. Integrar los cambios a `develop`
-
-Una vez aprobado el Pull Request, se realizará el Merge hacia `develop`.
-
-El flujo será:
-
-```text
-develop
-   |
-   | crear rama
-   v
-feature/nombre-del-avance
-   |
-   | desarrollo
-   v
-commit
-   |
-   | push
-   v
-GitHub
-   |
-   | Pull Request
-   v
-develop
-```
-
-### 10. Después del Merge
-
-Una vez integrado el avance, actualizar nuevamente la rama `develop` local:
-
-```bash
-git checkout develop
-git pull origin develop
-```
-
-La rama utilizada para el avance puede eliminarse después de completar el Merge.
-
-```bash
-git branch -d feature/nombre-del-avance
-```
-
-### Flujo completo
-
-```bash
-git checkout develop
-git pull origin develop
-
-git checkout -b feature/nombre-del-avance
-
-# Realizar cambios
-
-git status
-git add .
-git commit -m "feat: descripcion del avance"
-
-git push -u origin feature/nombre-del-avance
-```
-
-Posteriormente:
-
-```text
-GitHub
-   ↓
-Pull Request
-   ↓
-feature/nombre-del-avance → develop
-   ↓
-Revisión
-   ↓
-Aprobación
-   ↓
-Merge
-```
-
-### Importante
-
-No realizar commits directamente sobre `develop`.
-
-No realizar Pull Requests directamente hacia `main`.
-
-El flujo establecido es:
-
-```text
-feature → develop → main
-```
+- `main`: rama estable, solo recibe merges desde `develop`.
+- `develop`: rama de integración del equipo.
+- Trabajo individual: ramas `feature/<descripcion>` creadas desde `develop`,
+  con Pull Request de vuelta a `develop`. Nunca se trabaja directo sobre
+  `main` ni `develop`.
