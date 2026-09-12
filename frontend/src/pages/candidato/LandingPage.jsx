@@ -1,19 +1,15 @@
-import Header from "../../components/layout/Header";
-import Footer from "../../components/layout/Footer";
 import Hero from "../../components/sections/Hero";
+import WorkWithUs from "../../components/sections/WorkWithUs";
 import InfoCards from "../../components/sections/InfoCards";
+import ContactForm from "../../components/sections/ContactForm";
 
 export default function LandingPage() {
-	return (
-		<div className="font-sans">
-			<Header />
-			<main className="max-w-7xl mx-auto px-6 py-10">
-				<Hero />
-				<section className="mt-10">
-					<InfoCards />
-				</section>
-			</main>
-			<Footer />
-		</div>
-	);
+  return (
+    <>
+      <Hero />
+      <WorkWithUs />
+      <InfoCards />
+      <ContactForm />
+    </>
+  );
 }
