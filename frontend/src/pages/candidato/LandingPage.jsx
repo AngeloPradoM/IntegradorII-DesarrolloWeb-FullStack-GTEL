@@ -1,6 +1,7 @@
 import Hero from "../../components/sections/Hero";
 import WorkWithUs from "../../components/sections/WorkWithUs";
 import InfoCards from "../../components/sections/InfoCards";
+import Testimonials from "../../components/sections/Testimonials";
 import ContactForm from "../../components/sections/ContactForm";
 
 export default function LandingPage() {
@@ -9,6 +10,7 @@ export default function LandingPage() {
       <Hero />
       <WorkWithUs />
       <InfoCards />
+      <Testimonials />
       <ContactForm />
     </>
   );
