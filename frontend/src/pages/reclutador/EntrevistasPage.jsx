@@ -1,77 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Video, Clock, User, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { getRecruiterInterviews } from "../../services/api";
 
 const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-const interviews = [
-  {
-    id: 1,
-    name: "María López Herrera",
-    job: "Supervisor Call Center",
-    time: "09:00",
-    duration: "45 min",
-    type: "video",
-    day: 19,
-    avatar: "ML",
-    color: "bg-blue-600",
-  },
-  {
-    id: 2,
-    name: "Claudia Mamani Rios",
-    job: "Agente Bilingüe",
-    time: "10:30",
-    duration: "30 min",
-    type: "video",
-    day: 19,
-    avatar: "CM",
-    color: "bg-purple-600",
-  },
-  {
-    id: 3,
-    name: "Carlos Rodríguez",
-    job: "Agente de Ventas",
-    time: "12:00",
-    duration: "30 min",
-    type: "presential",
-    day: 19,
-    avatar: "CR",
-    color: "bg-[#D32F2F]",
-  },
-  {
-    id: 4,
-    name: "Fernando García",
-    job: "Soporte Técnico",
-    time: "15:00",
-    duration: "45 min",
-    type: "video",
-    day: 21,
-    avatar: "FG",
-    color: "bg-green-600",
-  },
-  {
-    id: 5,
-    name: "Ana Torres Mendoza",
-    job: "Agente Bilingüe",
-    time: "16:30",
-    duration: "30 min",
-    type: "video",
-    day: 22,
-    avatar: "AT",
-    color: "bg-teal-600",
-  },
-];
-
-const daysWithEvents = [19, 21, 22];
-
 export function InterviewSchedule() {
-  const [selectedDay, setSelectedDay] = useState(19);
-  const today = 19;
-  const year = 2026;
-  const month = 4; // May (0-indexed)
+  const todayDate = new Date();
+  const [interviews, setInterviews] = useState([]);
+  const [selectedDay, setSelectedDay] = useState(todayDate.getDate());
+  const year = todayDate.getFullYear();
+  const month = todayDate.getMonth();
+  const today = todayDate.getDate();
+
+  useEffect(() => {
+    getRecruiterInterviews().then(setInterviews).catch(() => setInterviews([]));
+  }, []);
 
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const daysWithEvents = interviews
+    .filter((interview) => interview.year === year && interview.month === month)
+    .map((interview) => interview.day);
 
   const filteredInterviews = interviews.filter((i) => i.day === selectedDay);
 

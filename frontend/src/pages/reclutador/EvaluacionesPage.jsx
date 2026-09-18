@@ -1,63 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Download, ChevronDown, Filter, BarChart2, Clock, CheckCircle, XCircle } from "lucide-react";
-
-const evaluations = [
-  {
-    id: 1, name: "Ana Torres Mendoza", job: "Agente Bilingüe", test: "Prueba de Inglés",
-    score: 95, time: "18 min", date: "18 May 2026", status: "passed", avatar: "AT", color: "bg-teal-600",
-    details: [
-      { area: "Comprensión oral", score: 98 },
-      { area: "Expresión escrita", score: 95 },
-      { area: "Vocabulario", score: 92 },
-    ],
-  },
-  {
-    id: 2, name: "Claudia Mamani Rios", job: "Agente Bilingüe", test: "Prueba de Inglés",
-    score: 88, time: "22 min", date: "18 May 2026", status: "passed", avatar: "CM", color: "bg-purple-600",
-    details: [
-      { area: "Comprensión oral", score: 90 },
-      { area: "Expresión escrita", score: 85 },
-      { area: "Vocabulario", score: 89 },
-    ],
-  },
-  {
-    id: 3, name: "Carlos Rodríguez", job: "Agente de Ventas", test: "Evaluación de Ventas",
-    score: 79, time: "35 min", date: "17 May 2026", status: "review", avatar: "CR", color: "bg-brand-red",
-    details: [
-      { area: "Técnicas de cierre", score: 82 },
-      { area: "Manejo de objeciones", score: 75 },
-      { area: "Conocimiento producto", score: 80 },
-    ],
-  },
-  {
-    id: 4, name: "José Pérez Torres", job: "Soporte Técnico", test: "Prueba Técnica TI",
-    score: 62, time: "45 min", date: "17 May 2026", status: "failed", avatar: "JP", color: "bg-blue-600",
-    details: [
-      { area: "Redes y conectividad", score: 70 },
-      { area: "Resolución de problemas", score: 55 },
-      { area: "Sistemas operativos", score: 60 },
-    ],
-  },
-  {
-    id: 5, name: "Patricia Vega Castro", job: "Agente de Ventas", test: "Evaluación de Ventas",
-    score: 91, time: "30 min", date: "16 May 2026", status: "passed", avatar: "PV", color: "bg-orange-600",
-    details: [
-      { area: "Técnicas de cierre", score: 95 },
-      { area: "Manejo de objeciones", score: 88 },
-      { area: "Conocimiento producto", score: 90 },
-    ],
-  },
-  {
-    id: 6, name: "Luis Flores Vega", job: "Coordinador RRHH", test: "Prueba Psicométrica",
-    score: 55, time: "60 min", date: "15 May 2026", status: "failed", avatar: "LF", color: "bg-gray-600",
-    details: [
-      { area: "Razonamiento lógico", score: 58 },
-      { area: "Personalidad", score: 50 },
-      { area: "Aptitud numérica", score: 57 },
-    ],
-  },
-];
+import { getRecruiterEvaluations } from "../../services/api";
 
 const statusConfig = {
   passed: { label: "Aprobado", color: "bg-green-100 text-green-700", icon: CheckCircle, bar: "bg-green-500" },
@@ -66,9 +10,14 @@ const statusConfig = {
 };
 
 export default function EvaluacionesPage() {
+  const [evaluations, setEvaluations] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterTest, setFilterTest] = useState("all");
   const [expanded, setExpanded] = useState(null);
+
+  useEffect(() => {
+    getRecruiterEvaluations().then(setEvaluations).catch(() => setEvaluations([]));
+  }, []);
 
   const filtered = evaluations.filter((e) => {
     const matchStatus = filterStatus === "all" || e.status === filterStatus;
@@ -130,7 +79,11 @@ export default function EvaluacionesPage() {
 
       {/* Tarjetas */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.map((ev) => {
+        {filtered.length === 0 ? (
+          <div className="md:col-span-2 xl:col-span-3 bg-white rounded-xl border border-gray-100 p-10 text-center text-sm text-brand-gray">
+            No hay evaluaciones registradas.
+          </div>
+        ) : filtered.map((ev) => {
           const s = statusConfig[ev.status];
           const StatusIcon = s.icon;
           const isExpanded = expanded === ev.id;
