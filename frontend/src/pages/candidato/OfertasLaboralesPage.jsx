@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import SearchBar from "../../components/common/SearchBar";
 import JobsGrid from "../../components/sections/JobsGrid";
-import { jobs } from "../../utils/jobsData";
+import { getJobs } from "../../utils/jobsData";
 
 export default function OfertasLaboralesPage() {
+  const [jobs] = useState(getJobs);
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(true);
   
@@ -17,7 +17,7 @@ export default function OfertasLaboralesPage() {
       .filter((loc) => loc); 
     
     return ["Todas", ...new Set(locations)];
-  }, []);
+  }, [jobs]);
 
   const filteredJobs = useMemo(() => {
     let result = jobs.filter((job) => {
@@ -35,12 +35,16 @@ export default function OfertasLaboralesPage() {
       return matchQuery && matchType && matchLocation;
     });
 
-    if (sortBy === "salary-low") {
-    } else if (sortBy === "salary-high") {
+    if (sortBy === "salary-low" || sortBy === "salary-high") {
+      result.sort((firstJob, secondJob) => {
+        const firstSalary = Number(firstJob.salary.match(/[\d,]+/)?.[0].replace(",", ""));
+        const secondSalary = Number(secondJob.salary.match(/[\d,]+/)?.[0].replace(",", ""));
+        return sortBy === "salary-low" ? firstSalary - secondSalary : secondSalary - firstSalary;
+      });
     }
 
     return result;
-  }, [query, selectedType, selectedLocation, sortBy]);
+  }, [jobs, query, selectedType, selectedLocation, sortBy]);
 
   return (
     <main className="bg-slate-50 min-h-screen pb-12">

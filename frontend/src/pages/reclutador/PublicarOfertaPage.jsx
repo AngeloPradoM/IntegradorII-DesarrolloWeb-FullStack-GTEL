@@ -1,15 +1,31 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { addJob } from "../../utils/jobsData";
 import {
   Bold, Italic, List, AlignLeft, Minus, Save, X, ChevronDown,
   FileText, DollarSign, MapPin, Clock, Users, Tag, AlertCircle,
 } from "lucide-react";
 
 export default function PublicarOfertaPage() {
+  const [title, setTitle] = useState("Agente de Ventas Telefónicas");
+  const [type, setType] = useState("Full-Time");
+  const [salaryMin, setSalaryMin] = useState("1800");
+  const [salaryMax, setSalaryMax] = useState("2500");
+  const [location, setLocation] = useState("San Isidro, Lima");
   const [description, setDescription] = useState(
     "Buscamos un profesional dinámico y orientado a resultados para unirse a nuestro equipo de ventas telefónicas. El candidato ideal tendrá:\n\n• Experiencia en ventas o atención al cliente\n• Excelentes habilidades de comunicación oral\n• Capacidad para trabajar bajo presión\n• Disponibilidad para trabajar en turnos"
   );
   const [published, setPublished] = useState(false);
+
+  const publishJob = () => {
+    addJob({
+      title,
+      type,
+      location,
+      salary: `S/ ${salaryMin} - S/ ${salaryMax}`,
+    });
+    setPublished(true);
+  };
 
   if (published) {
     return (
@@ -46,7 +62,7 @@ export default function PublicarOfertaPage() {
             className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-brand-gray rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
             <X className="w-4 h-4" /> Cancelar
           </Link>
-          <button onClick={() => setPublished(true)}
+          <button onClick={publishJob}
             className="flex items-center gap-2 bg-brand-red hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
             <Save className="w-4 h-4" /> Publicar Oferta
           </button>
@@ -63,7 +79,7 @@ export default function PublicarOfertaPage() {
           <div className="p-5 space-y-4">
             <div>
               <label className="block text-xs font-semibold text-brand-navy mb-1.5">Título del puesto *</label>
-              <input type="text" placeholder="Ej: Agente de Ventas Telefónicas Senior" defaultValue="Agente de Ventas Telefónicas"
+              <input type="text" placeholder="Ej: Agente de Ventas Telefónicas Senior" value={title} onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -101,14 +117,14 @@ export default function PublicarOfertaPage() {
               <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
                 <DollarSign className="w-3.5 h-3.5 text-gray-400" /> Sueldo mínimo (S/)
               </label>
-              <input type="number" defaultValue="1800"
+              <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
             </div>
             <div>
               <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
                 <DollarSign className="w-3.5 h-3.5 text-gray-400" /> Sueldo máximo (S/)
               </label>
-              <input type="number" defaultValue="2500"
+              <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
             </div>
             <div>
@@ -116,8 +132,8 @@ export default function PublicarOfertaPage() {
                 <Clock className="w-3.5 h-3.5 text-gray-400" /> Tipo de jornada *
               </label>
               <div className="relative">
-                <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red">
-                  <option>Full-Time (8 horas)</option><option>Part-Time (4 horas)</option>
+                  <select value={type} onChange={(e) => setType(e.target.value)} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red">
+                    <option value="Full-Time">Full-Time (8 horas)</option><option value="Part-Time">Part-Time (4 horas)</option>
                   <option>Por turnos</option><option>Freelance</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -138,7 +154,7 @@ export default function PublicarOfertaPage() {
               <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
                 <MapPin className="w-3.5 h-3.5 text-gray-400" /> Sede / Ubicación
               </label>
-              <input type="text" defaultValue="San Isidro, Lima"
+              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
             </div>
             <div>
@@ -218,7 +234,7 @@ export default function PublicarOfertaPage() {
           <button className="flex items-center gap-2 px-6 py-2.5 border border-brand-red text-brand-red rounded-lg text-sm font-medium hover:bg-brand-red/5 transition-colors">
             Guardar borrador
           </button>
-          <button onClick={() => setPublished(true)}
+          <button onClick={publishJob}
             className="flex items-center gap-2 px-6 py-2.5 bg-brand-red hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors">
             <Save className="w-4 h-4" /> Publicar Oferta
           </button>
