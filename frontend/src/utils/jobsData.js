@@ -24,3 +24,34 @@ export const jobs = [
     salary: "S/ 2,500 - S/ 3,200",
   },
 ];
+
+const JOBS_STORAGE_KEY = "gtel-jobs";
+
+export function getJobs() {
+  const storedJobs = localStorage.getItem(JOBS_STORAGE_KEY);
+
+  if (!storedJobs) {
+    return jobs;
+  }
+
+  try {
+    return [...JSON.parse(storedJobs), ...jobs];
+  } catch {
+    return jobs;
+  }
+}
+
+export function addJob(job) {
+  const storedJobs = localStorage.getItem(JOBS_STORAGE_KEY);
+  const publishedJobs = storedJobs ? JSON.parse(storedJobs) : [];
+  const newJob = {
+    ...job,
+    id: Date.now(),
+    isNew: true,
+  };
+
+  localStorage.setItem(
+    JOBS_STORAGE_KEY,
+    JSON.stringify([newJob, ...publishedJobs])
+  );
+}
