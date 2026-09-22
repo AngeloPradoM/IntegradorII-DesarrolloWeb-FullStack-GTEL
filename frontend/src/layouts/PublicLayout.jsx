@@ -32,6 +32,9 @@ export default function PublicLayout() {
               <Link to="/login" className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors">
                 Iniciar Sesión
               </Link>
+              <Link to="/login?registro=1" className="hidden md:flex items-center gap-2 border border-white/30 hover:border-white text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+                Registrarse
+              </Link>
               <Link to="/ofertas" className="hidden md:flex items-center gap-2 bg-brand-red hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                 Ver Ofertas
               </Link>
@@ -48,6 +51,7 @@ export default function PublicLayout() {
             <Link to="/ofertas" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Ofertas</Link>
             <Link to="/mis-postulaciones" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Mis Postulaciones</Link>
             <Link to="/login" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Iniciar Sesión</Link>
+            <Link to="/login?registro=1" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Registrarse</Link>
           </div>
         )}
       </header>
