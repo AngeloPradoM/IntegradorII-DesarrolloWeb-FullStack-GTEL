@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Search,
@@ -9,21 +9,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
-const candidates = [
-  { id: 1, name: "Carlos Rodríguez Sánchez", job: "Agente de Ventas", date: "19 May 2026", status: "new", score: 92, avatar: "CR" },
-  { id: 2, name: "María López Herrera", job: "Supervisor Call Center", date: "19 May 2026", status: "interview", score: 88, avatar: "ML" },
-  { id: 3, name: "José Pérez Torres", job: "Soporte Técnico", date: "18 May 2026", status: "reviewing", score: 75, avatar: "JP" },
-  { id: 4, name: "Ana Torres Mendoza", job: "Agente Bilingüe", date: "18 May 2026", status: "approved", score: 95, avatar: "AT" },
-  { id: 5, name: "Luis Flores Vega", job: "Coordinador RRHH", date: "17 May 2026", status: "rejected", score: 60, avatar: "LF" },
-  { id: 6, name: "Patricia Vega Castro", job: "Agente de Ventas", date: "17 May 2026", status: "new", score: 82, avatar: "PV" },
-  { id: 7, name: "Roberto Quispe Lima", job: "Analista de Calidad", date: "16 May 2026", status: "reviewing", score: 78, avatar: "RQ" },
-  { id: 8, name: "Claudia Mamani Rios", job: "Agente Bilingüe", date: "15 May 2026", status: "interview", score: 90, avatar: "CM" },
-  { id: 9, name: "Fernando García Díaz", job: "Soporte Técnico", date: "15 May 2026", status: "approved", score: 87, avatar: "FG" },
-  { id: 10, name: "Valeria Ramos Cruz", job: "Agente de Ventas", date: "14 May 2026", status: "new", score: 79, avatar: "VR" },
-];
+import { getRecruiterCandidates } from "../../services/api";
 
 const statusConfig = {
+  recibida: { label: "Recibida", color: "bg-blue-100 text-blue-700" },
+  en_revision: { label: "En revisión", color: "bg-yellow-100 text-yellow-700" },
+  entrevista: { label: "Entrevista", color: "bg-purple-100 text-purple-700" },
+  aprobada: { label: "Aprobada", color: "bg-green-100 text-green-700" },
+  rechazada: { label: "Rechazada", color: "bg-red-100 text-[#D32F2F]" },
   new: { label: "Nuevo", color: "bg-blue-100 text-blue-700" },
   interview: { label: "Entrevista", color: "bg-purple-100 text-purple-700" },
   reviewing: { label: "En revisión", color: "bg-yellow-100 text-yellow-700" },
@@ -40,9 +33,18 @@ const avatarColors = [
 export function CandidateDirectory() {
   const { id } = useParams();
   const [search, setSearch] = useState("");
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 8;
+
+  useEffect(() => {
+    getRecruiterCandidates()
+      .then(setCandidates)
+      .catch(() => setCandidates([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const selectedCandidate = id ? candidates.find((candidate) => candidate.id === Number(id)) : null;
 
@@ -122,8 +124,12 @@ export function CandidateDirectory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {paged.map((c, idx) => {
-                const s = statusConfig[c.status];
+              {loading ? (
+                <tr><td colSpan="6" className="px-5 py-10 text-center text-sm text-[#475569]">Cargando candidatos...</td></tr>
+              ) : paged.length === 0 ? (
+                <tr><td colSpan="6" className="px-5 py-10 text-center text-sm text-[#475569]">No hay candidatos registrados.</td></tr>
+              ) : paged.map((c, idx) => {
+                const s = statusConfig[c.status] || statusConfig.recibida;
                 return (
                   <tr key={c.id} className="hover:bg-[#F8FAFC] transition-colors">
                     <td className="px-5 py-3.5">

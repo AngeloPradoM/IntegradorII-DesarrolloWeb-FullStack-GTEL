@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, PlusSquare, Users, CalendarDays, ClipboardList,
   Search, Bell, ChevronLeft, ChevronRight, Briefcase, LogOut, Menu, X,
@@ -15,8 +15,14 @@ const navItems = [
 
 export default function RecruiterLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("gtel-user") || "null");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  if (user?.rol !== "RECLUTADOR" || !user?.token) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="flex h-screen bg-brand-bg font-sans overflow-hidden">
@@ -71,15 +77,15 @@ export default function RecruiterLayout() {
 
         <div className={`border-t border-white/10 p-3 flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
           <div className="w-8 h-8 rounded-full bg-brand-red/30 flex items-center justify-center flex-shrink-0 text-xs font-bold">
-            AG
+            {(user.nombres || user.email || "R").slice(0, 2).toUpperCase()}
           </div>
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-semibold truncate">Ana García</div>
-                <div className="text-[10px] text-white/50 truncate">Reclutadora Senior</div>
+                <div className="text-xs font-semibold truncate">{user.nombres || user.email}</div>
+                <div className="text-[10px] text-white/50 truncate">Reclutador</div>
               </div>
-              <button className="text-white/40 hover:text-white transition-colors">
+              <button onClick={() => { localStorage.removeItem("gtel-user"); navigate("/login"); }} className="text-white/40 hover:text-white transition-colors">
                 <LogOut className="w-4 h-4" />
               </button>
             </>
@@ -109,9 +115,9 @@ export default function RecruiterLayout() {
             </button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-brand-red/20 border-2 border-brand-red/20 flex items-center justify-center text-xs font-bold text-brand-red">
-                AG
+                {(user.nombres || user.email || "R").slice(0, 2).toUpperCase()}
               </div>
-              <span className="hidden md:block text-sm font-medium text-brand-navy">Ana García</span>
+              <span className="hidden md:block text-sm font-medium text-brand-navy">{user.nombres || user.email}</span>
             </div>
           </div>
         </header>

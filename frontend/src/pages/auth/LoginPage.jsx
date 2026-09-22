@@ -1,18 +1,55 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, Eye, EyeOff, Shield, ArrowRight, User, Lock } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Briefcase, Eye, EyeOff, Shield, ArrowRight, User, Lock, UserPlus } from "lucide-react";
+import { loginCandidate, registerCandidate } from "../../services/api";
 
 export default function LoginPage() {
+  const location = useLocation();
   const [tab, setTab] = useState("candidate");
   const [showPass, setShowPass] = useState(false);
+  const [registering, setRegistering] = useState(
+    new URLSearchParams(location.search).get("registro") === "1"
+  );
+  const [form, setForm] = useState({ nombres: "", apellidos: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (tab === "recruiter") {
+    setError("");
+    if (tab === "candidate") {
+      setLoading(true);
+      try {
+        const response = registering
+          ? await registerCandidate(form)
+          : await loginCandidate({
+              email: form.email,
+              password: form.password,
+              rol: tab === "candidate" ? "CANDIDATO" : "RECLUTADOR",
+            });
+        localStorage.setItem("gtel-user", JSON.stringify(response.user));
+        navigate("/mis-postulaciones");
+      } catch (requestError) {
+        setError(requestError.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await loginCandidate({
+        email: form.email,
+        password: form.password,
+        rol: "RECLUTADOR",
+      });
+      localStorage.setItem("gtel-user", JSON.stringify(response.user));
       navigate("/reclutador/dashboard");
-    } else {
-      navigate("/mis-postulaciones");
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,11 +113,22 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {registering && tab === "candidate" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input name="nombres" value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} required placeholder="Nombres" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg" />
+                  <input name="apellidos" value={form.apellidos} onChange={(e) => setForm({ ...form, apellidos: e.target.value })} required placeholder="Apellidos" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg" />
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-brand-navy mb-1.5">Correo electrónico</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
+                    name="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    required
                     type="email"
                     placeholder={tab === "recruiter" ? "reclutador@gtel.com.pe" : "candidato@correo.com"}
                     className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red"
@@ -96,6 +144,10 @@ export default function LoginPage() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
+                    name="password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    required
                     type={showPass ? "text" : "password"}
                     placeholder="••••••••"
                     className="w-full pl-10 pr-10 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red"
@@ -114,15 +166,18 @@ export default function LoginPage() {
 
               <button type="submit"
                 className="w-full bg-brand-red hover:bg-red-700 text-white py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                Ingresar <ArrowRight className="w-4 h-4" />
+                {loading ? "Procesando..." : registering ? "Crear cuenta" : "Ingresar"}
+                {registering ? <UserPlus className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
               </button>
+
+              {error && <p className="text-xs text-red-600 text-center">{error}</p>}
 
               {tab === "candidate" && (
                 <div className="text-center">
-                  <span className="text-xs text-brand-gray">¿Aún no tienes cuenta? </span>
-                  <Link to="/ofertas" className="text-xs font-semibold text-brand-red hover:underline">
-                    Postula como candidato
-                  </Link>
+                  <span className="text-xs text-brand-gray">{registering ? "¿Ya tienes cuenta? " : "¿Aún no tienes cuenta? "}</span>
+                  <button type="button" onClick={() => setRegistering(!registering)} className="text-xs font-semibold text-brand-red hover:underline">
+                    {registering ? "Inicia sesión" : "Regístrate aquí"}
+                  </button>
                 </div>
               )}
             </form>
