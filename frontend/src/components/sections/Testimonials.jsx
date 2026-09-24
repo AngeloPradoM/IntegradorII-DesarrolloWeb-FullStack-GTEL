@@ -8,20 +8,25 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="bg-brand-navy py-20">
+    <section className="bg-slate-50 py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-bold text-white text-center mb-10">Lo que dicen nuestros colaboradores</h2>
+        <div className="text-center mb-10">
+          <div className="inline-block bg-white text-brand-gray px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-3 border border-slate-200">
+            Testimonios
+          </div>
+          <h2 className="text-2xl font-bold text-brand-navy">Lo que dicen nuestros colaboradores</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map(({ name, role, text, stars }) => (
-            <div key={name} className="bg-white/5 border border-white/10 rounded-xl p-6">
-              <div className="flex mb-3">
+            <div key={name} className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg  backdrop-blur-sm">
+              <div className="mb-3 flex">
                 {Array.from({ length: stars }).map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <Star key={i} className="h-4 w-4 fill-[#B89763] text-[#B89763]" />
                 ))}
               </div>
-              <p className="text-white/80 text-sm leading-relaxed mb-4">"{text}"</p>
-              <div className="text-white font-semibold text-sm">{name}</div>
-              <div className="text-white/50 text-xs">{role}</div>
+              <p className="mb-4 text-sm leading-relaxed text-brand-gray">"{text}"</p>
+              <div className="text-sm font-semibold text-brand-navy">{name}</div>
+              <div className="text-xs text-brand-gray">{role}</div>
             </div>
           ))}
         </div>

@@ -3,14 +3,14 @@ import { TrendingUp, Star, ChevronRight, CheckCircle } from "lucide-react";
 
 export default function WorkWithUs() {
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <section id="nosotros" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
       <div className="flex flex-col lg:flex-row items-center gap-12">
         <div className="flex-1">
-          <div className="inline-block bg-brand-red/10 text-brand-red px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-4">
+          <div className="inline-block bg-red-50 text-brand-red px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-4 border border-red-100">
             Trabaja con nosotros
           </div>
           <h2 className="text-3xl font-bold text-brand-navy mb-5 leading-tight">
-            Construye el futuro de las<br />telecomunicaciones
+            Tu próximo paso, con un equipo que te acompaña
           </h2>
           <p className="text-brand-gray leading-relaxed mb-6">
             En GTEL Talento creemos que las personas son el corazón de la empresa. Ofrecemos un ambiente de trabajo dinámico, oportunidades reales de crecimiento y beneficios competitivos.
@@ -27,8 +27,8 @@ export default function WorkWithUs() {
               </li>
             ))}
           </ul>
-          <Link to="/ofertas" className="inline-flex items-center gap-2 bg-brand-red hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors">
-            Explorar Oportunidades <ChevronRight className="w-4 h-4" />
+          <Link to="/ofertas" className="inline-flex items-center gap-2 bg-brand-red hover:bg-brand-red-hover text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-md ">
+            Explorar oportunidades <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -37,11 +37,11 @@ export default function WorkWithUs() {
             <img
               src="https://images.unsplash.com/photo-1766066014237-00645c74e9c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=500"
               alt="Equipo GTEL"
-              className="w-full max-w-sm rounded-2xl object-cover shadow-2xl"
+              className="w-full max-w-sm rounded-2xl object-cover shadow-md ring-1 ring-slate-200"
               style={{ aspectRatio: "4/5" }}
             />
-            <div className="absolute -bottom-5 -left-5 bg-white rounded-xl shadow-xl p-4 flex items-center gap-3 border border-gray-100">
-              <div className="w-10 h-10 bg-brand-red/10 rounded-lg flex items-center justify-center">
+            <div className="absolute bottom-4 left-4 bg-white rounded-xl shadow-md p-4 flex items-center gap-3 border border-gray-100">
+              <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-brand-red" />
               </div>
               <div>
@@ -49,12 +49,12 @@ export default function WorkWithUs() {
                 <div className="text-base font-bold text-brand-navy">+24 posiciones</div>
               </div>
             </div>
-            <div className="absolute -top-4 -right-4 bg-brand-red text-white rounded-xl px-4 py-2 shadow-lg">
+            <div className="absolute top-4 right-4 bg-brand-red text-white rounded-xl px-4 py-2 shadow-lg">
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 fill-white" />
                 <span className="text-sm font-bold">4.8</span>
               </div>
-              <div className="text-[10px] text-white/80">Empleados satisfechos</div>
+              <div className="text-xs text-white/80">Empleados satisfechos</div>
             </div>
           </div>
         </div>
