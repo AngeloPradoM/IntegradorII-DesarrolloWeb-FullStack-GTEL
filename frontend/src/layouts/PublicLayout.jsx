@@ -1,27 +1,49 @@
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import { Briefcase, Menu, X } from "lucide-react";
 import AuthModal from "../components/auth/AuthModal";
+import ProfileMenu from "../components/auth/ProfileMenu";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import { registerCandidate } from "../services/api";
-import { getDefaultRouteForRole } from "../utils/auth";
+import { getDefaultRouteForRole, getSafeAuthRedirect } from "../utils/auth";
 export default function PublicLayout() {
   const {
     login,
     logout,
-    isAuthenticated
+    isAuthenticated,
+    user,
+    isVerificationPending
   } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modal, setModal] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const modal = searchParams.get("auth");
+  const setModal = (value, redirect) => {
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      const resolved = typeof value === "function" ? value(previous.get("auth")) : value;
+      if (resolved) next.set("auth", resolved);
+      else { next.delete("auth"); next.delete("redirect"); }
+      if (getSafeAuthRedirect(redirect)) next.set("redirect", redirect);
+      return next;
+    }, { replace: true });
+  };
   const [registrationNotice, setRegistrationNotice] = useState("");
   const navigate = useNavigate();
-  const openLogin = () => { setMenuOpen(false); setModal("login"); };
+  const openLogin = (redirect) => { setMenuOpen(false); setModal("login", redirect); };
+  const handleApplicationsClick = event => {
+    setMenuOpen(false);
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (!isAuthenticated || !user?.token || isVerificationPending) {
+      event.preventDefault();
+      openLogin("/mis-postulaciones");
+    }
+  };
   const openRegister = () => { setMenuOpen(false); setRegistrationNotice(""); setModal("register"); };
   const handleAuthenticated = (result) => {
     login(result);
-    setModal(null);
-    navigate(getDefaultRouteForRole(result.rol));
+    const redirect = getSafeAuthRedirect(searchParams.get("redirect"));
+    navigate(result.rol === "CANDIDATO" && redirect ? redirect : getDefaultRouteForRole(result.rol), { replace: true });
   };
   const handleRegister = async (payload) => {
     await registerCandidate(payload);
@@ -47,11 +69,11 @@ export default function PublicLayout() {
             <nav className="hidden md:flex items-center gap-8">
               <Link to="/" className="text-sm text-white/70 hover:text-white transition-colors font-medium">Inicio</Link>
               <Link to="/ofertas" className="text-sm text-white/70 hover:text-white transition-colors font-medium">Ofertas</Link>
-              <Link to="/mis-postulaciones" className="text-sm text-white/70 hover:text-white transition-colors font-medium">Mis Postulaciones</Link>
+              <Link to="/mis-postulaciones" onClick={handleApplicationsClick} className="text-sm text-white/70 hover:text-white transition-colors font-medium">Mis Postulaciones</Link>
             </nav>
 
             <div className="flex items-center gap-3">
-              {isAuthenticated ? <button onClick={logout} className="hidden md:block text-sm text-white/80 hover:text-white">Cerrar sesión</button> : <>
+              {isAuthenticated ? <ProfileMenu /> : <>
                 <button type="button" onClick={openLogin} className="hidden md:block text-sm font-medium text-white/80 hover:text-white transition-colors">
                   Iniciar Sesión
                 </button>
@@ -73,7 +95,7 @@ export default function PublicLayout() {
         {menuOpen && <div className="md:hidden bg-[#1E293B] border-t border-white/10 px-4 py-3 space-y-2">
             <Link to="/" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Inicio</Link>
             <Link to="/ofertas" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Ofertas</Link>
-            <Link to="/mis-postulaciones" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Mis Postulaciones</Link>
+            <Link to="/mis-postulaciones" onClick={handleApplicationsClick} className="block py-2 text-sm text-white/80 hover:text-white">Mis Postulaciones</Link>
             {isAuthenticated ? <button onClick={() => {
           logout();
           setMenuOpen(false);
@@ -86,6 +108,6 @@ export default function PublicLayout() {
 
       <main id="contenido"><Outlet context={{ openLogin, openRegister }} /></main>
       <AuthModal isOpen={modal === "login"} onClose={() => setModal(null)} onSubmit={handleAuthenticated} onRegisterClick={openRegister} notice={registrationNotice} />
-      <RegistrationModal isOpen={modal === "register"} onClose={() => setModal(current => current === "register" ? null : current)} onSubmit={handleRegister} />
+      <RegistrationModal isOpen={modal === "register"} onClose={() => setModal(null)} onSubmit={handleRegister} onLoginClick={openLogin} closeOnSubmit={false} />
     </div>;
 }

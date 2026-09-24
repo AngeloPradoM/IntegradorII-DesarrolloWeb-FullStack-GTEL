@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, MessageSquareText, Move, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, MessageSquareText, Briefcase, User } from "lucide-react";
 
 import useOtpLogin from "../../hooks/useOtpLogin";
 import useModalFocus from "../../hooks/useModalFocus";
+import AuthCardHeader from "./AuthCardHeader";
+import AuthCardFooter from "./AuthCardFooter";
 import OtpInput from "./OtpInput";
 import { IS_DEMO_MODE } from "../../services/api";
 
 export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, defaultRole = "CANDIDATO", notice = "" }) {
   const [form, setForm] = useState({ email: "", password: "", rol: defaultRole });
   const [showPassword, setShowPassword] = useState(false);
-  const otp = useOtpLogin((user) => { onSubmit?.(user); onClose?.(); });
+  const otp = useOtpLogin((user) => { if (onSubmit) onSubmit(user); else onClose?.(); });
   const { session, verificationStep, verificationCode, setVerificationCode, error, loading: isSubmitting, resendCooldown } = otp;
   const [isDragging, setIsDragging] = useState(false);
   const modalRef = useRef(null);
@@ -37,8 +39,8 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
       const height = modalRef.current?.offsetHeight || 560;
 
       setPosition({
-        x: Math.min(Math.max(20, nextX), window.innerWidth - width - 20),
-        y: Math.min(Math.max(20, nextY), window.innerHeight - height - 20),
+        x: Math.min(Math.max(16, nextX), Math.max(16, window.innerWidth - width - 16)),
+        y: Math.min(Math.max(16, nextY), Math.max(16, window.innerHeight - height - 16)),
       });
     };
 
@@ -85,38 +87,27 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
         aria-label="Iniciar sesión"
         tabIndex={-1}
         style={{ left: `${position.x}px`, top: `${position.y}px` }}
-        className="max-h-[calc(100dvh-2rem)] overflow-y-auto fixed w-[min(92vw,460px)] overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-md backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto fixed w-[min(calc(100vw-2rem),448px)] rounded-2xl border border-gray-100 bg-white text-brand-navy shadow-xl"
       >
-        <div
+        <AuthCardHeader
+          title={verificationStep ? "Verificación segura" : "Bienvenido a GTEL Talento"}
+          subtitle={verificationStep ? "Ingresa el código enviado por WhatsApp" : "Inicia sesión para acceder a tu cuenta"}
           onPointerDown={handleDragStart}
-          className="flex cursor-grab items-center justify-between gap-3 border-b border-slate-200 bg-brand-navy px-4 py-3 text-white active:cursor-grabbing dark:border-slate-700"
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15 shadow-inner shadow-white/10">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">{verificationStep ? "Verificación segura" : "Iniciar sesión"}</p>
-              <p className="text-xs text-slate-300">{verificationStep ? "Código de acceso" : "Acceso seguro"}</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              resetState();
-              onClose?.();
-            }}
-            aria-label="Cerrar modal"
-            className="rounded-full border border-white/15 bg-white/5 p-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+          onClose={() => { resetState(); onClose?.(); }}
+        />
+        {!verificationStep && <div className="flex border-b border-gray-100 bg-[#F8FAFC]" role="group" aria-label="Tipo de usuario">
+          {[{ value: "CANDIDATO", label: "Soy Candidato", icon: User }, { value: "RECLUTADOR", label: "Soy Reclutador", icon: Briefcase }].map(({ value, label, icon: Icon }) => (
+            <button key={value} type="button" aria-pressed={form.rol === value}
+              onClick={() => setForm(previous => ({ ...previous, rol: value }))}
+              className={"flex flex-1 items-center justify-center gap-2 border-b-2 px-1 py-3.5 text-sm font-semibold transition " + (form.rol === value ? "border-brand-red bg-white text-brand-red" : "border-transparent text-slate-600 hover:text-brand-navy")}>
+              <Icon className="h-4 w-4" />{label}
+            </button>
+          ))}
+        </div>}
 
         {notice && <p role="status" className="mx-5 mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
         {verificationStep ? (
-          <form onSubmit={handleVerificationSubmit} className="space-y-4 bg-white p-5" noValidate>
+          <form onSubmit={handleVerificationSubmit} className="space-y-5 bg-white p-7" noValidate>
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 shadow-sm">
               <div className="mb-3 flex items-center gap-2 font-semibold">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
@@ -139,7 +130,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-red px-4 py-3 text-sm font-semibold text-white shadow-lg  transition hover:bg-brand-red-hover disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-red px-4 py-3 text-sm font-semibold text-white shadow-sm  transition hover:bg-brand-red-hover disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? "Verificando..." : "Verificar código"}
               <ArrowRight className="h-4 w-4" />
@@ -161,37 +152,24 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
                 onClick={() => {
                   resetState();
                 }}
-                className="text-xs text-slate-500 transition hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-100"
+                className="text-xs text-slate-500 transition hover:text-slate-700"
               >
                 Volver
               </button>
             </div>
           </form>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 p-5" noValidate>
-            <div className="flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 dark:border-sky-700 dark:bg-sky-500/10 dark:text-sky-300">
-              <Move className="h-4 w-4" />
-              Ingresa tus datos para continuar con tu cuenta.
+          <form onSubmit={handleSubmit} className="space-y-5 p-7">
+            <div className={"flex items-center gap-2.5 rounded-xl border p-3 text-xs " + (form.rol === "RECLUTADOR" ? "border-red-100 bg-red-50 text-brand-red" : "border-blue-100 bg-blue-50 text-blue-700")}>
+              {form.rol === "RECLUTADOR" ? <Briefcase className="h-4 w-4 shrink-0" /> : <User className="h-4 w-4 shrink-0" />}
+              {form.rol === "RECLUTADOR" ? "Panel ATS completo para gestión de reclutamiento." : "Accede a tus postulaciones y el estado de tus procesos."}
             </div>
             {IS_DEMO_MODE && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"><strong>Accesos demo</strong><br />Candidato: candidato@gtel.com<br />Reclutador: reclutador@gtel.com<br />Contraseña: Demo123!</div>}
 
-            <fieldset>
-              <legend className="mb-2 block text-sm font-medium text-slate-700">¿Cómo deseas ingresar?</legend>
-              <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1" role="group" aria-label="Tipo de usuario">
-                {[{ value: "CANDIDATO", label: "Candidato" }, { value: "RECLUTADOR", label: "Reclutador" }].map(({ value, label }) => <button
-                  key={value}
-                  type="button"
-                  aria-pressed={form.rol === value}
-                  onClick={() => setForm((previous) => ({ ...previous, rol: value }))}
-                  className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${form.rol === value ? "bg-white text-brand-red shadow-sm" : "text-slate-500 hover:text-brand-navy"}`}
-                >
-                  {label}
-                </button>)}
-              </div>
-            </fieldset>
+
 
             <div>
-              <label htmlFor="auth-email" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label htmlFor="auth-email" className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Correo electrónico
               </label>
               <div className="relative">
@@ -201,31 +179,33 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
                   type="email"
                   value={form.email}
                   onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
-                  placeholder="usuario@empresa.com"
+                  className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
+                  placeholder={form.rol === "RECLUTADOR" ? "reclutador@gtel.com.pe" : "candidato@correo.com"}
+                  autoComplete="username" required
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="auth-password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label htmlFor="auth-password" className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Contraseña
               </label>
               <div className="relative">
                 <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   id="auth-password"
+                  autoComplete="current-password" required
                   type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-11 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-11 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   aria-label="Mostrar u ocultar contraseña"
                   onClick={() => setShowPassword((value) => !value)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -245,17 +225,18 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-red px-4 py-2.5 text-sm font-semibold text-white shadow-lg  transition hover:bg-brand-red-hover disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 text-sm font-semibold text-white shadow-sm  transition hover:bg-brand-red-hover disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? "Enviando código..." : "Ingresar"}
               <ArrowRight className="h-4 w-4" />
             </button>
 
-            {form.rol === "CANDIDATO" && <div className="text-center text-xs text-slate-500 dark:text-slate-300">
-              ¿No tienes cuenta? <button type="button" onClick={onRegisterClick} className="font-semibold text-red-600 underline-offset-4 hover:underline">Regístrate aquí</button>
+            {form.rol === "CANDIDATO" && <div className="text-center text-xs text-slate-500">
+              ¿Aún no tienes cuenta? <button type="button" onClick={onRegisterClick} className="font-semibold text-brand-red underline-offset-4 hover:underline">Crear mi cuenta</button>
             </div>}
           </form>
         )}
+        <AuthCardFooter />
       </div>
     </div>
   );

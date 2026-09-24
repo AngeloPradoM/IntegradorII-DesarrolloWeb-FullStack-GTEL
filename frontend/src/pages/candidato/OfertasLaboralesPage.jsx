@@ -1,6 +1,7 @@
 import { getJobs } from "../../utils/jobsData";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AuthRequiredLink from "../../components/auth/AuthRequiredLink";
 import { Search, MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, Filter, ChevronDown, Briefcase, X, Zap } from "lucide-react";
 export default function JobListings() {
   const [jobs] = useState(() => getJobs().map(job => ({
@@ -151,9 +152,9 @@ export default function JobListings() {
 
                 <div className="px-5 pb-4 flex items-center justify-between border-t border-gray-50 pt-3">
                   <span className="text-[10px] text-[#475569]">{job.posted}</span>
-                  <Link to={`/postulacion/${job.id}`} className="inline-flex items-center gap-1.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">
+                  <AuthRequiredLink to={`/postulacion/${job.id}`} className="inline-flex items-center gap-1.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors">
                     Postular ahora
-                  </Link>
+                  </AuthRequiredLink>
                 </div>
               </div>)}
           </div>}

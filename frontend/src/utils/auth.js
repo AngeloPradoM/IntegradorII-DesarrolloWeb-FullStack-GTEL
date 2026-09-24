@@ -1,5 +1,9 @@
 export const AUTH_STORAGE_KEY = "gtel-user";
 
+export function getSafeAuthRedirect(value) {
+  return typeof value === "string" && /^\/(postulacion(?:\/\d+)?|mis-postulaciones|perfil|contactar-reclutador|candidato)$/.test(value) ? value : null;
+}
+
 export function getStoredUser() {
   try {
     const stored = localStorage.getItem(AUTH_STORAGE_KEY);

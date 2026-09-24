@@ -8,6 +8,12 @@ function normalizeUser(user) {
   if (!user?.token || user.token === "demo-token") return null;
 
   return {
+    id: user.id,
+    telefono: user.telefono || "",
+    ubicacion: user.ubicacion || "",
+    localidad: user.localidad || "",
+    correoContacto: user.correoContacto || "",
+    foto: user.foto || "",
     apellidos: user.apellidos,
     token: user.token || null,
     rol: user.rol || "CANDIDATO",
@@ -33,7 +39,7 @@ export function AuthProvider({ children }) {
 
   const login = (result = {}) => {
     if (!result.token) throw new Error("Debes completar la verificación OTP");
-    const nextUser = normalizeUser({ token: result.token, email: result.email, rol: result.rol,
+    const nextUser = normalizeUser({ ...result, token: result.token, email: result.email, rol: result.rol,
       nombres: result.nombres, isVerified: true, verificationPending: false, demo: result.demo });
     setStoredUser(nextUser);
     setUser(nextUser);
@@ -52,6 +58,11 @@ export function AuthProvider({ children }) {
       isVerificationPending: Boolean(user?.token && user?.verificationPending && !user?.isVerified),
       login,
       logout,
+      updateProfile: (profile) => {
+        const next = normalizeUser({ ...user, ...profile, token: user.token, rol: user.rol });
+        setStoredUser(next);
+        setUser(next);
+      },
     }),
     [user]
   );

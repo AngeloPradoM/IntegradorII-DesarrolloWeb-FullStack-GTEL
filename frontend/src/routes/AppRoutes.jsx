@@ -1,4 +1,4 @@
-import LoginPage from "../pages/auth/LoginPage";
+import LoginModalRedirect from "../pages/auth/LoginModalRedirect";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout";
 import RecruiterLayout from "../layouts/RecruiterLayout";
@@ -21,7 +21,7 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginModalRedirect />} />
 
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />

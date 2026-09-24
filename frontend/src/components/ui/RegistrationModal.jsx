@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import AuthCardHeader from "../auth/AuthCardHeader";
+import AuthCardFooter from "../auth/AuthCardFooter";
 import useModalFocus from "../../hooks/useModalFocus";
 import {
   CheckCircle2,
@@ -9,8 +11,6 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
-  UserRound,
-  X,
 } from "lucide-react";
 
 const DEPARTAMENTOS = [
@@ -93,7 +93,7 @@ const getPasswordStrength = (password = "") => {
   return { score, label: "Muy fuerte", tone: "bg-emerald-500", text: "text-emerald-600" };
 };
 
-export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
+export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginClick, closeOnSubmit = true }) {
   const [form, setForm] = useState({
     nombres: "",
     apellidos: "",
@@ -244,7 +244,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
 
     setSubmitting(true);
     setSubmitError("");
-    try { await onSubmit?.(payload); onClose(); }
+    try { await onSubmit?.(payload); if (closeOnSubmit) onClose(); }
     catch (e) { setSubmitError(e.message || "No se pudo registrar la cuenta"); }
     finally { setSubmitting(false); }
   };
@@ -274,46 +274,24 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
         aria-modal="true"
         aria-label="Registrarse"
         tabIndex={-1}
-        className="max-h-[calc(100dvh-2rem)] overflow-y-auto fixed w-[min(94vw,640px)] rounded-2xl border border-slate-200/70 bg-white shadow-md backdrop-blur-xl dark:bg-slate-900/95 dark:border-slate-700/80" 
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto fixed w-[min(calc(100vw-2rem),448px)] rounded-2xl border border-gray-100 bg-white text-brand-navy shadow-xl"
         style={{ left: `${position.x}px`, top: `${position.y}px` }}
       >
-        <div
-          className="flex cursor-grab items-center justify-between gap-3 rounded-t-2xl border-b border-slate-200 bg-brand-navy px-5 py-4 text-white active:cursor-grabbing dark:border-slate-700"
-          onPointerDown={handleDragStart}
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
-              <UserRound className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold tracking-wide">Registro de usuario</p>
-              <p className="text-xs text-slate-300">Comienza con tus datos de contacto</p>
-            </div>
-          </div>
+        <AuthCardHeader title="Crea tu cuenta en GTEL Talento" subtitle="Regístrate para comenzar a postular" onClose={onClose} onPointerDown={handleDragStart} />
 
-          <button
-            type="button"
-            aria-label="Cerrar modal"
-            onClick={onClose}
-            className="rounded-full border border-white/15 bg-white/5 p-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="max-h-[78vh] overflow-y-auto px-5 py-5">
-          <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <div className="p-7">
+          <form className="space-y-5" onSubmit={handleSubmit} noValidate>
             {submitError && <p role="alert" className="text-sm text-red-600">{submitError}</p>}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="nombres" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label htmlFor="nombres" className="mb-1.5 block text-xs font-semibold text-slate-700">
                   Nombre
                 </label>
                 <input
                   id="nombres"
                   value={form.nombres}
                   onChange={(event) => updateField("nombres", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                   placeholder="Ej. Carlos"
                   autoComplete="given-name"
                   aria-invalid={Boolean(errors.nombres)}
@@ -322,14 +300,14 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
               </div>
 
               <div>
-                <label htmlFor="apellidos" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label htmlFor="apellidos" className="mb-1.5 block text-xs font-semibold text-slate-700">
                   Apellido
                 </label>
                 <input
                   id="apellidos"
                   value={form.apellidos}
                   onChange={(event) => updateField("apellidos", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                   placeholder="Ej. Pérez"
                   autoComplete="family-name"
                   aria-invalid={Boolean(errors.apellidos)}
@@ -339,7 +317,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label htmlFor="email" className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Correo electrónico
               </label>
               <div className="relative">
@@ -349,7 +327,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                   type="email"
                   value={form.email}
                   onChange={(event) => updateField("email", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                   placeholder="nombre@empresa.com"
                   autoComplete="email"
                   aria-invalid={Boolean(errors.email)}
@@ -359,12 +337,12 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
             </div>
 
             <div>
-              <label htmlFor="telefono" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label htmlFor="telefono" className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Número de teléfono
               </label>
 
               <div className="flex items-center gap-2">
-                <div className="flex h-[42px] min-w-[84px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
+                <div className="flex h-[42px] min-w-[84px] items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-slate-700">
                   {PHONE_PREFIX}
                 </div>
                 <div className="relative flex-1">
@@ -375,7 +353,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                     inputMode="numeric"
                     value={form.telefono}
                     onChange={(event) => updateField("telefono", event.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                     placeholder="987654321"
                     autoComplete="tel"
                     aria-invalid={Boolean(errors.telefono)}
@@ -386,7 +364,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
             </div>
 
             <div>
-              <label htmlFor="ubicacion" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label htmlFor="ubicacion" className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Lugar de ubicación
               </label>
               <div className="relative">
@@ -395,7 +373,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                   id="ubicacion"
                   value={form.ubicacion}
                   onChange={(event) => updateField("ubicacion", event.target.value)}
-                  className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-10 py-2.5 text-sm text-slate-800 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-slate-800 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                   aria-invalid={Boolean(errors.ubicacion)}
                 >
                   <option value="">Selecciona un departamento</option>
@@ -410,7 +388,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label htmlFor="password" className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Contraseña
               </label>
               <div className="relative">
@@ -419,7 +397,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                   type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(event) => updateField("password", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 pr-11 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 pr-11 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                   placeholder="Ingrese una contraseña segura"
                   aria-invalid={Boolean(errors.password)}
                 />
@@ -427,14 +405,14 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                   type="button"
                   aria-label="Mostrar u ocultar contraseña"
                   onClick={() => setShowPassword((value) => !value)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
               <div className="mt-2">
-                <div className="mb-1 flex items-center justify-between text-xs font-medium text-slate-600 dark:text-slate-300">
+                <div className="mb-1 flex items-center justify-between text-xs font-medium text-slate-600">
                   <span>Fortaleza de contraseña</span>
                   <span className={passwordStrength.text}>{passwordStrength.label}</span>
                 </div>
@@ -444,7 +422,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                     return (
                       <span
                         key={item}
-                        className={`h-2 rounded-full ${active ? passwordStrength.tone : "bg-slate-200 dark:bg-slate-700"}`}
+                        className={`h-2 rounded-full ${active ? passwordStrength.tone : "bg-slate-200"}`}
                       />
                     );
                   })}
@@ -455,7 +433,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
             </div>
 
             <div>
-              <label htmlFor="confirmarPassword" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label htmlFor="confirmarPassword" className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Confirmar contraseña
               </label>
               <div className="relative">
@@ -464,7 +442,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                   type={showConfirmPassword ? "text" : "password"}
                   value={form.confirmarPassword}
                   onChange={(event) => updateField("confirmarPassword", event.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 pr-11 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 pr-11 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
                   placeholder="Repetir contraseña"
                   aria-invalid={Boolean(errors.confirmarPassword)}
                 />
@@ -472,7 +450,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
                   type="button"
                   aria-label="Mostrar u ocultar confirmación"
                   onClick={() => setShowConfirmPassword((value) => !value)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -480,16 +458,16 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
               {errors.confirmarPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmarPassword}</p>}
             </div>
 
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-700/60 dark:bg-amber-500/10">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
               <div className="flex items-start gap-2">
-                <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
-                <p className="text-xs leading-5 text-amber-800 dark:text-amber-200">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <p className="text-xs leading-5 text-amber-800">
                   La verificación de dos pasos (2FA) por WhatsApp se configurará y validará al momento de iniciar sesión por primera vez tras el registro.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800 dark:border-emerald-600/50 dark:bg-emerald-500/10 dark:text-emerald-200">
+            <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4" />
                 <span>Protección de datos y cifrado seguro</span>
@@ -497,23 +475,25 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit }) {
               <CheckCircle2 className="h-4 w-4" />
             </div>
 
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2">
+            <div className="flex flex-col-reverse gap-2 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit" disabled={submitting}
-                className="rounded-xl bg-brand-red px-4 py-2.5 text-sm font-semibold text-white shadow-lg  transition hover:bg-brand-red-hover"
+                className="rounded-lg bg-brand-red px-4 py-2.5 text-sm font-semibold text-white shadow-sm  transition hover:bg-brand-red-hover"
               >
-                Crear cuenta
+                {submitting ? "Creando cuenta..." : "Crear cuenta"}
               </button>
             </div>
+            {onLoginClick && <p className="text-center text-xs text-slate-600">¿Ya tienes cuenta? <button type="button" disabled={submitting} onClick={onLoginClick} className="font-semibold text-brand-red hover:underline">Iniciar sesión</button></p>}
           </form>
         </div>
+        <AuthCardFooter />
       </div>
     </div>
   );

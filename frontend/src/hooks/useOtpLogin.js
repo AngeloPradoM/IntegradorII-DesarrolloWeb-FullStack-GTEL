@@ -41,7 +41,7 @@ export default function useOtpLogin(onAuthenticated) {
       if (!session || !/^[0-9]{6}$/.test(verificationCode)) throw new Error("Introduce los 6 dígitos del código");
       const result = await verifyOtp(session.sessionId, verificationCode);
       if (!result.verified || !result.token) throw new Error("No se pudo completar la verificación");
-      onAuthenticated({ token: result.token, email: result.email, rol: result.role, nombres: result.nombres, demo: result.demo });
+      onAuthenticated({ ...result, rol: result.role });
       setSession(null);
       setVerificationCode("");
     }),
