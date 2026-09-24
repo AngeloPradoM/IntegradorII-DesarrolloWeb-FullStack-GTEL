@@ -1,0 +1,23 @@
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+
+# Java / backend
+backend/target/
+backend/.env
+backend/.env.*
+
+# General
+.DS_Store
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Local design reference and browser review profile
+.design-reference/
+.ui-review/
