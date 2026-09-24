@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { MapPin, Wallet, Clock3, ArrowLeft, Briefcase } from "lucide-react";
 import { getJobs } from "../../utils/jobsData";
+import AuthRequiredLink from "../../components/auth/AuthRequiredLink";
 
 export default function OfertaDetallePage() {
   const { id } = useParams();
@@ -45,12 +46,12 @@ export default function OfertaDetallePage() {
               </div>
             </div>
 
-            <Link
+            <AuthRequiredLink
               to={`/postulacion/${job.id}`}
               className="inline-flex items-center justify-center rounded-xl bg-brand-red px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-red-hover"
             >
               Postular ahora
-            </Link>
+            </AuthRequiredLink>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">

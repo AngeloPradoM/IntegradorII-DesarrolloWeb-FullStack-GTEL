@@ -21,7 +21,7 @@ export async function registerCandidate(data) {
   if (!IS_DEMO_MODE) return request("/api/auth/register", { method: "POST", body: JSON.stringify(data) });
   const users = demoCollections.users();
   if (users.some((user) => user.email.toLowerCase() === data.email.trim().toLowerCase())) return fail("Este correo ya está registrado");
-  const phone = `${data.countryCode || "+51"}${String(data.telefono || "").replace(/\D/g, "")}`;
+  const phone = String(data.telefono || "").startsWith("+") ? data.telefono : `${data.countryCode || "+51"}${String(data.telefono || "").replace(/\D/g, "")}`;
   writeDemo("users", [...users, { ...data, id: `candidate-${Date.now()}`, telefono: phone, rol: "CANDIDATO" }]);
   return pause({ registered: true });
 }
@@ -45,7 +45,23 @@ export async function verifyOtp(sessionId, otp) {
   if (otp !== DEMO_OTP) return fail("Código incorrecto. En modo demo usa 123456.");
   const { user } = session;
   sessions.delete(sessionId);
-  return pause({ verified: true, token: `demo-session:${user.rol}:${user.id}`, email: user.email, role: user.rol, nombres: user.nombres, demo: true });
+  return pause({ ...publicProfile(user), verified: true, token: `demo-session:${user.rol}:${user.id}`, role: user.rol, demo: true });
+}
+
+function publicProfile(user) {
+  return Object.fromEntries(['id', 'nombres', 'apellidos', 'email', 'telefono', 'ubicacion', 'localidad', 'correoContacto', 'foto'].map(key => [key, user[key] || '']));
+}
+
+export async function saveProfile(currentUser, changes) {
+  if (!IS_DEMO_MODE) throw new Error('La edición de perfil aún no tiene un servicio disponible en el servidor.');
+  const users = demoCollections.users();
+  const index = users.findIndex(item => currentUser.id ? item.id === currentUser.id : item.email === currentUser.email);
+  if (index < 0) throw new Error('No se encontró tu cuenta. Inicia sesión nuevamente.');
+  const profile = publicProfile({ ...users[index], ...changes, id: users[index].id });
+  if (users.some((item, i) => i !== index && item.email.toLowerCase() === profile.email.toLowerCase())) throw new Error('Este correo ya está registrado.');
+  users[index] = { ...users[index], ...profile };
+  writeDemo('users', users);
+  return profile;
 }
 
 export async function resendOtp(sessionId) {

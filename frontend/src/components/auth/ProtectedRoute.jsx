@@ -6,11 +6,7 @@ export default function ProtectedRoute({ children, allowedRoles = [], redirectTo
   const location = useLocation();
   const { user, isAuthenticated, isVerificationPending } = useAuth();
 
-  if (isVerificationPending) {
-    return <Navigate to="/login?authRequired=1" replace />;
-  }
-
-  if (!isAuthenticated || !user?.token) {
+  if (isVerificationPending || !isAuthenticated || !user?.token) {
     const next = `${redirectTo}?authRequired=1&redirect=${encodeURIComponent(location.pathname)}`;
     return <Navigate to={next} replace />;
   }
