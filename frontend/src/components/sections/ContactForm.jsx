@@ -2,7 +2,7 @@ import { Phone, Mail, MapPin, MessageSquare } from "lucide-react";
 
 export default function ContactForm() {
   return (
-    <section className="bg-white py-20">
+    <section id="contacto" className="bg-white py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
@@ -10,26 +10,26 @@ export default function ContactForm() {
               Contáctanos
             </div>
             <h2 className="text-3xl font-bold text-brand-navy">¿Tienes alguna duda?</h2>
-            <p className="text-brand-gray mt-2 text-sm">Escríbenos y un reclutador te responderá en menos de 24 horas.</p>
+            <p className="text-brand-gray mt-2 text-sm">Cuéntanos qué necesitas. Estamos aquí para orientarte en tu postulación.</p>
           </div>
 
-          <form className="bg-brand-bg rounded-2xl p-8 border border-gray-200 shadow-sm space-y-4">
+          <form className="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-8 shadow-sm space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-brand-navy mb-1.5">Nombre completo</label>
-                <input type="text" placeholder="Tu nombre" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
+                <label className="mb-1.5 block text-xs font-semibold text-brand-navy">Nombre completo</label>
+                <input type="text" placeholder="Tu nombre" className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-brand-navy mb-1.5">Correo electrónico</label>
-                <input type="email" placeholder="tu@correo.com" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
+                <label className="mb-1.5 block text-xs font-semibold text-brand-navy">Correo electrónico</label>
+                <input type="email" placeholder="tu@correo.com" className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-brand-navy mb-1.5">Mensaje</label>
-              <textarea rows={4} placeholder="¿En qué podemos ayudarte?" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red resize-none" />
+              <label className="mb-1.5 block text-xs font-semibold text-brand-navy">Mensaje</label>
+              <textarea rows={4} placeholder="¿En qué podemos ayudarte?" className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20" />
             </div>
-            <button type="submit" className="w-full bg-brand-red hover:bg-red-700 text-white py-3 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-              <MessageSquare className="w-4 h-4" /> Enviar Mensaje
+            <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-red py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red-hover shadow-md ">
+              <MessageSquare className="w-4 h-4" /> Enviar mensaje
             </button>
           </form>
 

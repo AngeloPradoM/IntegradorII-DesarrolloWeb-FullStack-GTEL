@@ -1,245 +1,263 @@
+import { addJob } from "../../utils/jobsData";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { addJob } from "../../utils/jobsData";
-import {
-  Bold, Italic, List, AlignLeft, Minus, Save, X, ChevronDown,
-  FileText, DollarSign, MapPin, Clock, Users, Tag, AlertCircle,
-} from "lucide-react";
-
-export default function PublicarOfertaPage() {
+import { Bold, Italic, List, AlignLeft, Minus, Save, X, ChevronDown, FileText, DollarSign, MapPin, Clock, Users, Tag, AlertCircle } from "lucide-react";
+export default function PublishJob() {
   const [title, setTitle] = useState("Agente de Ventas Telefónicas");
   const [type, setType] = useState("Full-Time");
   const [salaryMin, setSalaryMin] = useState("1800");
   const [salaryMax, setSalaryMax] = useState("2500");
   const [location, setLocation] = useState("San Isidro, Lima");
-  const [description, setDescription] = useState(
-    "Buscamos un profesional dinámico y orientado a resultados para unirse a nuestro equipo de ventas telefónicas. El candidato ideal tendrá:\n\n• Experiencia en ventas o atención al cliente\n• Excelentes habilidades de comunicación oral\n• Capacidad para trabajar bajo presión\n• Disponibilidad para trabajar en turnos"
-  );
+  const [description, setDescription] = useState("Buscamos un profesional dinámico y orientado a resultados para unirse a nuestro equipo de ventas telefónicas. El candidato ideal tendrá:\n\n• Experiencia en ventas o atención al cliente\n• Excelentes habilidades de comunicación oral\n• Capacidad para trabajar bajo presión\n• Disponibilidad para trabajar en turnos");
   const [published, setPublished] = useState(false);
-
   const publishJob = () => {
     addJob({
       title,
       type,
       location,
-      salary: `S/ ${salaryMin} - S/ ${salaryMax}`,
+      description,
+      salary: `S/ ${salaryMin} - S/ ${salaryMax}`
     });
     setPublished(true);
   };
-
   if (published) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-[60vh]">
+    return <div className="p-6 flex items-center justify-center min-h-[60vh]">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 max-w-md text-center">
           <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FileText className="w-7 h-7 text-green-600" />
           </div>
-          <h2 className="text-xl font-bold text-brand-navy mb-2">¡Oferta publicada!</h2>
-          <p className="text-sm text-brand-gray mb-5">La oferta laboral ha sido publicada y está visible para los candidatos.</p>
+          <h2 className="text-xl font-bold text-[#1E293B] mb-2">¡Oferta publicada!</h2>
+          <p className="text-sm text-[#475569] mb-5">La oferta laboral ha sido publicada y está visible para los candidatos.</p>
           <div className="flex gap-3">
-            <button onClick={() => setPublished(false)}
-              className="flex-1 border border-gray-200 text-brand-gray py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50">
+            <button onClick={() => setPublished(false)} className="flex-1 border border-gray-200 text-[#475569] py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50">
               Publicar otra
             </button>
-            <Link to="/reclutador/postulantes" className="flex-1 bg-brand-red text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-red-700 text-center">
+            <Link to="/reclutador/postulantes" className="flex-1 bg-[#D32F2F] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[#B71C1C] text-center">
               Ver candidatos
             </Link>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="p-6 max-w-4xl">
+  return <div className="p-6 max-w-4xl">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-brand-navy">Publicar Nueva Oferta</h1>
-          <p className="text-sm text-brand-gray">Completa los campos para crear una nueva vacante</p>
+          <h1 className="text-xl font-bold text-[#1E293B]">Publicar Nueva Oferta</h1>
+          <p className="text-sm text-[#475569]">Completa los campos para crear una nueva vacante</p>
         </div>
         <div className="flex gap-3">
-          <Link to="/reclutador/dashboard"
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-brand-gray rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-            <X className="w-4 h-4" /> Cancelar
+          <Link to="/reclutador/dashboard" className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-[#475569] rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+            <X className="w-4 h-4" />
+            Cancelar
           </Link>
-          <button onClick={publishJob}
-            className="flex items-center gap-2 bg-brand-red hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
-            <Save className="w-4 h-4" /> Publicar Oferta
+          <button onClick={publishJob} className="flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
+            <Save className="w-4 h-4" />
+            Publicar Oferta
           </button>
         </div>
       </div>
 
       <div className="space-y-5">
-        {/* Información básica */}
+        {/* Block 1: Información básica */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="bg-brand-bg border-b border-gray-100 px-5 py-3 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-brand-red" />
-            <h2 className="font-bold text-brand-navy text-sm">Información Básica</h2>
+          <div className="bg-[#F8FAFC] border-b border-gray-100 px-5 py-3 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#D32F2F]" />
+            <h2 className="font-bold text-[#1E293B] text-sm">Información Básica</h2>
           </div>
           <div className="p-5 space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-brand-navy mb-1.5">Título del puesto *</label>
-              <input type="text" placeholder="Ej: Agente de Ventas Telefónicas Senior" value={title} onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
+              <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Título del puesto *</label>
+              <input type="text" placeholder="Ej: Agente de Ventas Telefónicas Senior" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
-                  <Users className="w-3.5 h-3.5 text-gray-400" /> Departamento / Área *
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
+                  <Users className="w-3.5 h-3.5 text-gray-400" />
+                  Departamento / Área *
                 </label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red">
-                    <option>Ventas</option><option>Soporte Técnico</option><option>Supervisión</option>
-                    <option>Recursos Humanos</option><option>Calidad</option><option>Operaciones</option>
+                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                    <option>Ventas</option>
+                    <option>Soporte Técnico</option>
+                    <option>Supervisión</option>
+                    <option>Recursos Humanos</option>
+                    <option>Calidad</option>
+                    <option>Operaciones</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
-                  <Tag className="w-3.5 h-3.5 text-gray-400" /> Número de vacantes
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
+                  <Tag className="w-3.5 h-3.5 text-gray-400" />
+                  Número de vacantes
                 </label>
-                <input type="number" min="1" defaultValue="3"
-                  className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
+                <input type="number" min="1" defaultValue="3" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Condiciones laborales */}
+        {/* Block 2: Condiciones */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="bg-brand-bg border-b border-gray-100 px-5 py-3 flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-brand-red" />
-            <h2 className="font-bold text-brand-navy text-sm">Condiciones Laborales</h2>
+          <div className="bg-[#F8FAFC] border-b border-gray-100 px-5 py-3 flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-[#D32F2F]" />
+            <h2 className="font-bold text-[#1E293B] text-sm">Condiciones Laborales</h2>
           </div>
-          <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
-                <DollarSign className="w-3.5 h-3.5 text-gray-400" /> Sueldo mínimo (S/)
-              </label>
-              <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
-            </div>
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
-                <DollarSign className="w-3.5 h-3.5 text-gray-400" /> Sueldo máximo (S/)
-              </label>
-              <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
-            </div>
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
-                <Clock className="w-3.5 h-3.5 text-gray-400" /> Tipo de jornada *
-              </label>
-              <div className="relative">
-                  <select value={type} onChange={(e) => setType(e.target.value)} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red">
-                    <option value="Full-Time">Full-Time (8 horas)</option><option value="Part-Time">Part-Time (4 horas)</option>
-                  <option>Por turnos</option><option>Freelance</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <div className="p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-gray-400" />
+                  Sueldo mínimo (S/)
+                </label>
+                <input type="number" value={salaryMin} onChange={e => setSalaryMin(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
               </div>
-            </div>
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
-                <MapPin className="w-3.5 h-3.5 text-gray-400" /> Modalidad
-              </label>
-              <div className="relative">
-                <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red">
-                  <option>Presencial</option><option>Remoto</option><option>Híbrido</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-gray-400" />
+                  Sueldo máximo (S/)
+                </label>
+                <input type="number" value={salaryMax} onChange={e => setSalaryMax(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
               </div>
-            </div>
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy mb-1.5">
-                <MapPin className="w-3.5 h-3.5 text-gray-400" /> Sede / Ubicación
-              </label>
-              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-brand-navy mb-1.5">Fecha límite de postulación</label>
-              <input type="date" defaultValue="2026-06-15"
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
+                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                  Tipo de jornada *
+                </label>
+                <div className="relative">
+                  <select value={type} onChange={e => setType(e.target.value)} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]"><option value="Full-Time">Full-Time (8 horas)</option>
+                    <option value="Part-Time">Part-Time (4 horas)</option>
+                    <option>Por turnos</option>
+                    <option>Freelance</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                  Modalidad
+                </label>
+                <div className="relative">
+                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                    <option>Presencial</option>
+                    <option>Remoto</option>
+                    <option>Híbrido</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                  Sede / Ubicación
+                </label>
+                <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Fecha límite de postulación</label>
+                <input type="date" defaultValue="2026-06-15" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Descripción WYSIWYG */}
+        {/* Block 3: Descripción con WYSIWYG */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="bg-brand-bg border-b border-gray-100 px-5 py-3 flex items-center gap-2">
-            <AlignLeft className="w-4 h-4 text-brand-red" />
-            <h2 className="font-bold text-brand-navy text-sm">Descripción del Puesto</h2>
+          <div className="bg-[#F8FAFC] border-b border-gray-100 px-5 py-3 flex items-center gap-2">
+            <AlignLeft className="w-4 h-4 text-[#D32F2F]" />
+            <h2 className="font-bold text-[#1E293B] text-sm">Descripción del Puesto</h2>
           </div>
+
+          {/* Toolbar */}
           <div className="border-b border-gray-100 px-5 py-2 flex items-center gap-1 flex-wrap">
-            {[{ icon: Bold, tip: "Negrita" }, { icon: Italic, tip: "Cursiva" }, { icon: List, tip: "Viñetas" }, { icon: AlignLeft, tip: "Alinear" }].map(({ icon: Icon, tip }) => (
-              <button key={tip} title={tip} className="p-1.5 text-brand-gray hover:text-brand-navy hover:bg-gray-100 rounded transition-colors">
+            {[{
+            icon: Bold,
+            tip: "Negrita"
+          }, {
+            icon: Italic,
+            tip: "Cursiva"
+          }, {
+            icon: List,
+            tip: "Viñetas"
+          }, {
+            icon: AlignLeft,
+            tip: "Alinear"
+          }].map(({
+            icon: Icon,
+            tip
+          }) => <button key={tip} title={tip} className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors">
                 <Icon className="w-4 h-4" />
-              </button>
-            ))}
+              </button>)}
             <div className="w-px h-4 bg-gray-200 mx-1" />
-            <button className="p-1.5 text-brand-gray hover:text-brand-navy hover:bg-gray-100 rounded transition-colors" title="Separador">
+            <button className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors" title="Separador">
               <Minus className="w-4 h-4" />
             </button>
           </div>
+
           <div className="p-5">
-            <textarea rows={8} value={description} onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red resize-none leading-relaxed" />
-            <p className="text-[10px] text-brand-gray mt-1">{description.length} caracteres · Mín. 100 recomendado</p>
+            <textarea rows={8} value={description} onChange={e => setDescription(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F] resize-none leading-relaxed" />
+            <p className="text-[10px] text-[#475569] mt-1">{description.length} caracteres · Mín. 100 recomendado</p>
           </div>
         </div>
 
-        {/* Requisitos */}
+        {/* Block 4: Requisitos */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="bg-brand-bg border-b border-gray-100 px-5 py-3 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-brand-red" />
-            <h2 className="font-bold text-brand-navy text-sm">Requisitos</h2>
+          <div className="bg-[#F8FAFC] border-b border-gray-100 px-5 py-3 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-[#D32F2F]" />
+            <h2 className="font-bold text-[#1E293B] text-sm">Requisitos</h2>
           </div>
           <div className="p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-brand-navy mb-1.5">Nivel educativo mínimo</label>
+                <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Nivel educativo mínimo</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red">
-                    <option>Secundaria completa</option><option>Técnico</option><option>Universitario</option><option>Posgrado</option>
+                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                    <option>Secundaria completa</option>
+                    <option>Técnico</option>
+                    <option>Universitario</option>
+                    <option>Posgrado</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-brand-navy mb-1.5">Experiencia mínima</label>
+                <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Experiencia mínima</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red">
-                    <option>Sin experiencia</option><option>6 meses - 1 año</option><option>1 - 2 años</option>
-                    <option>2 - 5 años</option><option>5+ años</option>
+                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                    <option>Sin experiencia</option>
+                    <option>6 meses - 1 año</option>
+                    <option>1 - 2 años</option>
+                    <option>2 - 5 años</option>
+                    <option>5+ años</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-brand-navy mb-1.5">Habilidades / Tags (separadas por coma)</label>
-              <input type="text" defaultValue="Ventas, Telecomunicaciones, Atención al cliente, Comunicación efectiva"
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red" />
+              <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Habilidades / Tags (separadas por coma)</label>
+              <input type="text" defaultValue="Ventas, Telecomunicaciones, Atención al cliente, Comunicación efectiva" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
             </div>
           </div>
         </div>
 
-        {/* Botones finales */}
+        {/* Action buttons */}
         <div className="flex items-center justify-end gap-3 pb-4">
-          <Link to="/reclutador/dashboard"
-            className="flex items-center gap-2 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-brand-gray rounded-lg text-sm font-medium transition-colors">
-            <X className="w-4 h-4" /> Cancelar
+          <Link to="/reclutador/dashboard" className="flex items-center gap-2 px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-[#475569] rounded-lg text-sm font-medium transition-colors">
+            <X className="w-4 h-4" />
+            Cancelar
           </Link>
-          <button className="flex items-center gap-2 px-6 py-2.5 border border-brand-red text-brand-red rounded-lg text-sm font-medium hover:bg-brand-red/5 transition-colors">
+          <button className="flex items-center gap-2 px-6 py-2.5 border border-[#D32F2F] text-[#D32F2F] rounded-lg text-sm font-medium hover:bg-[#D32F2F]/5 transition-colors">
             Guardar borrador
           </button>
-          <button onClick={publishJob}
-            className="flex items-center gap-2 px-6 py-2.5 bg-brand-red hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors">
-            <Save className="w-4 h-4" /> Publicar Oferta
+          <button onClick={publishJob} className="flex items-center gap-2 px-6 py-2.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-sm font-semibold transition-colors">
+            <Save className="w-4 h-4" />
+            Publicar Oferta
           </button>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }

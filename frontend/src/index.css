@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,6 +6,11 @@
   --color-brand-navy: #1E293B;
   --color-brand-gray: #475569;
   --color-brand-bg: #F8FAFC;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-red-hover: #B71C1C;
+  --color-status-success: #15803D;
+  --color-status-warning: #A16207;
+  --color-status-info: #1D4ED8;
   --font-sans: "Inter", sans-serif;
 }
 
@@ -13,6 +18,7 @@
   :root {
     color: var(--color-brand-navy);
     background-color: var(--color-brand-bg);
+    line-height: 1.5;
     font-family: var(--font-sans);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -46,4 +52,30 @@
     outline: 3px solid color-mix(in srgb, var(--color-brand-red) 45%, transparent);
     outline-offset: 2px;
   }
+
+  button:not(:disabled), select { cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: .6; }
+  textarea { line-height: 1.65; }
+  input::placeholder, textarea::placeholder { color: #718087; }
+  section[id], main[id] { scroll-margin-top: 6rem; }
+  th { white-space: nowrap; }
+  td { vertical-align: middle; }
+  @media (max-width: 640px) {
+    input, select, textarea { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      transition-duration: .01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .page-heading { margin-bottom: 1.75rem; }
+  .page-heading h1 { font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 600; }
+  .page-heading p { margin-top: .5rem; color: var(--color-brand-gray); }
+  .skip-link { position: fixed; top: -5rem; left: 1rem; z-index: 100; padding: .75rem 1rem; border-radius: .5rem; background: white; color: var(--color-brand-navy); }
+  .skip-link:focus { top: 1rem; }
 }
