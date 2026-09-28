@@ -1,6 +1,14 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import CandidateGuide from "../../components/ui/CandidateGuide";
 import { Phone, Wifi, Users, Award, Clock, MapPin, Shield, TrendingUp, Star, ChevronRight, Mail, MessageSquare, CheckCircle } from "lucide-react";
 export default function LandingPage() {
+  const { hash, key } = useLocation();
+  useEffect(() => {
+    if (!['#areas', '#como-postular', '#preguntas'].includes(hash)) return;
+    const frame = requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [hash, key]);
   return <div className="font-['Inter',sans-serif]">
       {/* HERO SECTION */}
       <section className="relative bg-[#1E293B] text-white overflow-hidden min-h-[560px] flex items-center">
@@ -154,6 +162,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <CandidateGuide />
 
       {/* TESTIMONIOS */}
       <section className="bg-[#1E293B] py-20">

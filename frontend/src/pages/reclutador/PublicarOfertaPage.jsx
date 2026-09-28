@@ -1,24 +1,33 @@
-import { addJob } from "../../utils/jobsData";
-import { useState } from "react";
+import { publishJob as saveJob } from "../../services/api";
+import { validateJob } from "../../utils/formValidation";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Bold, Italic, List, AlignLeft, Minus, Save, X, ChevronDown, FileText, DollarSign, MapPin, Clock, Users, Tag, AlertCircle } from "lucide-react";
 export default function PublishJob() {
-  const [title, setTitle] = useState("Agente de Ventas Telefónicas");
+  const [title, setTitle] = useState("");
   const [type, setType] = useState("Full-Time");
-  const [salaryMin, setSalaryMin] = useState("1800");
-  const [salaryMax, setSalaryMax] = useState("2500");
-  const [location, setLocation] = useState("San Isidro, Lima");
-  const [description, setDescription] = useState("Buscamos un profesional dinámico y orientado a resultados para unirse a nuestro equipo de ventas telefónicas. El candidato ideal tendrá:\n\n• Experiencia en ventas o atención al cliente\n• Excelentes habilidades de comunicación oral\n• Capacidad para trabajar bajo presión\n• Disponibilidad para trabajar en turnos");
+  const [salaryMin, setSalaryMin] = useState("");
+  const [salaryMax, setSalaryMax] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
   const [published, setPublished] = useState(false);
-  const publishJob = () => {
-    addJob({
-      title,
-      type,
-      location,
-      description,
-      salary: `S/ ${salaryMin} - S/ ${salaryMax}`
-    });
-    setPublished(true);
+  const [details, setDetails] = useState({ department:'', vacancies:'', modality:'Presencial', deadline:'', education:'Secundaria completa', experience:'Sin experiencia', tags:'' });
+  const [errors, setErrors] = useState({});
+  const [saveError, setSaveError] = useState('');
+  const updateDetail = event => setDetails(previous => ({ ...previous, [event.target.name]:event.target.value }));
+  const fieldError = name => errors[name] && <p role="alert" className="mt-1 text-xs text-red-600">{errors[name]}</p>;
+  const [saving, setSaving] = useState(false);
+  const busy = useRef(false);
+  const publishJob = async () => {
+    if (busy.current) return;
+    const data = {title,type,location,description,salaryMin,salaryMax,...details};
+    const next = validateJob(data);
+    setErrors(next); setSaveError('');
+    if (Object.keys(next).length) return;
+    busy.current = true; setSaving(true);
+    try { await saveJob({ ...data, tags:details.tags.split(',').map(tag=>tag.trim()).filter(Boolean) }); setPublished(true); }
+    catch (error) { setSaveError(error.message); }
+    finally { busy.current = false; setSaving(false); }
   };
   if (published) {
     return <div className="p-6 flex items-center justify-center min-h-[60vh]">
@@ -27,7 +36,7 @@ export default function PublishJob() {
             <FileText className="w-7 h-7 text-green-600" />
           </div>
           <h2 className="text-xl font-bold text-[#1E293B] mb-2">¡Oferta publicada!</h2>
-          <p className="text-sm text-[#475569] mb-5">La oferta laboral ha sido publicada y está visible para los candidatos.</p>
+          <p className="text-sm text-[#475569] mb-5">La solicitud de publicación fue confirmada por el servicio.</p>
           <div className="flex gap-3">
             <button onClick={() => setPublished(false)} className="flex-1 border border-gray-200 text-[#475569] py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50">
               Publicar otra
@@ -51,14 +60,15 @@ export default function PublishJob() {
             <X className="w-4 h-4" />
             Cancelar
           </Link>
-          <button onClick={publishJob} className="flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
+          <button disabled={saving} onClick={publishJob} className="flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
             <Save className="w-4 h-4" />
-            Publicar Oferta
+            {saving ? "Publicando…" : "Publicar Oferta"}
           </button>
         </div>
       </div>
 
       <div className="space-y-5">
+        {saveError && <p role="alert" className="mb-4 text-sm text-red-600">{saveError}</p>}
         {/* Block 1: Información básica */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="bg-[#F8FAFC] border-b border-gray-100 px-5 py-3 flex items-center gap-2">
@@ -68,7 +78,7 @@ export default function PublishJob() {
           <div className="p-5 space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Título del puesto *</label>
-              <input type="text" placeholder="Ej: Agente de Ventas Telefónicas Senior" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+              <input type="text" placeholder="Ej: Agente de Ventas Telefónicas Senior" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />{fieldError('title')}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -77,8 +87,8 @@ export default function PublishJob() {
                   Departamento / Área *
                 </label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
-                    <option>Ventas</option>
+                  <select name="department" value={details.department} onChange={updateDetail} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                    <option value="">Selecciona un área</option><option>Ventas</option>
                     <option>Soporte Técnico</option>
                     <option>Supervisión</option>
                     <option>Recursos Humanos</option>
@@ -86,14 +96,14 @@ export default function PublishJob() {
                     <option>Operaciones</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+                </div>{fieldError('department')}
               </div>
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
                   <Tag className="w-3.5 h-3.5 text-gray-400" />
                   Número de vacantes
                 </label>
-                <input type="number" min="1" defaultValue="3" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+                <input type="number" min="1" name="vacancies" value={details.vacancies} onChange={updateDetail} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />{fieldError('vacancies')}
               </div>
             </div>
           </div>
@@ -112,14 +122,14 @@ export default function PublishJob() {
                   <DollarSign className="w-3.5 h-3.5 text-gray-400" />
                   Sueldo mínimo (S/)
                 </label>
-                <input type="number" value={salaryMin} onChange={e => setSalaryMin(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+                <input type="number" value={salaryMin} onChange={e => setSalaryMin(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />{fieldError('salaryMin')}
               </div>
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
                   <DollarSign className="w-3.5 h-3.5 text-gray-400" />
                   Sueldo máximo (S/)
                 </label>
-                <input type="number" value={salaryMax} onChange={e => setSalaryMax(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+                <input type="number" value={salaryMax} onChange={e => setSalaryMax(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />{fieldError('salaryMax')}
               </div>
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1E293B] mb-1.5">
@@ -141,7 +151,7 @@ export default function PublishJob() {
                   Modalidad
                 </label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                  <select name="modality" value={details.modality} onChange={updateDetail} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
                     <option>Presencial</option>
                     <option>Remoto</option>
                     <option>Híbrido</option>
@@ -154,11 +164,11 @@ export default function PublishJob() {
                   <MapPin className="w-3.5 h-3.5 text-gray-400" />
                   Sede / Ubicación
                 </label>
-                <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+                <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />{fieldError('location')}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Fecha límite de postulación</label>
-                <input type="date" defaultValue="2026-06-15" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+                <input type="date" name="deadline" value={details.deadline} onChange={updateDetail} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
               </div>
             </div>
           </div>
@@ -188,17 +198,17 @@ export default function PublishJob() {
           }].map(({
             icon: Icon,
             tip
-          }) => <button key={tip} title={tip} className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors">
+          }) => <button disabled key={tip} title={`${tip}: formato pendiente de implementación`} className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors">
                 <Icon className="w-4 h-4" />
               </button>)}
             <div className="w-px h-4 bg-gray-200 mx-1" />
-            <button className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors" title="Separador">
+            <button disabled className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors" title="Separador">
               <Minus className="w-4 h-4" />
             </button>
           </div>
 
           <div className="p-5">
-            <textarea rows={8} value={description} onChange={e => setDescription(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F] resize-none leading-relaxed" />
+            <textarea rows={8} value={description} onChange={e => setDescription(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F] resize-none leading-relaxed" />{fieldError('description')}
             <p className="text-[10px] text-[#475569] mt-1">{description.length} caracteres · Mín. 100 recomendado</p>
           </div>
         </div>
@@ -214,7 +224,7 @@ export default function PublishJob() {
               <div>
                 <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Nivel educativo mínimo</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                  <select name="education" value={details.education} onChange={updateDetail} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
                     <option>Secundaria completa</option>
                     <option>Técnico</option>
                     <option>Universitario</option>
@@ -226,7 +236,7 @@ export default function PublishJob() {
               <div>
                 <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Experiencia mínima</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
+                  <select name="experience" value={details.experience} onChange={updateDetail} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
                     <option>Sin experiencia</option>
                     <option>6 meses - 1 año</option>
                     <option>1 - 2 años</option>
@@ -239,7 +249,7 @@ export default function PublishJob() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Habilidades / Tags (separadas por coma)</label>
-              <input type="text" defaultValue="Ventas, Telecomunicaciones, Atención al cliente, Comunicación efectiva" className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+              <input type="text" name="tags" value={details.tags} onChange={updateDetail} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
             </div>
           </div>
         </div>
@@ -250,10 +260,10 @@ export default function PublishJob() {
             <X className="w-4 h-4" />
             Cancelar
           </Link>
-          <button className="flex items-center gap-2 px-6 py-2.5 border border-[#D32F2F] text-[#D32F2F] rounded-lg text-sm font-medium hover:bg-[#D32F2F]/5 transition-colors">
+          <button disabled title="Borradores pendientes de integración" className="flex items-center gap-2 px-6 py-2.5 border border-[#D32F2F] text-[#D32F2F] rounded-lg text-sm font-medium hover:bg-[#D32F2F]/5 transition-colors">
             Guardar borrador
           </button>
-          <button onClick={publishJob} className="flex items-center gap-2 px-6 py-2.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-sm font-semibold transition-colors">
+          <button disabled={saving} onClick={publishJob} className="flex items-center gap-2 px-6 py-2.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-sm font-semibold transition-colors">
             <Save className="w-4 h-4" />
             Publicar Oferta
           </button>

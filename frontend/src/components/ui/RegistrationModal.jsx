@@ -54,8 +54,7 @@ const sanitizeText = (value = "") =>
   stripControlCharacters(value)
     .replace(/[<>]/g, "")
     .replace(/\\/g, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
+    .replace(/\s{2,}/g, " ");
 
 const sanitizeEmail = (value = "") =>
   stripControlCharacters(value)
@@ -189,11 +188,11 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginCl
     const namePattern = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]{2,}$/;
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 
-    if (!form.nombres || !namePattern.test(form.nombres)) {
+    if (!form.nombres || !namePattern.test(form.nombres.trim())) {
       nextErrors.nombres = "Ingrese un nombre válido (mínimo 2 caracteres).";
     }
 
-    if (!form.apellidos || !namePattern.test(form.apellidos)) {
+    if (!form.apellidos || !namePattern.test(form.apellidos.trim())) {
       nextErrors.apellidos = "Ingrese un apellido válido (mínimo 2 caracteres).";
     }
 
@@ -274,7 +273,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginCl
         aria-modal="true"
         aria-label="Registrarse"
         tabIndex={-1}
-        className="max-h-[calc(100dvh-2rem)] overflow-y-auto fixed w-[min(calc(100vw-2rem),448px)] rounded-2xl border border-gray-100 bg-white text-brand-navy shadow-xl"
+        className="registration-modal max-h-[calc(100dvh-2rem)] overflow-y-auto fixed w-[min(calc(100vw-2rem),448px)] rounded-2xl border border-gray-100 bg-white text-brand-navy shadow-xl"
         style={{ left: `${position.x}px`, top: `${position.y}px` }}
       >
         <AuthCardHeader title="Crea tu cuenta en GTEL Talento" subtitle="Regístrate para comenzar a postular" onClose={onClose} onPointerDown={handleDragStart} />

@@ -1,36 +1,26 @@
-import { useEffect, useState } from "react";
+import useRecruiterData from "../../hooks/useRecruiterData";
+import DataState from "../../components/ui/DataState";
 import { getRecruiterDashboard } from "../../services/api";
 import { Link } from "react-router-dom";
-import { Users, CalendarDays, Briefcase, TrendingUp, TrendingDown, Eye, Download, ChevronRight, Clock, CheckCircle } from "lucide-react";
+import { Users, CalendarDays, Briefcase, Eye, Download, ChevronRight, Clock, CheckCircle } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 const kpiDesign = [{
-  label: "Nuevos Postulantes",
-  value: "147",
-  change: "+12%",
-  trend: "up",
+  label: "Postulantes",
   icon: Users,
   color: "bg-blue-50",
   iconColor: "text-blue-600",
-  sub: "esta semana"
 }, {
   label: "Entrevistas Programadas",
-  value: "24",
-  change: "+5%",
-  trend: "up",
   icon: CalendarDays,
   color: "bg-green-50",
   iconColor: "text-green-600",
-  sub: "próximos 7 días"
 }, {
-  label: "Ofertas Activas",
-  value: "8",
-  change: "-2%",
-  trend: "down",
+  label: "Ofertas publicadas",
   icon: Briefcase,
   color: "bg-orange-50",
   iconColor: "text-orange-600",
-  sub: "publicadas"
 }];
+kpiDesign.push({label:"Evaluaciones", icon:CheckCircle, color:"bg-purple-50", iconColor:"text-purple-600"});
 const statusBadge = {
   new: "bg-blue-100 text-blue-700",
   interview: "bg-purple-100 text-purple-700",
@@ -47,40 +37,19 @@ const statusLabel = {
 };
 const avatarColors = ["bg-[#D32F2F]", "bg-blue-600", "bg-green-600", "bg-purple-600", "bg-orange-600", "bg-teal-600"];
 export default function RecruiterDashboard() {
-  const [dashboard, setDashboard] = useState(null);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    getRecruiterDashboard().then(setDashboard).catch(e => setError(e.message));
-  }, []);
-  const kpis = kpiDesign.map((item, index) => ({
-    ...item,
-    value: dashboard?.[["newApplicants", "scheduledInterviews", "activeJobs"][index]] ?? "—",
-    change: "—",
-    sub: "Registros actuales"
-  }));
-  const recentApplications = (dashboard?.recentApplications || []).map(row => ({
-    ...row,
-    job: row.job || "—",
-    date: row.date || "—",
-    avatar: (row.name || "").split(" ").map(s => s[0]).slice(0, 2).join(""),
-    status: {
-      recibida: "new",
-      en_revision: "reviewing",
-      entrevista: "interview",
-      aprobada: "approved",
-      rechazada: "rejected"
-    }[row.status] || row.status
-  }));
+  const {data:dashboard, loading, error, retry} = useRecruiterData(getRecruiterDashboard);
+  const kpis = kpiDesign.map((item, index) => ({...item, value:dashboard?.[['newApplicants','scheduledInterviews','activeJobs','evaluations'][index]] ?? '—', sub:'Registros disponibles'}));
+  const recentApplications = dashboard?.recentApplications || [];
   const donutData = (dashboard?.applicationsByArea || []).map((row, index) => ({
     ...row,
     color: row.color || ["#D32F2F", "#1E293B", "#3B82F6", "#F59E0B"][index % 4]
   }));
-  return <div className="p-6 space-y-6">{error && <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+  return <div className="p-6 space-y-6"><DataState loading={loading} error={error} retry={retry} empty={dashboard && kpis.every(item=>item.value===0)} />
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-[#1E293B]">Dashboard</h1>
-          <p className="text-sm text-[#475569]">Lunes, 19 de Mayo 2026</p>
+          <p className="text-sm text-[#475569]">{new Date().toLocaleDateString('es-PE',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
         </div>
         <div className="flex gap-3">
           <Link to="/reclutador/publicar-oferta" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
@@ -90,12 +59,10 @@ export default function RecruiterDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {kpis.map(({
         label,
         value,
-        change,
-        trend,
         icon: Icon,
         color,
         iconColor,
@@ -105,10 +72,7 @@ export default function RecruiterDashboard() {
               <div className={`w-11 h-11 ${color} rounded-xl flex items-center justify-center`}>
                 <Icon className={`w-5 h-5 ${iconColor}`} />
               </div>
-              <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${trend === "up" ? "bg-green-50 text-green-700" : "bg-red-50 text-[#D32F2F]"}`}>
-                {trend === "up" ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {change}
-              </div>
+
             </div>
             <div className="text-3xl font-bold text-[#1E293B] mb-0.5">{value}</div>
             <div className="text-sm font-medium text-[#1E293B]">{label}</div>
@@ -139,7 +103,8 @@ export default function RecruiterDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {recentApplications.map((app, idx) => <tr key={app.name} className="hover:bg-[#F8FAFC] transition-colors">
+                {!loading && !error && !recentApplications.length && <tr><td colSpan={5} className="p-6 text-center text-sm text-brand-gray">No hay postulantes disponibles.</td></tr>}
+                {recentApplications.map((app, idx) => <tr key={app.id} className="hover:bg-[#F8FAFC] transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-full ${avatarColors[idx % avatarColors.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
@@ -151,16 +116,16 @@ export default function RecruiterDashboard() {
                     <td className="px-5 py-3.5 text-sm text-[#475569] whitespace-nowrap">{app.job}</td>
                     <td className="px-5 py-3.5 text-xs text-[#475569] whitespace-nowrap hidden md:table-cell">{app.date}</td>
                     <td className="px-5 py-3.5">
-                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${statusBadge[app.status]}`}>
-                        {statusLabel[app.status]}
+                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${statusBadge[app.status] || 'bg-slate-100 text-slate-600'}`}>
+                        {statusLabel[app.status] || 'N/D'}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Link to="/reclutador/postulantes" className="p-1.5 text-[#475569] hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 rounded-lg transition-colors" title="Ver perfil">
+                        <Link to={`/reclutador/postulantes/${encodeURIComponent(app.id)}`} className="p-1.5 text-[#475569] hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 rounded-lg transition-colors" title="Ver perfil">
                           <Eye className="w-3.5 h-3.5" />
                         </Link>
-                        <button className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descargar CV">
+                        <button disabled className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descarga de CV pendiente de integración">
                           <Download className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -175,8 +140,8 @@ export default function RecruiterDashboard() {
         <div className="flex-[3] space-y-4">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="font-bold text-[#1E293B] mb-1">Postulaciones por área</h2>
-            <p className="text-xs text-[#475569] mb-4">Distribución del mes actual</p>
-            <ResponsiveContainer width="100%" height={200}>
+            <p className="text-xs text-[#475569] mb-4">Distribución de los registros disponibles</p>
+            {donutData.length ? <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={donutData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value">
                   {donutData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
@@ -190,7 +155,7 @@ export default function RecruiterDashboard() {
                 fontSize: 11
               }}>{value}</span>} />
               </PieChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer> : <p className="py-12 text-center text-sm text-brand-gray">Sin información de áreas disponible.</p>}
           </div>
 
           {/* Quick actions */}

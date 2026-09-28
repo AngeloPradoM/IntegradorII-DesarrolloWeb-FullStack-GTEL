@@ -1,3 +1,6 @@
+import useRecruiterData from "../../hooks/useRecruiterData";
+import DataState from "../ui/DataState";
+import { getRecruiterNotifications } from "../../services/api";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -25,26 +28,6 @@ const candidateNavItems = [
   { label: "Ofertas", href: "/ofertas" },
 ];
 
-const notifications = [
-  {
-    id: 1,
-    title: "Entrevista programada",
-    description:
-      "Tu entrevista para Asesor de Ventas está agendada.",
-  },
-  {
-    id: 2,
-    title: "CV revisado",
-    description: "El reclutador ya revisó tu perfil.",
-  },
-  {
-    id: 3,
-    title: "Nueva oportunidad",
-    description:
-      "Hay 2 vacantes nuevas que podrían interesarte.",
-  },
-];
-
 function getNavItemsForUser(role, isAuthenticated) {
   if (!isAuthenticated) {
     return publicNavItems;
@@ -67,6 +50,8 @@ export default function Header({
   onToggleSidebar,
 }) {
   const { user: authUser, logout } = useAuth();
+  const notificationState = useRecruiterData(getRecruiterNotifications);
+  const notifications = notificationState.data || [];
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -173,7 +158,7 @@ export default function Header({
           )}
         </button>
 
-        <div className="max-w-md flex-1">
+        <form className="max-w-md flex-1" onSubmit={event=>{event.preventDefault();navigate(`/reclutador/postulantes?q=${encodeURIComponent(searchValue.trim())}`);}}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
 
@@ -181,11 +166,11 @@ export default function Header({
               type="text"
               value={searchValue}
               onChange={handleSearchChange}
-              placeholder="Buscar candidatos, ofertas..."
+              placeholder="Buscar candidatos (Enter)..."
               className="w-full rounded-lg border border-gray-200 bg-brand-bg py-2.5 pl-9 pr-4 text-sm text-brand-navy placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
             />
           </div>
-        </div>
+        </form>
 
         <div className="ml-auto flex items-center gap-3">
           <div className="relative">
@@ -200,7 +185,7 @@ export default function Header({
             >
               <Bell className="h-5 w-5" />
 
-              <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-brand-red" />
+              {notifications.length > 0 && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-brand-red" />}
             </button>
 
             {notificationsOpen && (
@@ -209,7 +194,7 @@ export default function Header({
                   Notificaciones
                 </div>
 
-                <div className="max-h-80 overflow-y-auto">
+                <div className="max-h-80 overflow-y-auto"><DataState {...notificationState} empty={!notifications.length} emptyMessage="No hay notificaciones disponibles." />
                   {notifications.map((notification) => (
                     <button
                       key={notification.id}
@@ -231,15 +216,15 @@ export default function Header({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <button type="button" onClick={handleProfileEdit} aria-label="Editar perfil" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand-red/20 bg-red-50 text-xs font-bold text-brand-red">
-              {(displayName || "U").slice(0, 2).toUpperCase()}
+              {currentUser?.foto ? <img src={currentUser.foto} alt="" className="h-full w-full rounded-full object-cover" /> : (displayName || "U").slice(0, 2).toUpperCase()}
             </div>
 
             <span className="hidden text-sm font-medium text-brand-navy md:block">
               {displayName}
             </span>
-          </div>
+          </button>
 
           <button
             type="button"
@@ -345,7 +330,7 @@ export default function Header({
                 >
                   <Bell className="h-5 w-5" />
 
-                  <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-brand-red" />
+                  {notifications.length > 0 && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-brand-red" />}
                 </button>
 
                 {notificationsOpen && (
@@ -354,7 +339,7 @@ export default function Header({
                       Notificaciones
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto">
+                    <div className="max-h-80 overflow-y-auto"><DataState {...notificationState} empty={!notifications.length} emptyMessage="No hay notificaciones disponibles." />
                       {notifications.map((notification) => (
                         <button
                           key={notification.id}

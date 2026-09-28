@@ -1,5 +1,5 @@
 import LoginModalRedirect from "../pages/auth/LoginModalRedirect";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout";
 import RecruiterLayout from "../layouts/RecruiterLayout";
 import LandingPage from "../pages/candidato/LandingPage";
@@ -15,15 +15,16 @@ import PublicarOfertaPage from "../pages/reclutador/PublicarOfertaPage";
 import PostulantesPage from "../pages/reclutador/PostulantesPage";
 import EntrevistasPage from "../pages/reclutador/EntrevistasPage";
 import EvaluacionesPage from "../pages/reclutador/EvaluacionesPage";
+import RecruiterJobs, { RecruiterJobDetail } from "../pages/reclutador/OfertasPage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
-export default function AppRoutes() {
-  return (
-    <BrowserRouter>
-      <Routes>
+import NotFoundPage from "../pages/NotFoundPage";
+
+const router = createBrowserRouter(createRoutesFromElements(<>
         <Route path="/login" element={<LoginModalRedirect />} />
 
         <Route element={<PublicLayout />}>
+          <Route path="*" element={<NotFoundPage />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/ofertas" element={<OfertasLaboralesPage />} />
           <Route path="/ofertas/:id" element={<OfertaDetallePage />} />
@@ -38,13 +39,15 @@ export default function AppRoutes() {
         <Route path="/reclutador" element={<ProtectedRoute allowedRoles={["RECLUTADOR"]}><RecruiterLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="ofertas" element={<RecruiterJobs />} />
+          <Route path="ofertas/:id" element={<RecruiterJobDetail />} />
           <Route path="publicar-oferta" element={<PublicarOfertaPage />} />
           <Route path="postulantes/:id" element={<PerfilCandidatoPage />} />
           <Route path="postulantes" element={<PostulantesPage />} />
           <Route path="entrevistas" element={<EntrevistasPage />} />
           <Route path="evaluaciones" element={<EvaluacionesPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
-      </Routes>
-    </BrowserRouter>
-  );
-}
+</>));
+
+export default function AppRoutes() { return <RouterProvider router={router} />; }

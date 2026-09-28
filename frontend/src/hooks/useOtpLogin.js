@@ -8,6 +8,8 @@ export default function useOtpLogin(onAuthenticated) {
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const busy = useRef(false);
+  const generation = useRef(0);
+  useEffect(() => () => { generation.current += 1; }, []);
   useEffect(() => {
     if (!session) return;
     const tick = () => setResendCooldown(Math.max(0, Math.ceil((session.resendAt - Date.now()) / 1000)));
@@ -26,25 +28,29 @@ export default function useOtpLogin(onAuthenticated) {
     busy.current = true;
     setLoading(true);
     setError("");
-    try { await action(); } catch (e) { setError(e.message || "No se pudo conectar con el servidor"); }
-    finally { busy.current = false; setLoading(false); }
+    const current = generation.current;
+    const isCurrent = () => current === generation.current;
+    try { await action(isCurrent); } catch (e) { if (isCurrent()) setError(e.message || "No se pudo conectar con el servidor"); }
+    finally { if (isCurrent()) { busy.current = false; setLoading(false); } }
   };
   return {
     session, verificationStep: Boolean(session), verificationCode, setVerificationCode,
     error, setError, loading, resendCooldown,
-    start: (credentials) => run(async () => acceptSession(await loginCandidate(credentials))),
-    resend: () => run(async () => {
+    start: (credentials) => run(async isCurrent => { const data = await loginCandidate(credentials); if (isCurrent()) onAuthenticated(data); }),
+    resend: () => run(async isCurrent => {
       if (resendCooldown > 0 || !session) return;
-      acceptSession(await resendOtp(session.sessionId));
+      const data = await resendOtp(session.sessionId);
+      if (isCurrent()) acceptSession(data);
     }),
-    verify: () => run(async () => {
+    verify: () => run(async isCurrent => {
       if (!session || !/^[0-9]{6}$/.test(verificationCode)) throw new Error("Introduce los 6 dígitos del código");
       const result = await verifyOtp(session.sessionId, verificationCode);
+      if (!isCurrent()) return;
       if (!result.verified || !result.token) throw new Error("No se pudo completar la verificación");
       onAuthenticated({ ...result, rol: result.role });
       setSession(null);
       setVerificationCode("");
     }),
-    reset: () => { setSession(null); setVerificationCode(""); setError(""); },
+    reset: () => { generation.current += 1; busy.current = false; setLoading(false); setSession(null); setVerificationCode(""); setError(""); setResendCooldown(0); },
   };
 }
