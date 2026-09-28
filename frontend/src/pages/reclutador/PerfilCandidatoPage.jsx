@@ -1,47 +1,32 @@
-import { useEffect, useState } from "react";
+import useRecruiterData from "../../hooks/useRecruiterData";
+import DataState from "../../components/ui/DataState";
+import { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getRecruiterCandidates, updateCandidateStatus } from "../../services/api";
+import { getRecruiterCandidate, updateCandidateStatus } from "../../services/api";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Calendar, Download, CheckCircle, XCircle, MessageSquare, ArrowLeft, Briefcase, GraduationCap, Star, FileText, Globe, Clock } from "lucide-react";
 export default function CandidateProfile() {
   const {
     id
   } = useParams();
-  const [candidate, setCandidate] = useState(null);
+  const load = useCallback(() => getRecruiterCandidate(id), [id]);
+  const {data:candidate, loading, error:loadError, retry} = useRecruiterData(load);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const changeStatus = async status => {
+    if (saving) return;
+    setSaving(true); setError("");
     try {
-      const updated = await updateCandidateStatus(id, status);
-      setCandidate(current => ({ ...current, status: updated.status }));
+      await updateCandidateStatus(id, status);
+      retry();
       setNotice(status === "aprobada" ? "Candidato aprobado correctamente." : status === "entrevista" ? "Candidato movido a entrevista." : "Candidato descartado.");
     } catch (requestError) { setError(requestError.message); }
+    finally { setSaving(false); }
   };
-  useEffect(() => {
-    getRecruiterCandidates().then(rows => {
-      const row = rows.find(item => String(item.id) === id);
-      if (!row) {
-        setError("No se encontró el candidato");
-        return;
-      }
-      setCandidate({
-        ...row,
-        email: row.email || "No disponible",
-        phone: row.phone || "No disponible",
-        location: row.location || "No disponible",
-        dni: row.dni || "No disponible",
-        appliedDate: row.date || "No disponible",
-        experience: row.experience || [],
-        education: row.education || [],
-        skills: row.skills || [],
-        languages: row.languages || [],
-        certifications: row.certifications || [],
-        score: row.score ?? 0
-      });
-    }).catch(e => setError(e.message));
-  }, [id]);
-  if (!candidate) return <div className="p-6"><Link to="/reclutador/postulantes" className="text-sm text-brand-red">Volver al directorio</Link><p className="mt-4 text-brand-gray" role="status">{error || "Cargando perfil..."}</p></div>;
+  if (loading || loadError || !candidate) return <div className="p-6"><Link to="/reclutador/postulantes" className="text-sm text-brand-red">Volver al directorio</Link><DataState loading={loading} error={loadError} retry={retry} empty={!candidate} emptyMessage="No se encontró el candidato solicitado." /></div>;
   return <div className="p-6">
+      {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {notice && <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">{notice}</p>}
       {/* Back */}
       <Link to="/reclutador/postulantes" className="inline-flex items-center gap-1.5 text-sm text-[#475569] hover:text-[#1E293B] mb-5 transition-colors">
@@ -64,15 +49,15 @@ export default function CandidateProfile() {
                   <p className="text-sm text-[#475569]">{candidate.job}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => changeStatus("aprobada")} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving} onClick={() => changeStatus("aprobada")} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <CheckCircle className="w-3.5 h-3.5" />
                     Aprobar
                   </button>
-                  <button onClick={() => changeStatus("entrevista")} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving} onClick={() => changeStatus("entrevista")} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <MessageSquare className="w-3.5 h-3.5" />
                     Entrevista
                   </button>
-                  <button onClick={() => changeStatus("rechazada")} className="flex items-center gap-1.5 px-4 py-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving} onClick={() => changeStatus("rechazada")} className="flex items-center gap-1.5 px-4 py-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <XCircle className="w-3.5 h-3.5" />
                     Descartar
                   </button>
@@ -93,7 +78,7 @@ export default function CandidateProfile() {
               <h2 className="font-bold text-[#1E293B]">Experiencia Profesional</h2>
             </div>
             <div className="space-y-5">
-              {candidate.experience.map(exp => <div key={exp.company} className="relative pl-4 border-l-2 border-[#D32F2F]/30">
+              {!candidate.experience.length && <p className="text-xs text-brand-gray">Sin información disponible.</p>}{candidate.experience.map(exp => <div key={exp.company} className="relative pl-4 border-l-2 border-[#D32F2F]/30">
                   <div className="absolute -left-1.5 top-0 w-3 h-3 bg-[#D32F2F] rounded-full" />
                   <div className="flex flex-wrap items-start justify-between gap-2 mb-1">
                     <div>
@@ -116,7 +101,7 @@ export default function CandidateProfile() {
               <GraduationCap className="w-4 h-4 text-[#D32F2F]" />
               <h2 className="font-bold text-[#1E293B]">Educación</h2>
             </div>
-            {candidate.education.map(edu => <div key={edu.institution} className="flex items-start gap-3">
+            {!candidate.education.length && <p className="text-xs text-brand-gray">Sin información disponible.</p>}{candidate.education.map(edu => <div key={edu.institution} className="flex items-start gap-3">
                 <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
                   <GraduationCap className="w-4 h-4 text-blue-600" />
                 </div>
@@ -138,7 +123,7 @@ export default function CandidateProfile() {
               <h2 className="font-bold text-[#1E293B]">Habilidades</h2>
             </div>
             <div className="flex flex-wrap gap-2">
-              {candidate.skills.map(skill => <span key={skill} className="px-3 py-1 bg-[#F8FAFC] border border-gray-200 text-xs text-[#1E293B] rounded-full font-medium">
+              {!candidate.skills.length && <p className="text-xs text-brand-gray">Sin información disponible.</p>}{candidate.skills.map(skill => <span key={skill} className="px-3 py-1 bg-[#F8FAFC] border border-gray-200 text-xs text-[#1E293B] rounded-full font-medium">
                   {skill}
                 </span>)}
             </div>
@@ -151,14 +136,14 @@ export default function CandidateProfile() {
               <h2 className="font-bold text-[#1E293B]">Idiomas</h2>
             </div>
             <div className="space-y-3">
-              {candidate.languages.map(l => <div key={l.lang}>
+              {!candidate.languages.length && <p className="text-xs text-brand-gray">Sin información disponible.</p>}{candidate.languages.map(l => <div key={l.lang}>
                   <div className="flex justify-between text-xs mb-1.5">
                     <span className="font-medium text-[#1E293B]">{l.lang}</span>
                     <span className="text-[#475569]">{l.level}</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className="h-full bg-[#D32F2F] rounded-full" style={{
-                  width: `${l.score}%`
+                  width: `${l.score == null ? "N/D" : `${l.score}%`}`
                 }} />
                   </div>
                 </div>)}
@@ -172,7 +157,7 @@ export default function CandidateProfile() {
               <h2 className="font-bold text-[#1E293B]">Certificaciones</h2>
             </div>
             <ul className="space-y-2">
-              {candidate.certifications.map(cert => <li key={cert} className="flex items-center gap-2 text-xs text-[#475569]">
+              {!candidate.certifications.length && <p className="text-xs text-brand-gray">Sin información disponible.</p>}{candidate.certifications.map(cert => <li key={cert} className="flex items-center gap-2 text-xs text-[#475569]">
                   <CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
                   {cert}
                 </li>)}
@@ -189,15 +174,15 @@ export default function CandidateProfile() {
               <div className="relative w-24 h-24">
                 <svg className="w-24 h-24 -rotate-90" viewBox="0 0 80 80">
                   <circle cx="40" cy="40" r="32" fill="none" stroke="#F1F5F9" strokeWidth="8" />
-                  <circle cx="40" cy="40" r="32" fill="none" stroke={candidate.score >= 85 ? "#22c55e" : candidate.score >= 70 ? "#f59e0b" : "#D32F2F"} strokeWidth="8" strokeDasharray={`${candidate.score / 100 * 201} 201`} strokeLinecap="round" />
+                  <circle cx="40" cy="40" r="32" fill="none" stroke={candidate.score >= 85 ? "#22c55e" : candidate.score >= 70 ? "#f59e0b" : "#D32F2F"} strokeWidth="8" strokeDasharray={`${(candidate.score ?? 0) / 100 * 201} 201`} strokeLinecap="round" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-xl font-bold text-[#1E293B]">{candidate.score}</span>
+                  <span className="text-xl font-bold text-[#1E293B]">{candidate.score ?? 'N/D'}</span>
                   <span className="text-[10px] text-[#475569]">/100</span>
                 </div>
               </div>
             </div>
-            <div className="text-center text-xs text-green-600 font-semibold">Excelente candidato</div>
+            <div className="text-center text-xs text-brand-gray">{candidate.score == null ? "Sin puntuación disponible" : "Puntuación recibida"}</div>
           </div>
 
           {/* Contact info */}
@@ -234,11 +219,11 @@ export default function CandidateProfile() {
           {/* Actions */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
             <h3 className="text-xs font-bold text-[#1E293B] uppercase tracking-wide mb-1">Acciones</h3>
-            <button onClick={() => changeStatus("aprobada")} className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button disabled={saving} onClick={() => changeStatus("aprobada")} className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <CheckCircle className="w-3.5 h-3.5" />
               Aprobar candidato
             </button>
-            <button onClick={() => changeStatus("entrevista")} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button disabled={saving} onClick={() => changeStatus("entrevista")} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <MessageSquare className="w-3.5 h-3.5" />
               Programar entrevista
             </button>
@@ -246,7 +231,7 @@ export default function CandidateProfile() {
               <Download className="w-3.5 h-3.5" />
               Descargar CV PDF
             </button>
-            <button onClick={() => changeStatus("rechazada")} className="w-full flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button disabled={saving} onClick={() => changeStatus("rechazada")} className="w-full flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <XCircle className="w-3.5 h-3.5" />
               Descartar candidato
             </button>

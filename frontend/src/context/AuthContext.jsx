@@ -1,11 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useRef } from "react";
 import { AUTH_STORAGE_KEY, clearStoredUser, getStoredUser, setStoredUser } from "../utils/auth";
+
+import { getCurrentUser } from "../services/api";
 
 const AuthContext = createContext(null);
 
 function normalizeUser(user) {
-  if (!user?.token || user.token === "demo-token") return null;
+  if (typeof user?.token !== "string" || !user.token || (user.token === "demo-token" || user.token.startsWith("demo-session:") || user.demo)) return null;
 
   return {
     id: user.id,
@@ -26,7 +28,28 @@ function normalizeUser(user) {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => normalizeUser(getStoredUser()));
+  const [user, setUser] = useState(null);
+  const [initialUser] = useState(() => normalizeUser(getStoredUser()));
+  const [restoring, setRestoring] = useState(Boolean(initialUser));
+  const revision = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const current = revision.current;
+    const stored = initialUser;
+    if (!stored) {
+      clearStoredUser();
+      return;
+    }
+    getCurrentUser(stored.token).then(profile => {
+      if (!cancelled && current === revision.current) setUser(normalizeUser({ ...profile, token: stored.token }));
+    }).catch(() => {
+      if (!cancelled && current === revision.current) clearStoredUser();
+    }).finally(() => {
+      if (!cancelled) setRestoring(false);
+    });
+    return () => { cancelled = true; };
+  }, [initialUser]);
 
   useEffect(() => {
     if (user) {
@@ -35,10 +58,11 @@ export function AuthProvider({ children }) {
     }
 
     clearStoredUser();
-  }, [user]);
+  }, [user, restoring]);
 
   const login = (result = {}) => {
-    if (!result.token) throw new Error("Debes completar la verificación OTP");
+    if (!result.token || result.demo || !result.authenticated) throw new Error("No se pudo autenticar la cuenta.");
+    revision.current += 1;
     const nextUser = normalizeUser({ ...result, token: result.token, email: result.email, rol: result.rol,
       nombres: result.nombres, isVerified: true, verificationPending: false, demo: result.demo });
     setStoredUser(nextUser);
@@ -47,6 +71,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    revision.current += 1;
     setUser(null);
     clearStoredUser();
   };
@@ -66,6 +91,8 @@ export function AuthProvider({ children }) {
     }),
     [user]
   );
+
+  if (restoring) return <p role="status" className="p-6 text-center">Comprobando sesión...</p>;
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

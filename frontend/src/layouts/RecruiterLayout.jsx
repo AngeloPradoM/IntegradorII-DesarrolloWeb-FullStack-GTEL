@@ -15,6 +15,7 @@ import Header from "../components/layout/Header";
 import { useAuth } from "../context/AuthContext";
 
 const navItems = [
+  { icon: Briefcase, label: "Ofertas", path: "/reclutador/ofertas" },
   { icon: LayoutDashboard, label: "Dashboard", path: "/reclutador/dashboard" },
   { icon: PlusSquare, label: "Publicar oferta", path: "/reclutador/publicar-oferta" },
   { icon: Users, label: "Postulantes", path: "/reclutador/postulantes" },

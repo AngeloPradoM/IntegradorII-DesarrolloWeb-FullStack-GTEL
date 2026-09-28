@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import useRecruiterData from "../../hooks/useRecruiterData";
+import DataState from "../../components/ui/DataState";
 import { getRecruiterEvaluations } from "../../services/api";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -24,21 +25,8 @@ const statusConfig = {
   }
 };
 export default function Evaluations() {
-  const [evaluations, setEvaluations] = useState([]);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    getRecruiterEvaluations().then(rows => setEvaluations(rows.map(row => ({
-      ...row,
-      status: {
-        aprobado: "passed",
-        en_revision: "review",
-        no_aprobado: "failed"
-      }[row.status] || "review",
-      avatar: (row.name || "").split(" ").map(part => part[0]).slice(0, 2).join(""),
-      color: row.color || "bg-brand-red",
-      details: row.details || []
-    })))).catch(e => setError(e.message));
-  }, []);
+  const {data, loading, error, retry} = useRecruiterData(getRecruiterEvaluations);
+  const evaluations = data || [];
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterTest, setFilterTest] = useState("all");
   const [expanded, setExpanded] = useState(null);
@@ -48,14 +36,14 @@ export default function Evaluations() {
     return matchStatus && matchTest;
   });
   const tests = [...new Set(evaluations.map(e => e.test))];
-  return <div className="p-6">{error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+  return <div className="p-6"><DataState loading={loading} error={error} retry={retry} />
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-[#1E293B]">Evaluaciones</h1>
           <p className="text-sm text-[#475569]">Resultados de pruebas de los candidatos</p>
         </div>
-        <button className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+        <button disabled title="Crear evaluaciones estará disponible al conectar el servicio" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
           + Nueva Evaluación
         </button>
       </div>
@@ -64,7 +52,7 @@ export default function Evaluations() {
       <div className="grid grid-cols-3 gap-4 mb-5">
         {[{
         label: "Aprobados",
-        value: evaluations.filter(e => e.status === "passed").length,
+        value: loading || error ? "—" : evaluations.filter(e => e.status === "passed").length,
         color: "text-green-600",
         bg: "bg-green-50"
       }, {
@@ -112,8 +100,8 @@ export default function Evaluations() {
 
       {/* Evaluation cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.length === 0 && <p className="col-span-full rounded-xl border border-gray-100 bg-white p-6 text-sm text-brand-gray">No hay evaluaciones registradas.</p>}{filtered.map(ev => {
-        const s = statusConfig[ev.status] || statusConfig.review;
+        {!loading && !error && filtered.length === 0 && <p className="col-span-full rounded-xl border border-gray-100 bg-white p-6 text-sm text-brand-gray">{evaluations.length ? "No hay resultados para estos filtros." : "No hay evaluaciones disponibles."}</p>}{filtered.map(ev => {
+        const s = statusConfig[ev.status] || {label:'N/D',color:'bg-slate-100 text-slate-600',icon:Clock,bar:'bg-slate-300'};
         const StatusIcon = s.icon;
         const isExpanded = expanded === ev.id;
         return <div key={ev.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -140,7 +128,7 @@ export default function Evaluations() {
                   <div className="text-[10px] font-semibold text-[#475569] uppercase tracking-wide mb-1">{ev.test}</div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className={`text-2xl font-bold ${ev.score >= 80 ? "text-green-600" : ev.score >= 65 ? "text-yellow-600" : "text-[#D32F2F]"}`}>{ev.score}</span>
+                      <span className={`text-2xl font-bold ${ev.score >= 80 ? "text-green-600" : ev.score >= 65 ? "text-yellow-600" : "text-[#D32F2F]"}`}>{ev.score ?? 'N/D'}</span>
                       <span className="text-xs text-[#475569]">/100</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-[#475569]">
@@ -150,7 +138,7 @@ export default function Evaluations() {
                   </div>
                   <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full transition-all ${s.bar}`} style={{
-                  width: `${ev.score}%`
+                  width: `${ev.score ?? 0}%`
                 }} />
                   </div>
                 </div>
@@ -160,11 +148,11 @@ export default function Evaluations() {
                     {ev.details.map(d => <div key={d.area}>
                         <div className="flex justify-between text-[10px] mb-1">
                           <span className="text-[#475569]">{d.area}</span>
-                          <span className={`font-semibold ${d.score >= 80 ? "text-green-600" : d.score >= 65 ? "text-yellow-600" : "text-[#D32F2F]"}`}>{d.score}%</span>
+                          <span className={`font-semibold ${d.score >= 80 ? "text-green-600" : d.score >= 65 ? "text-yellow-600" : "text-[#D32F2F]"}`}>{d.score == null ? 'N/D' : `${d.score}%`}</span>
                         </div>
                         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full ${d.score >= 80 ? "bg-green-500" : d.score >= 65 ? "bg-yellow-500" : "bg-[#D32F2F]"}`} style={{
-                    width: `${d.score}%`
+                    width: `${d.score ?? 0}%`
                   }} />
                         </div>
                       </div>)}
@@ -178,10 +166,10 @@ export default function Evaluations() {
                     {isExpanded ? "Ocultar" : "Ver detalle"}
                     <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
-                  <Link to={ev.candidateId ? `/reclutador/postulantes/${ev.candidateId}` : "/reclutador/postulantes"} className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-[#D32F2F] hover:border-[#D32F2F]/30 transition-colors" title="Ver candidato">
+                  <Link to={ev.candidateId ? `/reclutador/postulantes/${encodeURIComponent(ev.candidateId)}` : "/reclutador/postulantes"} className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-[#D32F2F] hover:border-[#D32F2F]/30 transition-colors" title="Ver candidato">
                     <Eye className="w-4 h-4" />
                   </Link>
-                  <button className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-blue-600 hover:border-blue-200 transition-colors" title="Descargar reporte">
+                  <button disabled className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-blue-600 hover:border-blue-200 transition-colors" title="Descarga de reportes pendiente de integración">
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
