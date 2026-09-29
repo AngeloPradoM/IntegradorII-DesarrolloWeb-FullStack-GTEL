@@ -1,87 +1,82 @@
-# Backend GTEL — Paso 1 aislado
+﻿# Backend GTEL Talento
 
-## Objetivo actual
+API REST en Java 21 y Spring Boot 3.5.5. Registro y login con MySQL, BCrypt y JWT. La verificacion por correo sigue pendiente.
 
-Comprobar primero la comunicación React ↔ Spring Boot con registro y login por correo/contraseña. El JWT se emite después de validar la contraseña y el rol real de MySQL. La verificación en dos pasos se incorporará después de validar este recorrido básico.
+## Estructura
 
-Registro y login de React ya están conectados con Spring y MySQL. AuthContext consulta /api/auth/me para recuperar la sesión. Los módulos de negocio mantienen su configuración anterior; la verificación por correo sigue pendiente. Para instalar desde cero, seguir el [README principal](../README.md), que incluye DBeaver y el [SQL inicial](database/gtel_talento.sql).
+```text
+backend/
+  pom.xml
+  src/main/java/pe/com/gtel/talento/
+    auth/                    Autenticacion: controller, service, dto
+    identity/                Usuarios y perfiles: entity, repository
+    recruitment/             Reclutamiento: controller, service, repository
+    health/                  Endpoint de salud
+    config/                  Configuracion Spring y CORS
+    security/                JWT y filtros
+  src/main/resources/        Configuracion compartida
+  src/test/java/             Pruebas organizadas por los mismos modulos
+  config/                    Configuracion local privada y ejemplo
+  database/
+    schema/                  SQL de instalacion inicial
+    migrations/              Cambios manuales historicos
+  docs/
+    history/                 Diagnosticos historicos
+  target/                    Generado; excluido de Git
+```
 
-## Separación física del paso 2
+Los paquetes se agrupan por funcionalidad y mantienen capas dentro de cada modulo: Controller -> Service -> Repository -> MySQL. No es necesario dividir este backend pequeno en microservicios. El SQL del reclutador reside en RecruiterDataRepository; su servicio establece transacciones de lectura. Los contratos HTTP existentes se conservan.
 
-Todo el material OTP se conserva en [step2-reference](step2-reference/README.md), fuera de src/main y src/test activos. Maven no compila esa carpeta, Spring no crea sus servicios y JPA no escanea OtpChallenge. El paso 1 no exige tabla otp_challenges, OTP_HASH_SECRET ni credenciales de WhatsApp/Gmail.
+## Configuracion local
 
-Se trasladaron servicios OTP/WhatsApp, entidad y repositorio OTP, enum, pruebas OTP y configuración específica. El controlador OTP anterior se conserva como referencia. No es otro servidor ejecutable ni un perfil listo para activar. Su reintegración debe hacerse en el paso 2 con pruebas y contratos explícitos, especialmente si se cambia a Gmail.
+1. Instalar Java 21, Maven 3.9 y MySQL 8.x.
+2. En DBeaver, conectar a MySQL y ejecutar `database/schema/gtel_talento.sql` solamente en una base nueva. Incluye roles, no cuentas.
+3. Copiar `config/local.properties.example` a `config/local.properties` y completar las credenciales locales. No sobrescribir un archivo local existente.
+4. Generar una clave JWT privada de al menos 32 bytes. No compartirla en Git.
+5. Ejecutar los comandos desde `backend/`, para que Spring encuentre la configuracion local.
 
-No se borraron tablas, usuarios ni secretos de index. No se ejecutaron migraciones. El esquema del paso 1 utiliza usuarios, roles y postulantes; el SQL suministrado incluye esas tablas. La documentación del diagnóstico previo se conserva como **histórica**, no como descripción del flujo activo: [docs/diagnostico-previo.md](docs/diagnostico-previo.md).
-
-## Contratos activos del paso 1
-
-| Endpoint | Entrada | Resultado |
-| --- | --- | --- |
-| POST /api/auth/register | nombres, apellidos, email, password, telefono internacional | 201 con message y user; crea candidato, sin correo ni sesión automática |
-| POST /api/auth/login | email, password, rol | authenticated=true, requiresOtp=false, token, id de usuario, nombres, apellidos, email, telefono, rol y role |
-| GET /api/auth/me | Authorization: Bearer token | Perfil actual consultado en MySQL, authenticated=true; sin nuevo token |
-| POST /api/auth/logout | Sin cuerpo requerido | Mensaje para eliminar token local; revocación pendiente |
-| GET /api/health | — | Salud básica |
-
-Los endpoints resend-otp y verify-otp ya no tienen controladores activos; no deben llamarse en el paso 1. El backend no devuelve verified=true ni simula una confirmación de correo.
-
-El campo role se mantiene como alias de rol para el contrato de React. El registro sigue devolviendo ID de postulante; el login/me devuelve ID de usuario. No intercambiarlos.
-
-## Candidato y reclutador
-
-- Registro público: candidato. El servicio asigna el rol desde MySQL y no permite elevar permisos enviando un rol de registro.
-- Login: candidato y reclutador con cuentas existentes y contraseña válida. Ya no exige que un reclutador tenga perfil/teléfono de candidato.
-- Reclutador: como no existe un perfil de reclutador en el esquema, el nombre visible permanece como correo y el teléfono es null; no inventar datos.
-- Sigue pendiente confirmar si se habilitará un alta pública exclusiva para pruebas. Hasta entonces no se crean reclutadores desde el registro público. No se construyó un administrador nuevo para ello.
-- /api/recruiter/** continúa protegido con RECLUTADOR en Spring Security.
-
-## Secuencia histórica del paso 1 (autenticación ya acoplada)
-
-1. Revisar esquema y variables de conexión sin reutilizar la BD de Node. Confirmar roles CANDIDATO y RECLUTADOR.
-2. Ejecutar pruebas de backend sin mensajería ni MySQL real; luego autorizar prueba contra la BD de desarrollo.
-3. Probar registro de candidato, duplicado, contraseña incorrecta, login candidato/reclutador y me mediante HTTP.
-4. Con autorización, adaptar services/api y useOtpLogin para aceptar requiresOtp=false con token y perfil; conservar rechazo de respuestas inválidas. No marcar correo como confirmado.
-5. Restaurar sesión en AuthContext consultando me; ProtectedRoute espera esa comprobación. Centralizar errores y logout.
-6. Separar autenticación real de módulos aún demo antes de activar VITE_DATA_MODE=api, que actualmente deshabilita operaciones de perfil/postulación sin backend.
-7. Verificar navegación y permisos desde React. El login por sí solo no integra edición de perfil, ofertas, postulaciones ni escrituras del reclutador.
-8. Terminar y aprobar el paso 1 antes de reincorporar verificación por correo.
-
-## Paso 2, posterior
-
-Reutilizar la referencia OTP en Spring, añadir EmailService con credenciales privadas, distinguir confirmar correo de verificar login, persistir desafíos con consumo atómico, agregar fecha de confirmación por migración revisada y emitir JWT solo tras OTP válido. Adaptar React al nuevo contrato después de las pruebas del servidor. No copiar Node ni secretos de index.
-
-## Ejecución
-
-Java 21 y Maven. Spring no carga .env automáticamente; configurar variables de .env.example en el proceso/IDE.
+Spring no carga `.env` automaticamente; `.env.example` documenta variables para el proceso o IDE. `ddl-auto=validate` no crea ni modifica tablas. Las migraciones no se ejecutan automaticamente; la 001 no se aplica si telefono ya existe.
 
 ```powershell
-cd backend
 mvn.cmd clean test
-# Solo con base y variables configuradas:
 mvn.cmd spring-boot:run
 ```
 
-Si Maven usa una caché inaccesible:
+Si la cache Maven predeterminada no es accesible:
 
 ```powershell
 mvn.cmd "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" clean test
+mvn.cmd "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" spring-boot:run
 ```
 
-Después del traslado hacer clean para eliminar clases OTP antiguas de target. No cambiar ddl-auto a create/update ni borrar tablas para arrancar. La migración 001 de teléfono es histórica: el SQL proporcionado ya tiene la columna.
+API: http://localhost:8080. Salud: http://localhost:8080/api/health.
 
-## Límites conocidos que no resuelve este aislamiento
+`FRONTEND_URL` admite origenes separados por comas. Por defecto: `http://localhost:5173,http://127.0.0.1:5173`. CORS se define solamente en SecurityConfig.
 
-JWT no se revoca al hacer logout. La política debe definirse aparte. usuarios.estado aún no está mapeado en la autenticación. Las reglas CORS están duplicadas y deben unificarse antes del acoplamiento final. Teléfono SQL VARCHAR(15) frente a longitud Java 16 requiere revisión. La recuperación por me comprueba existencia y rol actual, pero el filtro JWT sigue utilizando sus claims para el resto de endpoints.
+## Contratos
 
-Los tests unitarios no prueban el arranque contra una instancia MySQL ni el recorrido React. No se envían correos o WhatsApp durante esta etapa.
+| Metodo | Ruta | Funcion |
+|---|---|---|
+| POST | /api/auth/register | Registrar candidato; responde 201 |
+| POST | /api/auth/login | Correo, password y rol; entrega JWT y requiresOtp=false |
+| GET | /api/auth/me | Perfil actual con Bearer token |
+| POST | /api/auth/logout | Instruccion para eliminar token local; no revoca JWT |
+| GET | /api/health | Salud basica |
+| GET | /api/recruiter/candidates | Candidatos |
+| GET | /api/recruiter/interviews | Entrevistas |
+| GET | /api/recruiter/evaluations | Evaluaciones |
+| GET | /api/recruiter/dashboard | Resumen de reclutamiento |
 
-## Resultado de validación del aislamiento
+Las rutas de reclutamiento requieren RECLUTADOR. El registro publico solo crea candidatos. Registro devuelve ID de postulante; login/me devuelven ID de usuario.
 
-`mvn clean test` con Java 21: BUILD SUCCESS, 9 pruebas activas aprobadas (3 de candidato y 6 del controlador del paso 1), sin fallos ni errores. Los tests del paso 2 están archivados y no cuentan como ejecutados. Sin modificaciones a frontend/index, sin SQL ni mensajería real. Sigue el aviso de carga dinámica Mockito/Byte Buddy, no bloqueante en esta ejecución.
+## Trabajo colaborativo
 
-### Configuración local de arranque
+Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propia BD y secretos. No versionar target, archivos del IDE, credenciales o datos personales.
 
-Para este equipo se creó `config/local.properties` con una clave JWT aleatoria persistente; application.properties la importa de forma opcional desde el directorio de trabajo backend. El archivo está excluido de Git. No contiene credenciales copiadas del laboratorio. Arrancar desde backend; en otros equipos crear su propia configuración privada o definir JWT_SECRET en el entorno. La clave JWT es para firmar sesiones, no activa OTP ni confirmación por correo.
+## Limites actuales
 
-Comprobación: ya hay un backend atendiendo en 8080; GET /api/health respondió 200 con status UP. El segundo arranque no pudo ocupar ese puerto. La configuración local nueva deberá comprobarse al reiniciar la instancia existente. Registro y login usan el backend independientemente del modo demo de los otros módulos. El flujo completo de navegador debe comprobarse con las cuentas locales de cada instalación.
+- La integracion de los modulos de negocio del frontend no se resuelve con esta reorganizacion.
+- La verificacion por correo sigue pendiente; se retiro la referencia OTP inactiva.
+- Logout no revoca JWT y la autenticacion aun no aplica usuarios.estado.
+- Las consultas conservan respuestas Map para compatibilidad; DTO tipados pueden incorporarse en otro cambio con pruebas del contrato.
+- El diagnostico previo es historico; consultar [la revision estructural](docs/estructura-colaborativa.md) para este cambio.

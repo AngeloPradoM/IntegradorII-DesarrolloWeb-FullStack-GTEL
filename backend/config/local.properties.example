@@ -1,0 +1,3 @@
+spring.datasource.username=CAMBIAR_USUARIO_LOCAL
+spring.datasource.password=CAMBIAR_PASSWORD_LOCAL
+jwt.secret=CAMBIAR_POR_CLAVE_ALEATORIA_PRIVADA_DE_AL_MENOS_32_BYTES
