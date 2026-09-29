@@ -6,7 +6,7 @@ import useModalFocus from "../../hooks/useModalFocus";
 import AuthCardHeader from "./AuthCardHeader";
 import AuthCardFooter from "./AuthCardFooter";
 import OtpInput from "./OtpInput";
-import { IS_DEMO_MODE } from "../../services/api";
+
 
 export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, defaultRole = "CANDIDATO", notice = "" }) {
   const [form, setForm] = useState({ email: "", password: "", rol: defaultRole });
@@ -15,7 +15,14 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
   const { session, verificationStep, verificationCode, setVerificationCode, error, loading: isSubmitting, resendCooldown } = otp;
   const [isDragging, setIsDragging] = useState(false);
   const modalRef = useRef(null);
-  useModalFocus(modalRef, isOpen, onClose);
+  const handleClose = () => {
+    otp.reset();
+    setForm({ email: "", password: "", rol: defaultRole });
+    setShowPassword(false);
+    setIsDragging(false);
+    onClose?.();
+  };
+  useModalFocus(modalRef, isOpen, handleClose);
   const dragOffset = useRef({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -78,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
 
   return (
     <div className="fixed inset-0 z-[60]">
-      <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm" onClick={handleClose} />
 
       <div
         ref={modalRef}
@@ -93,7 +100,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
           title={verificationStep ? "Verificación segura" : "Bienvenido a GTEL Talento"}
           subtitle={verificationStep ? "Ingresa el código enviado por WhatsApp" : "Inicia sesión para acceder a tu cuenta"}
           onPointerDown={handleDragStart}
-          onClose={() => { resetState(); onClose?.(); }}
+          onClose={handleClose}
         />
         {!verificationStep && <div className="flex border-b border-gray-100 bg-[#F8FAFC]" role="group" aria-label="Tipo de usuario">
           {[{ value: "CANDIDATO", label: "Soy Candidato", icon: User }, { value: "RECLUTADOR", label: "Soy Reclutador", icon: Briefcase }].map(({ value, label, icon: Icon }) => (
@@ -123,7 +130,6 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
             </div>
 
             <OtpInput value={verificationCode} onChange={setVerificationCode} disabled={isSubmitting} />
-            {IS_DEMO_MODE && <p className="rounded-lg bg-amber-50 px-3 py-2 text-center text-xs text-amber-800"><strong>Modo demo:</strong> usa el código 123456</p>}
 
             {error && <p className="text-xs text-red-600">{error}</p>}
 
@@ -164,7 +170,6 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
               {form.rol === "RECLUTADOR" ? <Briefcase className="h-4 w-4 shrink-0" /> : <User className="h-4 w-4 shrink-0" />}
               {form.rol === "RECLUTADOR" ? "Panel ATS completo para gestión de reclutamiento." : "Accede a tus postulaciones y el estado de tus procesos."}
             </div>
-            {IS_DEMO_MODE && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"><strong>Accesos demo</strong><br />Candidato: candidato@gtel.com<br />Reclutador: reclutador@gtel.com<br />Contraseña: Demo123!</div>}
 
 
 
@@ -212,14 +217,6 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
               </div>
             </div>
 
-            {IS_DEMO_MODE && <button
-              type="button"
-              onClick={() => setForm((previous) => ({ ...previous, email: previous.rol === "RECLUTADOR" ? "reclutador@gtel.com" : "candidato@gtel.com", password: "Demo123!" }))}
-              className="w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100"
-            >
-              Completar acceso demo como {form.rol === "RECLUTADOR" ? "reclutador" : "candidato"}
-            </button>}
-
             {error && <p className="text-xs text-red-600">{error}</p>}
 
             <button
@@ -227,7 +224,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
               disabled={isSubmitting}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 text-sm font-semibold text-white shadow-sm  transition hover:bg-brand-red-hover disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isSubmitting ? "Enviando código..." : "Ingresar"}
+              {isSubmitting ? "Ingresando..." : "Ingresar"}
               <ArrowRight className="h-4 w-4" />
             </button>
 

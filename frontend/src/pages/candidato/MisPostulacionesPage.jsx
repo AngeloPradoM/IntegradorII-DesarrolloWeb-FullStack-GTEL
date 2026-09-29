@@ -1,86 +1,10 @@
+import { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { getCandidateApplications } from "../../services/api";
 import { Link } from "react-router-dom";
 import { CheckCircle, Clock, Eye, MessageSquare, XCircle, Briefcase, CalendarDays, ChevronRight, Plus } from "lucide-react";
-const applications = [{
-  id: 1,
-  job: "Agente de Ventas Telefónicas",
-  company: "GTEL Telecomunicaciones",
-  appliedDate: "14 May 2026",
-  code: "GTEL-2026-0847",
-  status: "interview",
-  steps: [{
-    label: "Postulación enviada",
-    date: "14 May 2026",
-    done: true
-  }, {
-    label: "CV en revisión",
-    date: "15 May 2026",
-    done: true
-  }, {
-    label: "Entrevista programada",
-    date: "21 May 2026",
-    done: false,
-    active: true
-  }, {
-    label: "Evaluación técnica",
-    date: "—",
-    done: false
-  }, {
-    label: "Decisión final",
-    date: "—",
-    done: false
-  }]
-}, {
-  id: 2,
-  job: "Supervisor de Call Center",
-  company: "GTEL Telecomunicaciones",
-  appliedDate: "10 May 2026",
-  code: "GTEL-2026-0791",
-  status: "reviewing",
-  steps: [{
-    label: "Postulación enviada",
-    date: "10 May 2026",
-    done: true
-  }, {
-    label: "CV en revisión",
-    date: "11 May 2026",
-    done: true,
-    active: true
-  }, {
-    label: "Entrevista programada",
-    date: "—",
-    done: false
-  }, {
-    label: "Evaluación técnica",
-    date: "—",
-    done: false
-  }, {
-    label: "Decisión final",
-    date: "—",
-    done: false
-  }]
-}, {
-  id: 3,
-  job: "Especialista en Soporte Técnico",
-  company: "GTEL Telecomunicaciones",
-  appliedDate: "2 May 2026",
-  code: "GTEL-2026-0714",
-  status: "rejected",
-  steps: [{
-    label: "Postulación enviada",
-    date: "2 May 2026",
-    done: true
-  }, {
-    label: "CV en revisión",
-    date: "3 May 2026",
-    done: true
-  }, {
-    label: "No avanzó el proceso",
-    date: "8 May 2026",
-    done: true,
-    rejected: true
-  }]
-}];
 const statusMap = {
+  recibida: { label:"Recibida", color:"bg-slate-100 text-slate-700", icon:Clock },
   interview: {
     label: "Entrevista",
     color: "bg-blue-100 text-blue-700",
@@ -103,6 +27,18 @@ const statusMap = {
   }
 };
 export default function MyApplications() {
+  const { user } = useAuth();
+  const [result, setResult] = useState({ owner:null, applications:[], error:'' });
+  const owner = user.id || user.email;
+  const applications = result.owner === owner ? result.applications : [];
+  const loading = result.owner !== owner;
+  useEffect(() => {
+    let active = true;
+    Promise.resolve().then(() => getCandidateApplications(user)).then(items => {
+      if (active) setResult({ owner, applications:items.map(item => ({ ...item, appliedDate:item.date, steps:item.steps || [{label:'Postulación enviada',date:item.date,done:true}] })), error:'' });
+    }).catch(error => { if (active) setResult({ owner, applications:[], error:error.message }); });
+    return () => { active = false; };
+  }, [owner, user]);
   return <div className="min-h-screen bg-[#F8FAFC] py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
@@ -117,19 +53,22 @@ export default function MyApplications() {
           </Link>
         </div>
 
+        {loading && <p role="status">Cargando postulaciones…</p>}
+        {!loading && result.error && <p role="alert" className="mb-4 text-red-600">{result.error}</p>}
+        {!loading && !result.error && !applications.length && <p className="mb-4 text-brand-gray">Todavía no tienes postulaciones.</p>}
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[{
           label: "Total aplicaciones",
-          value: "3",
+          value: applications.length,
           color: "text-[#1E293B]"
         }, {
           label: "En proceso",
-          value: "2",
+          value: applications.filter(item => !['rejected','approved'].includes(item.status)).length,
           color: "text-blue-600"
         }, {
           label: "Entrevistas",
-          value: "1",
+          value: applications.filter(item => item.status === 'interview').length,
           color: "text-green-600"
         }].map(({
           label,
@@ -144,7 +83,7 @@ export default function MyApplications() {
         {/* Application cards with timelines */}
         <div className="space-y-5">
           {applications.map(app => {
-          const status = statusMap[app.status];
+          const status = statusMap[app.status] || statusMap.recibida;
           const StatusIcon = status.icon;
           return <div key={app.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 {/* Card header */}
@@ -195,7 +134,7 @@ export default function MyApplications() {
                           </div>
                           {step.active && <div className="mt-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
                               <p className="text-[10px] text-blue-700 font-medium">
-                                Tu entrevista está programada para el 21 de Mayo a las 10:00 AM. Revisa tu correo para más detalles.
+                                Revisa tu correo para conocer las actualizaciones de este proceso.
                               </p>
                             </div>}
                         </div>
@@ -203,7 +142,7 @@ export default function MyApplications() {
                   </div>
 
                   {app.status !== "rejected" && <div className="flex gap-2 pt-2 border-t border-gray-50">
-                      <Link to={`/ofertas/${app.id}`} className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-[#475569] py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
+                      <Link to={`/ofertas/${app.jobId}`} className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-[#475569] py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
                         <Eye className="w-3.5 h-3.5" />
                         Ver oferta
                       </Link>

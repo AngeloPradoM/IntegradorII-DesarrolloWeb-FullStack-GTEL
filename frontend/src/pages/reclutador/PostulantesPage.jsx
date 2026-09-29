@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import useRecruiterData from "../../hooks/useRecruiterData";
+import DataState from "../../components/ui/DataState";
 import { getRecruiterCandidates } from "../../services/api";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Search, Eye, Download, Filter, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 const statusConfig = {
   new: {
@@ -27,22 +28,11 @@ const statusConfig = {
 };
 const avatarColors = ["bg-[#D32F2F]", "bg-blue-600", "bg-green-600", "bg-purple-600", "bg-orange-600", "bg-teal-600", "bg-pink-600", "bg-indigo-600", "bg-cyan-600", "bg-amber-600"];
 export default function CandidateDirectory() {
-  const [candidates, setCandidates] = useState([]);
-  const [error, setError] = useState("");
-  useEffect(() => {
-    getRecruiterCandidates().then(rows => setCandidates(rows.map(row => ({
-      ...row,
-      status: {
-        recibida: "new",
-        en_revision: "reviewing",
-        entrevista: "interview",
-        aprobada: "approved",
-        rechazada: "rejected"
-      }[row.status] || row.status || "new",
-      avatar: (row.name || "").split(" ").map(s => s[0]).slice(0, 2).join("")
-    })))).catch(e => setError(e.message));
-  }, []);
-  const [search, setSearch] = useState("");
+  const {data, loading, error, retry} = useRecruiterData(getRecruiterCandidates);
+  const candidates = data || [];
+  const [params, setParams] = useSearchParams();
+  const search = params.get('q') || '';
+  const setSearch = value => setParams(previous => { const next = new URLSearchParams(previous); value ? next.set('q',value) : next.delete('q'); return next; }, {replace:true});
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 8;
@@ -53,14 +43,14 @@ export default function CandidateDirectory() {
   });
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paged = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
-  return <div className="p-6">{error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+  return <div className="p-6"><DataState loading={loading} error={error} retry={retry} />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-[#1E293B]">Directorio de Postulantes</h1>
-          <p className="text-sm text-[#475569]">{candidates.length} candidatos registrados</p>
+          <p className="text-sm text-[#475569]">{loading || error ? '—' : candidates.length} candidatos registrados</p>
         </div>
-        <button className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+        <button disabled title="Exportación pendiente de integración" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
           <Download className="w-4 h-4" />
           Exportar Excel
         </button>
@@ -107,8 +97,9 @@ export default function CandidateDirectory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
+              {!loading && !error && !filtered.length && <tr><td colSpan={6} className="p-8 text-center text-sm text-brand-gray">{candidates.length ? "No hay resultados para estos filtros." : "No hay postulantes disponibles."}</td></tr>}
               {paged.map((c, idx) => {
-              const s = statusConfig[c.status];
+              const s = statusConfig[c.status] || {label:'N/D',color:'bg-slate-100 text-slate-600'};
               return <tr key={c.id} className="hover:bg-[#F8FAFC] transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -124,10 +115,10 @@ export default function CandidateDirectory() {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden w-16">
                           <div className={`h-full rounded-full ${c.score >= 85 ? "bg-green-500" : c.score >= 70 ? "bg-yellow-500" : "bg-[#D32F2F]"}`} style={{
-                        width: `${c.score}%`
+                        width: `${c.score ?? 0}%`
                       }} />
                         </div>
-                        <span className="text-xs font-medium text-[#1E293B]">{c.score}%</span>
+                        <span className="text-xs font-medium text-[#1E293B]">{c.score == null ? 'N/D' : `${c.score}%`}</span>
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
@@ -137,10 +128,10 @@ export default function CandidateDirectory() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Link to={`/reclutador/postulantes/${c.id}`} className="p-1.5 text-[#475569] hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 rounded-lg transition-colors" title="Ver perfil">
+                        <Link to={`/reclutador/postulantes/${encodeURIComponent(c.id)}`} className="p-1.5 text-[#475569] hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 rounded-lg transition-colors" title="Ver perfil">
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <button className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descargar CV">
+                        <button disabled className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descarga de CV pendiente de integración">
                           <Download className="w-4 h-4" />
                         </button>
                       </div>
@@ -154,7 +145,7 @@ export default function CandidateDirectory() {
         {/* Pagination */}
         <div className="px-5 py-3.5 border-t border-gray-100 bg-[#F8FAFC] flex items-center justify-between">
           <p className="text-xs text-[#475569]">
-            Mostrando {(currentPage - 1) * perPage + 1}–{Math.min(currentPage * perPage, filtered.length)} de {filtered.length} resultados
+            Mostrando {filtered.length ? (currentPage - 1) * perPage + 1 : 0}–{Math.min(currentPage * perPage, filtered.length)} de {filtered.length} resultados
           </p>
           <div className="flex items-center gap-1.5">
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 rounded-lg text-[#475569] hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">

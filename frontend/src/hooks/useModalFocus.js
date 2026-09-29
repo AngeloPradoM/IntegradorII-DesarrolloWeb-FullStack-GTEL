@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 export default function useModalFocus(ref, isOpen, onClose) {
+  const close = useEffectEvent(() => onClose());
   useEffect(() => {
     if (!isOpen) return;
     const previousFocus = document.activeElement;
@@ -11,7 +12,7 @@ export default function useModalFocus(ref, isOpen, onClose) {
       (ref.current?.querySelector('input:not(:disabled)') || ref.current)?.focus();
     });
     const handleKey = event => {
-      if (event.key === "Escape") { event.preventDefault(); onClose(); }
+      if (event.key === "Escape") { event.preventDefault(); close(); }
       if (event.key !== "Tab") return;
       const items = Array.from(ref.current?.querySelectorAll(selector) || []).filter(el => el.getClientRects().length);
       const first = items[0], last = items[items.length - 1];
@@ -29,5 +30,5 @@ export default function useModalFocus(ref, isOpen, onClose) {
       document.removeEventListener("keydown", handleKey);
       previousFocus?.focus();
     };
-  }, [ref, isOpen, onClose]);
+  }, [ref, isOpen]);
 }
