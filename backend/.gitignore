@@ -1,0 +1,13 @@
+/target/
+/.m2-cache/
+.env
+.env.*
+!.env.example
+*.log
+/config/local.properties
+/.idea/
+/.vscode/
+*.iml
+.classpath
+.project
+.settings/
