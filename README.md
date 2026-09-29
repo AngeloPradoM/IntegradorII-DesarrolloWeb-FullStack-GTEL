@@ -1,206 +1,78 @@
-﻿# GTEL Talento — Sistema de Reclutamiento (ATS)
+﻿# GTEL Talento — Sistema de Reclutamiento
 
-Plataforma web para candidatos y reclutadores de un call center de telecomunicaciones, orientada a la gestión de ofertas y procesos de selección de personal.
+Plataforma de selección de personal para candidatos y reclutadores de GTEL.
 
-> **Avance actual:** registro e inicio de sesión conectados con Spring Boot y MySQL. La verificación por correo y la integración completa de los módulos de negocio siguen pendientes.
-
-## 1. Información del proyecto
-
-| Campo | Información |
+| Información | Detalle |
 |---|---|
-| Proyecto | GTEL Talento |
 | Curso | Curso Integrador II — Desarrollo de Páginas Web |
-| Universidad / ciclo | Por completar |
-| Docente / responsable | Por completar |
-| Repositorio | [GTEL en GitHub](https://github.com/AngeloPradoM/IntegradorII-DesarrolloWeb-FullStack-GTEL) |
+| Docente | Por completar |
+| Integrantes y responsabilidades | Por completar por el equipo |
 | Arquitectura | React → API REST Spring Boot → MySQL |
 
-### Alcance de esta versión
+> Registro e inicio de sesión conectados con MySQL. La integración completa de los módulos de negocio y la verificación por correo siguen pendientes. El laboratorio `index/` no es necesario para ejecutar este proyecto.
 
-| Funcionalidad | Estado |
-|---|---|
-| Registro público | Crea usuario y postulante en MySQL; contraseña con hash BCrypt |
-| Login | Valida credenciales y rol; emite JWT |
-| Recuperación de sesión | Consulta `/api/auth/me` al recargar |
-| Cierre de sesión | Elimina token local; no lo revoca en el servidor |
-| Edición de perfil real | Bloqueada hasta conectar su endpoint |
-| Ofertas y postulaciones | Interfaz disponible; integración completa con MySQL pendiente |
-| Reclutamiento | Interfaz y consultas backend disponibles; integración completa pendiente |
-| Verificación por correo | Pendiente; referencias aisladas del backend activo |
+# Frontend
 
-## 2. Stack tecnológico y herramientas
+Interfaz web para consultar ofertas, registrar candidatos, iniciar sesión y acceder a las pantallas de postulaciones y reclutamiento.
 
-| Capa / herramienta | Tecnología |
-|---|---|
-| Frontend | React 19, Vite 8, React Router 7 |
-| Estilos e iconos | Tailwind CSS 4, Lucide React |
-| Gráficos | Recharts 3 |
-| Backend | Java 21, Spring Boot 3.5.5 |
-| Persistencia | Spring Data JPA / Hibernate, MySQL Connector/J |
-| Autenticación | Spring Security, BCrypt, JWT |
-| Dependencias | npm y Maven 3.9.x |
-| Runtime frontend | Node.js 22.12 o superior compatible con Vite |
-| Base de datos | MySQL 8.x; mínimo 8.0.13 para el script suministrado |
-| Cliente de BD | DBeaver |
-| IDE | VS Code o IntelliJ IDEA |
-| Versionado | Git / GitHub |
+## Stack técnico
 
-**DBeaver es un cliente:** MySQL Server debe estar instalado y ejecutándose por separado. Cada integrante puede usar su BD local. Clonar el repositorio no copia los datos de otro equipo.
+Versiones declaradas en `frontend/package.json`; `package-lock.json` fija las dependencias instaladas con `npm ci`.
 
-## 3. Instalación y configuración
+| Tecnología | Versión declarada | Función |
+|---|---|---|
+| React | ^19.2.8 | Componentes y estado |
+| Vite | ^8.2.2 | Desarrollo y compilación |
+| React Router | ^7.18.3 | Navegación |
+| Tailwind CSS | ^4.3.3 | Estilos |
+| Lucide React | ^1.43.0 | Iconos |
+| Recharts | ^3.10.1 | Gráficos |
+| ESLint | ^10.9.0 | Revisión del código |
 
-### 3.1. Prerrequisitos
+## Prerrequisitos
 
-Instalar las herramientas anteriores y comprobar:
+| Herramienta | Versión de referencia | Descarga oficial |
+|---|---|---|
+| Node.js | 22.x, desde 22.12 | [Node.js](https://nodejs.org/en/download) |
+| npm | Incluido con Node.js | [Node.js](https://nodejs.org/en/download) |
+| Git | 2.x | [Git](https://git-scm.com/downloads) |
+| VS Code | Estable; el proyecto no fija versión | [VS Code](https://code.visualstudio.com/Download) |
 
-```powershell
-git --version
-java -version
-mvn.cmd -version
-node --version
-npm.cmd --version
-```
+Los comandos de esta guía usan PowerShell en Windows. En Linux/macOS, usar `npm` y `mvn` sin `.cmd`.
 
-Los comandos usan PowerShell en Windows. En Linux/macOS usar `mvn` y `npm` sin `.cmd`.
+## 1. Obtener el proyecto e instalar dependencias
 
-### 3.2. Clonar el repositorio
+Si todavía no lo clonaste, utiliza el comando del apartado **Backend → 1. Clonar el repositorio**. No necesitas clonarlo dos veces.
 
-```powershell
-git clone https://github.com/AngeloPradoM/IntegradorII-DesarrolloWeb-FullStack-GTEL.git
-cd IntegradorII-DesarrolloWeb-FullStack-GTEL
-```
-
-### 3.3. Crear la BD con DBeaver
-
-1. Iniciar MySQL Server.
-2. Crear una conexión MySQL en DBeaver con los parámetros siguientes.
-3. Probar la conexión; permitir la descarga del driver si se solicita.
-4. Abrir [backend/database/gtel_talento.sql](backend/database/gtel_talento.sql) en el editor SQL de esa conexión.
-5. Ejecutar el script completo sobre una instalación nueva, sin tablas previas.
-6. Actualizar el navegador de bases y seleccionar `gtel_talento`.
-
-| Parámetro | Valor local |
-|---|---|
-| Host | `localhost` |
-| Puerto | `3306` |
-| Usuario | Usuario configurado en MySQL |
-| Contraseña | Contraseña de ese usuario |
-| Base | `gtel_talento`, una vez creado el esquema |
-
-El script, basado en el esquema compartido por el equipo, crea 12 tablas e inserta los roles `CANDIDATO` y `RECLUTADOR`. No contiene cuentas ni secretos. El teléfono admite 16 caracteres incluyendo `+`.
-
-**No ejecutarlo sobre la BD de trabajo existente.** Es una instalación inicial, no una migración. La migración histórica `001_postulante_telefono.sql` tampoco se aplica a esta instalación: la columna ya existe.
-
-```sql
-USE gtel_talento;
-SHOW TABLES;
-SELECT id, nombre FROM roles;
-```
-
-Hibernate usa `ddl-auto=validate`: valida el esquema, pero no lo crea ni actualiza. Los scripts se ejecutan manualmente. El nuevo script de instalación no se ha ejecutado sobre la BD existente.
-
-### 3.4. Configuración del backend
-
-Desde la raíz:
-
-```powershell
-New-Item -ItemType Directory -Force backend/config
-```
-
-Crear `backend/config/local.properties`, sustituyendo los valores entre `<...>`:
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/gtel_talento?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-spring.datasource.username=<usuario_mysql_local>
-spring.datasource.password=<contrasena_mysql_local>
-jwt.secret=<clave_aleatoria_privada_de_al_menos_32_bytes>
-```
-
-Generar una clave y copiar el resultado a `jwt.secret`:
-
-```powershell
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-```
-
-El archivo local está excluido de Git. Spring lo importa al arrancar desde `backend/`. Conservar la clave entre reinicios.
-
-También pueden configurarse variables de entorno:
-
-| Variable | Uso |
-|---|---|
-| `DB_URL` | URL JDBC |
-| `DB_USERNAME` | Usuario MySQL |
-| `DB_PASSWORD` | Contraseña MySQL |
-| `JWT_SECRET` | Firma privada de JWT |
-| `SERVER_PORT` | Puerto HTTP; por defecto `8080` |
-| `FRONTEND_URL` | Origen permitido; por defecto `http://localhost:5173` |
-| `JPA_DDL_AUTO` | Mantener `validate` |
-
-Spring **no carga `.env` automáticamente**. Usar el archivo local o variables del proceso/IDE. No se necesitan credenciales de Gmail en esta etapa.
-
-### 3.5. Instalar el frontend
+Desde la raíz del repositorio:
 
 ```powershell
 cd frontend
 npm.cmd ci
 ```
 
-Opcionalmente crear `frontend/.env.local`:
+## 2. Configurar la API
+
+Crear opcionalmente `frontend/.env.local`:
 
 ```dotenv
 VITE_API_URL=http://localhost:8080
 VITE_DATA_MODE=demo
 ```
 
-Registro y login llaman al backend incluso con los demás módulos en `demo`. Cambiar globalmente a `api` no implementa las operaciones pendientes. Las variables `VITE_*` son públicas: no colocar secretos en ellas.
+Son los valores predeterminados. Registro y login utilizan el backend incluso con los demás módulos en modo `demo`. Cambiar a `api` no implementa los endpoints pendientes. No guardar secretos en variables `VITE_*`, porque son públicas.
 
-## 4. Cómo ejecutar el proyecto
+## 3. Levantar el frontend
 
-Con MySQL encendido, abrir dos terminales desde la raíz.
-
-**Terminal 1 — backend:**
+Desde `frontend/`:
 
 ```powershell
-cd backend
-mvn.cmd spring-boot:run
-```
-
-**Terminal 2 — frontend:**
-
-```powershell
-cd frontend
 npm.cmd run dev
 ```
 
-| Servicio | Dirección |
-|---|---|
-| Frontend | http://localhost:5173 |
-| Backend | http://localhost:8080 |
-| Salud básica | http://localhost:8080/api/health |
+Abrir http://localhost:5173 o la dirección indicada por Vite. El backend debe estar iniciado para registrarse e ingresar. Si cambia el puerto del frontend, ajustar también los orígenes CORS del backend.
 
-Si Vite utiliza otro puerto, revisar el origen permitido en Spring. Reiniciar los procesos después de cambiar la configuración.
-
-### Verificar el flujo
-
-1. Registrar una cuenta desde el frontend.
-2. Ingresar con correo, contraseña y tipo **Candidato**.
-3. Comprobar el nombre del usuario en el encabezado.
-4. Recargar y verificar la recuperación de sesión.
-5. Cerrar sesión y comprobar que una contraseña incorrecta sea rechazada.
-6. Consultar los registros en DBeaver sin mostrar hashes:
-
-```sql
-SELECT u.id, u.email, r.nombre AS rol,
-       p.nombres, p.apellidos, p.telefono
-FROM usuarios u
-JOIN roles r ON r.id = u.rol_id
-LEFT JOIN postulantes p ON p.usuario_id = u.id
-ORDER BY u.id DESC;
-```
-
-### Pruebas y compilación
-
-Desde `frontend/`:
+## 4. Pruebas y compilación
 
 ```powershell
 npm.cmd run lint
@@ -208,116 +80,303 @@ node --test --test-concurrency=1 tests/*.test.mjs
 npm.cmd run build
 ```
 
-Desde `backend/`:
+La compilación genera `dist/`. Las pruebas automatizadas no sustituyen el recorrido real en navegador. `tests/browser-flows.mjs` conserva escenarios demo con OTP y requiere adaptación antes de reutilizarlo.
 
-```powershell
-mvn.cmd clean test
+## 5. Estructura del frontend
+
+```text
+frontend/
+├── src/
+│   ├── components/      # Componentes, formularios y modales
+│   ├── context/         # Estado de autenticación
+│   ├── hooks/           # Lógica reutilizable
+│   ├── layouts/         # Estructuras de página
+│   ├── pages/           # Pantallas de candidato y reclutador
+│   ├── routes/          # Navegación y rutas protegidas
+│   ├── services/        # Comunicación con API y servicios demo
+│   └── utils/           # Funciones auxiliares
+├── public/              # Archivos estáticos
+├── scripts/             # Herramientas de desarrollo
+├── tests/               # Pruebas automatizadas
+├── package.json         # Dependencias y comandos
+└── vite.config.js       # Configuración de Vite
 ```
 
-El build genera `frontend/dist/`. Las pruebas automatizadas no sustituyen el recorrido de navegador con una BD real. `browser-flows.mjs` conserva escenarios demo anteriores con OTP y requiere adaptación.
+# Backend
 
-### Problemas frecuentes
+API REST de GTEL Talento. Gestiona el registro, la autenticación por correo y contraseña, la emisión de tokens JWT y las consultas de reclutamiento. Utiliza MySQL para persistir los datos y organiza el código por funcionalidades.
 
-| Síntoma | Revisar |
+## Stack técnico
+
+| Tecnología | Versión | Función |
+|---|---|---|
+| Java | 21 | Lenguaje y runtime |
+| Spring Boot | 3.5.5 | Servidor y configuración |
+| Spring Web | Gestionada por Spring Boot | API REST |
+| Spring Data JPA / Hibernate | Gestionada por Spring Boot | Persistencia y validación del esquema |
+| Spring Security / BCrypt | Gestionada por Spring Boot | Autorización y hash de contraseñas |
+| JJWT | 0.12.6 | Firma y validación de JWT |
+| MySQL Connector/J | Gestionada por Spring Boot | Conexión JDBC |
+| JUnit / Mockito | Gestionada por Spring Boot | Pruebas |
+
+Las dependencias Java se descargan mediante Maven según `backend/pom.xml`; no se instalan manualmente.
+
+## Prerrequisitos
+
+| Herramienta | Versión requerida o de referencia | Descarga oficial |
+|---|---|---|
+| JDK | 21; seleccionar JDK 21 en la página | [Oracle JDK](https://www.oracle.com/java/technologies/downloads/#java21) |
+| Apache Maven | 3.9.x; utilizado anteriormente: 3.9.16 | [Maven](https://maven.apache.org/download.cgi) |
+| MySQL Server | 8.x para la instalación de referencia; SQL requiere al menos 8.0.13 | [MySQL Community](https://dev.mysql.com/downloads/) |
+| DBeaver Community | 26.2.1 como referencia; no fijada por el proyecto | [DBeaver](https://dbeaver.io/download/) |
+| VS Code | Versión estable; no fijada por el proyecto | [VS Code](https://code.visualstudio.com/Download) |
+| Extension Pack for Java | Versión compatible con tu VS Code | [Extensión Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack) |
+| Spring Boot Extension Pack | Versión compatible con tu VS Code | [Extensiones Spring](https://marketplace.visualstudio.com/items?itemName=vmware.vscode-boot-dev-pack) |
+| Git | 2.x | [Git](https://git-scm.com/downloads) |
+
+Las versiones de herramientas auxiliares son referencias, no una declaración de que todas se hayan probado juntas. DBeaver es un cliente: no reemplaza a MySQL Server. Cada integrante configura su propia instalación local.
+
+Comprobar que Java y Maven estén disponibles en `PATH` y que Maven utilice Java 21:
+
+```powershell
+java -version
+mvn.cmd -version
+git --version
+```
+
+## 1. Clonar el repositorio
+
+```powershell
+git clone https://github.com/AngeloPradoM/IntegradorII-DesarrolloWeb-FullStack-GTEL.git
+cd IntegradorII-DesarrolloWeb-FullStack-GTEL
+```
+
+Repositorio: [IntegradorII-DesarrolloWeb-FullStack-GTEL](https://github.com/AngeloPradoM/IntegradorII-DesarrolloWeb-FullStack-GTEL).
+
+## 2. Crear la base de datos en DBeaver
+
+### 2.1. Conectar MySQL
+
+1. Iniciar el servicio MySQL y abrir DBeaver.
+2. Seleccionar **New Database Connection** (ícono de conexión).
+3. Elegir **MySQL → Next**.
+4. Completar los datos siguientes.
+
+| Campo | Valor |
 |---|---|
-| Conexión MySQL rechazada | Servicio, puerto y credenciales |
-| Tabla ausente al iniciar | Importación del SQL y nombre de BD |
-| Rol CANDIDATO inexistente | Datos iniciales de `roles` |
-| Error JWT | Clave privada y arranque desde `backend/` |
-| Puerto 8080 ocupado | Otra instancia del backend |
-| Frontend no conecta | URL de API, origen permitido y arranque de Spring |
-| Cuenta demo no ingresa | Registrar cuenta real; localStorage no se migra a MySQL |
-| Caché Maven inaccesible | Usar el comando siguiente desde `backend/` |
+| Host | `localhost` |
+| Port | `3306` |
+| Username | `root`, o tu usuario MySQL local |
+| Password | Contraseña de tu MySQL local |
+
+5. En **Driver properties**, configurar `allowPublicKeyRetrieval=true` y `useSSL=false` para esta conexión de desarrollo local.
+6. Seleccionar **Test Connection** y descargar el driver si DBeaver lo solicita. La conexión debe resultar satisfactoria.
+7. Seleccionar **Finish**.
+
+### 2.2. Crear la base de datos
+
+Abrir un editor SQL asociado a la conexión y ejecutar:
+
+```sql
+CREATE DATABASE IF NOT EXISTS gtel_talento
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
+
+Ejecutar la sentencia con `Ctrl + Enter` o la acción **Execute SQL Statement**. Actualizar la conexión con **Refresh** y verificar que aparezca `gtel_talento`.
+
+### 2.3. Crear las tablas y roles
+
+Abrir [backend/database/schema/gtel_talento.sql](backend/database/schema/gtel_talento.sql) mediante **SQL Editor → Open SQL Script**, asociarlo a la conexión y ejecutar el script completo con **Execute SQL Script**.
+
+El script incluye `CREATE DATABASE IF NOT EXISTS`, por lo que admite la base vacía creada en el paso anterior. Crea 12 tablas y los roles `CANDIDATO` y `RECLUTADOR`, pero no cuentas de usuario.
+
+**Aplicar solo en una base sin tablas.** No volver a ejecutar el script inicial sobre una BD con datos. La migración histórica `001_postulante_telefono.sql` tampoco se aplica si ya existe la columna `telefono`.
+
+```sql
+USE gtel_talento;
+SHOW TABLES;
+SELECT id, nombre FROM roles;
+```
+
+## 3. Configurar el proyecto
+
+`backend/src/main/resources/application.properties` define la configuración compartida: puerto, URL de MySQL, importación del archivo local y validación del esquema. Las credenciales privadas se configuran en `backend/config/local.properties`, que está excluido de Git.
+
+Si no existe, copiar `backend/config/local.properties.example` como `backend/config/local.properties`. Si ya existe, editarlo conservando su clave JWT.
+
+```properties
+spring.datasource.username=root
+spring.datasource.password=TU_PASSWORD_AQUI
+jwt.secret=TU_CLAVE_ALEATORIA_PRIVADA_DE_AL_MENOS_32_BYTES
+```
+
+Sustituir `TU_PASSWORD_AQUI` por la contraseña de MySQL. Dejarla vacía únicamente si ese usuario MySQL realmente no tiene contraseña.
+
+Generar una clave JWT con Node.js (instalado para el frontend) y copiar el resultado a `jwt.secret`:
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+JWT identifica las solicitudes autenticadas; no verifica el correo. Conservar la clave entre reinicios. No publicar este archivo ni copiar claves privadas al README.
+
+| Configuración | Valor predeterminado / uso |
+|---|---|
+| `DB_URL` | JDBC hacia `localhost:3306/gtel_talento` |
+| `DB_USERNAME` | `root` |
+| `DB_PASSWORD` | Contraseña MySQL si se utiliza variable de entorno |
+| `JWT_SECRET` | Alternativa a `jwt.secret` local |
+| `SERVER_PORT` | `8080` |
+| `FRONTEND_URL` | `http://localhost:5173,http://127.0.0.1:5173` |
+| `JWT_EXPIRATION_MS` | `3600000` (una hora) |
+| `JPA_DDL_AUTO` | `validate` |
+
+Spring no carga `.env` automáticamente. Usar variables del proceso/IDE o el archivo local anterior. Arrancar desde `backend/` para resolver `./config/local.properties`.
+
+## 4. Levantar el servidor
+
+### Opción A — VS Code con Spring Boot Dashboard
+
+1. Instalar las extensiones Java y Spring indicadas en prerrequisitos.
+2. Abrir **File → Open Folder** y seleccionar **la carpeta `backend`**.
+3. Esperar que Maven importe el proyecto y descargue las dependencias.
+4. Abrir **Spring Boot Dashboard**.
+5. Seleccionar ▶ en la aplicación correspondiente a `gtel-talento-backend` / `GtelTalentoApplication`.
+6. Comprobar que el log muestre `Started GtelTalentoApplication`.
+
+Abrir directamente `backend/` facilita que el directorio de ejecución coincida con la ruta de configuración local. Si el IDE utiliza otro directorio, ajustar su configuración de ejecución.
+
+### Opción B — Terminal
+
+Desde la raíz del repositorio:
+
+```powershell
+cd backend
+mvn.cmd spring-boot:run
+```
+
+Si Maven no puede acceder a su caché predeterminada:
 
 ```powershell
 mvn.cmd "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" spring-boot:run
 ```
 
-## 5. Credenciales de prueba
+### Verificar
 
-**El script no precarga usuarios.**
+- Servidor: http://localhost:8080
+- Salud básica: http://localhost:8080/api/health
 
-| Tipo | Acceso |
+**Hibernate no crea tablas ni inserta datos automáticamente en este proyecto:** `ddl-auto=validate` comprueba el esquema creado previamente mediante SQL. Actualizar DBeaver para consultar las tablas.
+
+## 5. Comprobar el funcionamiento
+
+1. Mantener MySQL, backend y frontend encendidos.
+2. Registrar un candidato o utilizar las cuentas de prueba previamente creadas.
+3. Iniciar sesión seleccionando el tipo de usuario correcto.
+4. Recargar la página para comprobar la recuperación de sesión.
+5. Cerrar sesión y verificar que una contraseña incorrecta sea rechazada.
+
+Desde `backend/`, ejecutar pruebas unitarias:
+
+```powershell
+mvn.cmd clean test
+```
+
+Las pruebas no crean usuarios en MySQL y no sustituyen la comprobación real de conexión. El cierre de sesión elimina el token del navegador; la revocación del JWT en el servidor está pendiente.
+
+| Error | Qué revisar |
 |---|---|
-| Candidato | Registrarse y usar las credenciales elegidas |
-| Reclutador | Cuenta existente en MySQL con rol `RECLUTADOR` y hash BCrypt válido; el registro público no crea reclutadores |
-| Administrador del laboratorio | Pertenece a `index/`, no al backend Spring |
+| `JWT_SECRET` sin resolver | Configurar `jwt.secret` local y arrancar desde `backend/` |
+| `Access denied ... using password: NO` | Falta la contraseña MySQL local |
+| Tabla inexistente | Importar el esquema inicial en la base correcta |
+| Rol CANDIDATO inexistente | Comprobar los registros de `roles` |
+| Puerto 8080 ocupado | Detener la instancia duplicada o configurar otro puerto |
+| Frontend no conecta | URL de API, puerto y orígenes CORS |
 
-No reutilizar los antiguos accesos demo como credenciales reales ni guardar contraseñas en texto plano en `password_hash`.
+## 6. Credenciales de prueba
 
-## 6. Endpoints principales y módulos
+| Tipo de acceso | Rol | Correo | Contraseña de prueba |
+|---|---|---|---|
+| Candidato | `CANDIDATO` | `postulante1@gmail.com` | `Postulante2026!` |
+| Reclutador | `RECLUTADOR` | `reclutador1@gmail.com` | `Reclutador2026!` |
 
-Base: `http://localhost:8080`.
+Estas cuentas deben existir previamente en MySQL. El script inicial del esquema no las precarga. Guardar las contraseñas como hash BCrypt en `usuarios.password_hash`; el candidato también necesita un registro en `postulantes`. El registro público no crea reclutadores.
+
+Los IDs de los roles se consultan en `roles`; no asumir que siempre serán 1 y 2. Son credenciales públicas de desarrollo, no de producción ni de Gmail. Antes de activar correos reales, utilizar direcciones controladas por el equipo.
+
+## 7. Estructura del backend
+
+```text
+backend/
+├── src/main/java/pe/com/gtel/talento/
+│   ├── GtelTalentoApplication.java  # Punto de entrada Spring Boot
+│   ├── auth/                       # Autenticación: controller, service, dto
+│   ├── identity/                   # Usuarios y perfiles: entity, repository
+│   ├── recruitment/                # Reclutamiento: controller, service, repository
+│   ├── health/                     # Endpoint de salud
+│   ├── config/                     # Configuración Spring y CORS
+│   └── security/                   # Firma JWT y filtro de autenticación
+├── src/main/resources/
+│   └── application.properties      # Configuración compartida
+├── src/test/java/                  # Pruebas por módulo
+├── config/
+│   ├── local.properties            # Configuración privada; no versionar
+│   └── local.properties.example    # Plantilla para el equipo
+├── database/
+│   ├── schema/                     # Instalación inicial de la BD
+│   └── migrations/                 # Cambios manuales históricos
+├── target/                         # Generado por Maven; no versionar
+├── CONTRIBUTING.md                 # Convenciones de colaboración
+└── pom.xml                         # Dependencias y configuración Maven
+```
+
+Las solicitudes recorren Controller → Service → Repository → MySQL. La configuración local, las dependencias descargadas y los archivos compilados no deben subirse a GitHub.
+
+## 8. Tablas MySQL
+
+Esquema: `gtel_talento`, codificación `utf8mb4`.
+
+| Tabla | Función | Relaciones principales |
+|---|---|---|
+| `roles` | Tipos de acceso | Referenciada por `usuarios` |
+| `departamentos` | Áreas de trabajo | Referenciada por requerimientos y vacantes |
+| `usuarios` | Cuentas, hash de contraseña y estado | `rol_id` → roles |
+| `postulantes` | Perfil profesional del candidato | `usuario_id` → usuarios (único) |
+| `requerimientos_personal` | Solicitudes de contratación | Departamento y usuario solicitante |
+| `vacantes` | Ofertas laborales | Requerimiento, departamento y reclutador |
+| `postulaciones` | Candidaturas a vacantes | Postulante y vacante |
+| `postulacion_timeline` | Historial de estados | Postulación y usuario |
+| `entrevistas` | Agenda de entrevistas | Postulación |
+| `evaluaciones` | Resultados de evaluación | Postulación y usuario evaluador |
+| `evaluacion_detalle` | Criterios y puntajes | Evaluación |
+| `auditoria` | Registro de acciones | Usuario responsable |
+
+La existencia de estas tablas no significa que todos sus módulos estén integrados con el frontend.
+
+Consultar las cuentas sin exponer los hashes:
+
+```sql
+SELECT u.id, u.email, r.nombre AS rol,
+       p.nombres, p.apellidos
+FROM gtel_talento.usuarios u
+JOIN gtel_talento.roles r ON r.id = u.rol_id
+LEFT JOIN gtel_talento.postulantes p ON p.usuario_id = u.id
+ORDER BY u.id;
+```
+
+## 9. Endpoints principales
 
 | Método | Ruta | Función |
 |---|---|---|
 | GET | `/api/health` | Salud básica |
-| POST | `/api/auth/register` | Crear candidato: nombres, apellidos, email, password, telefono |
-| POST | `/api/auth/login` | Autenticar: email, password, rol |
-| GET | `/api/auth/me` | Perfil con `Authorization: Bearer <token>` |
-| POST | `/api/auth/logout` | Mensaje para eliminación local del token; sin revocación |
-| GET | `/api/recruiter/candidates` | Consulta de candidatos para reclutador |
-| GET | `/api/recruiter/interviews` | Consulta de entrevistas para reclutador |
-| GET | `/api/recruiter/evaluations` | Consulta de evaluaciones para reclutador |
-| GET | `/api/recruiter/dashboard` | Datos del panel para reclutador |
+| POST | `/api/auth/register` | Registro público de candidato |
+| POST | `/api/auth/login` | Login con correo, contraseña y rol |
+| GET | `/api/auth/me` | Perfil actual con Bearer token |
+| POST | `/api/auth/logout` | Indicación de eliminar token local |
+| GET | `/api/recruiter/candidates` | Consulta de candidatos |
+| GET | `/api/recruiter/interviews` | Consulta de entrevistas |
+| GET | `/api/recruiter/evaluations` | Consulta de evaluaciones |
+| GET | `/api/recruiter/dashboard` | Resumen de reclutamiento |
 
-Registro responde `201`. Login devuelve perfil, token, `authenticated=true` y `requiresOtp=false`. El ID de registro es de postulante; el de login y `/me` es de usuario. Los endpoints OTP no están activos.
-
-| Ruta frontend | Pantalla |
-|---|---|
-| `/` | Inicio y modales de autenticación |
-| `/ofertas` | Ofertas laborales |
-| `/ofertas/:id` | Detalle de oferta |
-| `/mis-postulaciones` | Postulaciones del candidato |
-| `/perfil` | Perfil |
-| `/reclutador/dashboard` | Panel de reclutamiento |
-
-## 7. Estructura y arquitectura
-
-```text
-IntegradorII-DesarrolloWeb-FullStack-GTEL/
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # Componentes y modales
-│   │   ├── context/         # Estado de autenticación
-│   │   ├── hooks/           # Comportamiento reutilizable
-│   │   ├── layouts/         # Estructuras de página
-│   │   ├── pages/           # Candidato y reclutador
-│   │   ├── routes/          # Rutas y protección
-│   │   └── services/        # Comunicación con API
-│   ├── tests/
-│   └── docs/
-├── backend/
-│   ├── src/main/java/       # Controllers, services, repositories y entities
-│   ├── src/main/resources/  # Configuración Spring
-│   ├── src/test/            # Pruebas
-│   ├── config/             # Configuración local privada
-│   ├── database/           # SQL de instalación inicial
-│   ├── migrations/         # Migraciones históricas manuales
-│   ├── docs/               # Diagnósticos
-│   └── step2-reference/    # Referencia OTP fuera de compilación
-└── index/                  # Laboratorio independiente
-```
-
-`index/` no es necesario para ejecutar React + Spring. Su servidor, configuración y BD son independientes.
-
-Documentación: [backend](backend/README.md), [autenticación React](frontend/docs/registro-spring.md), [paso 2](backend/step2-reference/README.md).
-
-## 8. Integrantes del equipo y roles
-
-Completar los datos confirmados antes de la entrega académica.
-
-| Integrante | Responsabilidad |
-|---|---|
-| Por completar | Coordinación |
-| Por completar | Frontend |
-| Por completar | Backend y base de datos |
-| Por completar | Pruebas y documentación |
-
-### Trabajo colaborativo
-
-- `main`: rama estable.
-- `develop`: integración del equipo.
-- `feature/<descripcion>`: trabajo individual con pull request.
-
-Compartir el esquema SQL y archivos de ejemplo; conservar claves JWT, contraseñas y configuración local fuera de Git. Cada integrante crea su propia instalación sin publicar datos personales.
+Las rutas de reclutamiento requieren rol RECLUTADOR. Registro devuelve ID de postulante; login y `/me`, ID de usuario. La verificación por correo sigue pendiente.
