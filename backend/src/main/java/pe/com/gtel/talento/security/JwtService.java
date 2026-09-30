@@ -22,16 +22,30 @@ public class JwtService {
     }
 
     public String createToken(String email, String role) {
+        return createToken(email, role, 0, "EMAIL_OTP");
+    }
+
+    public String createToken(String email, String role, int version, String method) {
         Date now = new Date();
-        return Jwts.builder().subject(email).claim("role", role).issuedAt(now)
+        return Jwts.builder().subject(email).claim("role", role).claim("authMethod", method).claim("authVersion", version).issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs)).signWith(key).compact();
     }
 
+    private io.jsonwebtoken.Claims verifiedClaims(String token) {
+        var claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        if ((!"EMAIL_OTP".equals(claims.get("authMethod",String.class)) && !"TEST_PASSWORD".equals(claims.get("authMethod",String.class))) || claims.get("authVersion",Integer.class)==null)
+            throw new IllegalArgumentException("Inicia sesión con verificación de correo");
+        return claims;
+    }
+
+    public int getVersion(String token) { return verifiedClaims(token).get("authVersion",Integer.class); }
+    public String getMethod(String token) { return verifiedClaims(token).get("authMethod",String.class); }
+
     public String getEmail(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
+        return verifiedClaims(token).getSubject();
     }
 
     public String getRole(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().get("role", String.class);
+        return verifiedClaims(token).get("role", String.class);
     }
 }

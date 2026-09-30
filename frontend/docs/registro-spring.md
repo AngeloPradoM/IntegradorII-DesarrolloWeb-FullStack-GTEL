@@ -1,31 +1,13 @@
-# Registro conectado a Spring
+# Autenticacion Spring
 
-El registro llama siempre a POST /api/auth/register, aunque VITE_DATA_MODE conserve el modo demo para otros módulos. Usa VITE_API_URL o http://localhost:8080 por defecto. No cambiar globalmente el modo de datos para probar esta entrega.
+Registro, login, verificacion y reenvio usan Spring independientemente del modo demo de otros modulos. El login unico envia correo y password, y recibe el rol de MySQL. Normalmente devuelve un desafio sin JWT; verify-otp entrega perfil y JWT tras un codigo valido. Las tres cuentas de prueba habilitadas por el servidor reciben JWT con authMethod=TEST_PASSWORD y otpSkipped=true. AuthContext acepta estos contratos y recupera sesiones mediante /me.
 
-Solo se envían nombres, apellidos, email, password y telefono. El teléfono peruano nacional se normaliza con +51; un número internacional válido conserva su prefijo. Ubicación no se persiste por este contrato. No se guarda una copia de la cuenta en localStorage ni se adjuntan tokens demo.
+El panel `/admin` requiere ADMIN y usa la API real `/api/admin/users`. ADMIN puede abrir las vistas de candidato y reclutador. Las cuentas normales mantienen OTP; ocultar una ruta en React no reemplaza los permisos de Spring Security.
 
-Solo se muestra éxito si Spring devuelve 201 y un usuario con ID y correo coincidente. Se presentan errores de validación, duplicados, conexión y respuesta inesperada. Si hay timeout puede haberse completado la operación: comprobar antes de repetirla.
+Ver [README general](../../README.md) para configuracion, migracion SQL, limites y comandos de pruebas. Las cuentas nuevas requieren acceso a su buzon para iniciar sesion.
 
-El login sigue en su estado previo. Una cuenta guardada en MySQL aún no puede acceder mediante el login demo. Las cuentas previamente creadas como demo tampoco se migran automáticamente. OTP, roles, perfil y postulaciones no se modificaron.
+## Prueba de navegador OTP
 
-Validación del 27/09/2026:
+`tests/email-otp-browser.mjs` comprueba el modal real con respuestas HTTP simuladas. Requiere Vite en http://127.0.0.1:5173 y Chrome con perfil temporal y depuracion remota en 9238. Ejecutar con `node tests/email-otp-browser.mjs` desde frontend. No usa cuentas reales ni envia correos.
 
-- Lint y build correctos (permanece la advertencia de tamaño del bundle).
-- Nueve pruebas automatizadas aprobadas; la nueva prueba de registro simula HTTP sin acceder al almacenamiento demo.
-- Prueba real contra Spring en 8080: HTTP 201, usuario y postulante encontrados en MySQL, rol CANDIDATO y contraseña BCrypt. Se eliminó exclusivamente la cuenta temporal creada por esta comprobación.
-- No se ejecutó una prueba visual completa de navegador en esta entrega.
-
-## Inicio de sesion conectado
-El registro y el inicio de sesion usan Spring independientemente de VITE_DATA_MODE.
-POST /api/auth/login envia email, password y rol. La respuesta autenticada entrega
-el JWT y el perfil; no se solicita OTP en este paso. GET /api/auth/me valida la
-sesion guardada al recargar. Las sesiones demo anteriores se descartan.
-Cerrar sesion elimina el token del navegador; el backend no revoca el JWT.
-El reclutador debe existir en MySQL con el rol RECLUTADOR.
-El resto de los modulos conserva su configuracion anterior; esto no conecta sus
-operaciones con MySQL. La edicion de perfiles reales queda bloqueada hasta contar
-con su endpoint, para evitar modificar usuarios demo por coincidencias de ID.
-Prueba manual: registrar, ingresar, recargar, cerrar sesion e intentar una clave
-incorrecta. La verificacion por correo sigue pendiente.
-El script browser-flows.mjs corresponde al flujo demo anterior con OTP y requiere
-adaptacion antes de reutilizarlo con cuentas reales; no se ejecuto en este paso.
+Verifica correo oculto, codigo incorrecto sin sesion, reenvio, redireccion tras verificar, recuperacion mediante /me, logout y cierre del modal. La recepcion y entrada de un codigo real requieren una prueba manual adicional.

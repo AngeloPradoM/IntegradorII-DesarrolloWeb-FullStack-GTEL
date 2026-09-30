@@ -53,13 +53,10 @@ public class CandidatoService {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(request.email())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas"));
 
-        if (!passwordEncoder.matches(request.password(), usuario.getPasswordHash())) {
+        if (!usuario.isActive() || !passwordEncoder.matches(request.password(), usuario.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
         }
 
-        if (!usuario.getRolNombre().equalsIgnoreCase(request.rol())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El rol seleccionado no coincide con tu cuenta");
-        }
 
         return perfil(usuario);
     }
@@ -72,6 +69,7 @@ public class CandidatoService {
     }
 
     private AuthResponse perfil(Usuario usuario) {
+        if (!usuario.isActive()) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Cuenta no disponible");
 
         // TODO: cuando se agregue nombres/apellidos a `usuarios`, usar eso directamente
         // para RECLUTADOR en vez de este placeholder.

@@ -22,6 +22,7 @@ export function clearStoredUser() {
 }
 
 export function getDefaultRouteForRole(role) {
+  if (role === "ADMIN") return "/admin";
   if (role === "RECLUTADOR") return "/reclutador/dashboard";
   return "/mis-postulaciones";
 }

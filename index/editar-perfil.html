@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mi perfil · GTEL Talento</title><link rel="stylesheet" href="perfil.css"></head>
+<body>
+  <header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">G</span>GTEL <span>Talento</span></a><span class="preview">Vista previa</span><a href="index.html" class="back">← Volver al inicio</a></header>
+  <div class="page">
+    <nav class="breadcrumb" aria-label="Ruta"><a href="index.html">Inicio</a><span>/</span><span>Mi perfil</span></nav>
+    <div class="page-heading"><div><p class="eyebrow">MI CUENTA</p><h1>Un perfil que habla de ti</h1><p>Mantén tus datos actualizados para que podamos contactarte.</p></div><span class="account-badge">Perfil de candidato</span></div>
+    <div class="layout">
+      <aside>
+        <div class="identity"><div class="portrait"><img id="summary-photo" alt="Foto de perfil" hidden><span id="initials">GT</span></div><h2 id="summary-name">Tu perfil</h2><p id="summary-email"></p><span class="member">GTEL Talento</span></div>
+        <nav class="section-nav" aria-label="Secciones del perfil"><a href="#personal">01 <span>Información personal</span></a><a href="#contact">02 <span>Datos de contacto</span></a><a href="#location">03 <span>Localidad</span></a></nav>
+        <p class="aside-note">Tus datos de contacto nos permiten acompañarte durante tus procesos de selección.</p>
+      </aside>
+      <form id="editor">
+        <section class="card" id="personal"><div class="section-title"><span class="section-number">01</span><div><h2>Información personal</h2><p>Así te identificarás en la plataforma.</p></div></div>
+          <div class="photo-row"><div class="photo-preview"><img id="photo" alt="Vista previa de tu foto" hidden><span id="photo-initials">GT</span></div><div><h3>Foto de perfil</h3><div class="photo-actions"><button class="secondary" type="button" id="choose-photo">Cambiar foto</button><button class="text-button" type="button" id="remove-photo">Eliminar</button></div><p class="hint">JPG, PNG o WebP. Máximo 2 MB.</p><input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" hidden><p id="photo-error" role="alert"></p></div></div>
+          <div class="grid"><label>Nombres <span>*</span><input name="nombres" autocomplete="given-name" minlength="2" required placeholder="Tus nombres"></label><label>Apellidos <span>*</span><input name="apellidos" autocomplete="family-name" minlength="2" required placeholder="Tus apellidos"></label></div>
+        </section>
+        <section class="card" id="contact"><div class="section-title"><span class="section-number">02</span><div><h2>Datos de contacto</h2><p>Elige dónde quieres recibir nuestras comunicaciones.</p></div></div>
+          <label>Correo principal <span>*</span><input name="email" type="email" autocomplete="email" required placeholder="nombre@correo.com"></label>
+          <div class="grid"><label>Correo adicional <small>Opcional</small><input name="correoContacto" type="email" placeholder="otro@correo.com"><span class="hint">Una alternativa para contactarte.</span></label><label>Teléfono / WhatsApp <span>*</span><div class="phone"><span>+51</span><input name="telefono" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="9" pattern="[0-9]{9}" required placeholder="987654321"></div><span class="hint">Ingresa los 9 dígitos de tu número.</span></label></div>
+        </section>
+        <section class="card" id="location"><div class="section-title"><span class="section-number">03</span><div><h2>Localidad</h2><p>Ayúdanos a conocer dónde te encuentras.</p></div></div><div class="grid"><label>Departamento <span>*</span><select name="ubicacion" autocomplete="address-level1" required><option value="">Selecciona un departamento</option></select></label><label>Ciudad o distrito <small>Opcional</small><input name="localidad" autocomplete="address-level2" placeholder="Ej. Miraflores" maxlength="100"></label></div></section>
+        <div class="save-bar"><p id="save-status" role="status">Los cambios se guardan solo en esta vista previa.</p><div><button class="secondary" type="button" id="discard">Descartar cambios</button><button class="primary" type="submit">Guardar cambios</button></div></div>
+      </form>
+    </div><footer>© 2026 GTEL Telecomunicaciones · Plataforma de Reclutamiento</footer>
+  </div><script src="profile-store.js"></script><script src="editar-perfil.js"></script>
+</body></html>

@@ -8,35 +8,63 @@ import org.springframework.web.server.ResponseStatusException;
 import pe.com.gtel.talento.auth.dto.*;
 import pe.com.gtel.talento.security.JwtService;
 import pe.com.gtel.talento.auth.service.CandidatoService;
+import pe.com.gtel.talento.auth.service.EmailOtpService;
+import java.util.Map;
+import java.util.UUID;
 
 class AuthControllerTest {
     final CandidatoService candidates=mock(CandidatoService.class);
     final JwtService jwt=mock(JwtService.class);
-    final AuthController controller=new AuthController(candidates,jwt);
+    final EmailOtpService otp=mock(EmailOtpService.class);
+    final pe.com.gtel.talento.security.AccountAccessService access=mock(pe.com.gtel.talento.security.AccountAccessService.class);
+    final AuthController controller=new AuthController(candidates,jwt,otp,access);
 
-    @Test void candidateLoginReturnsTokenAndProfileWithoutOtp() {
-        var request=new LoginRequest("candidate@example.test","test-password","CANDIDATO");
-        when(candidates.autenticar(request)).thenReturn(new AuthResponse(7L,"Test","Candidate",request.email(),"CANDIDATO","+51987654321"));
-        when(jwt.createToken(request.email(),"CANDIDATO")).thenReturn("test-token");
+    @Test void authorizedTestAccountSkipsEmailAfterPasswordValidation() {
+        var request=new LoginRequest("administrador@gmail.com","AdminSecure2026*");
+        var profile=new AuthResponse(1L,"Admin","",request.email(),"ADMIN",null);
+        var account=new pe.com.gtel.talento.security.AccountAccessService.Account(1,request.email(),"ADMIN",0,true,"activo");
+        when(candidates.autenticar(request)).thenReturn(profile);
+        when(access.find(request.email())).thenReturn(account);
+        when(access.bypass(account)).thenReturn(true);
+        when(jwt.createToken(request.email(),"ADMIN",0,"TEST_PASSWORD")).thenReturn("signed-test-token");
         var result=controller.login(request).getBody();
         assertEquals(false,result.get("requiresOtp"));
-        assertEquals(7L,result.get("id"));
-        assertEquals("Test",result.get("nombres"));
-        assertEquals("test-token",result.get("token"));
-        assertFalse(result.containsKey("sessionId"));
-        assertFalse(result.containsKey("passwordHash"));
+        assertEquals(true,result.get("otpSkipped"));
+        assertEquals(false,result.get("verified"));
+        assertEquals("signed-test-token",result.get("token"));
+        verifyNoInteractions(otp);
     }
-    @Test void recruiterDoesNotNeedCandidatePhone() {
-        var request=new LoginRequest("recruiter@example.test","test-password","RECLUTADOR");
-        when(candidates.autenticar(request)).thenReturn(new AuthResponse(8L,request.email(),"",request.email(),"RECLUTADOR",null));
-        when(jwt.createToken(request.email(),"RECLUTADOR")).thenReturn("test-token");
-        var result=controller.login(request).getBody();
-        assertEquals("RECLUTADOR",result.get("rol"));
-        assertNull(result.get("telefono"));
-        assertEquals("test-token",result.get("token"));
+
+    @Test void passwordOnlyNeverIssuesTokenForEitherRole() {
+        for (String role : new String[]{"CANDIDATO","RECLUTADOR"}) {
+            var request=new LoginRequest("account@example.test","test-password");
+            var profile=new AuthResponse(7L,"Test","User",request.email(),role,null);
+            when(candidates.autenticar(request)).thenReturn(profile);
+            when(otp.start(profile)).thenReturn(Map.of("requiresOtp",true,"authenticated",false,"sessionId","challenge"));
+            var result=controller.login(request).getBody();
+            assertEquals(true,result.get("requiresOtp"));
+            assertEquals(false,result.get("authenticated"));
+            assertFalse(result.containsKey("token"));
+        }
+        verifyNoInteractions(jwt);
+    }
+    @Test void verifiedCodeIssuesToken() {
+        var id=UUID.randomUUID();
+        when(otp.verify(id.toString(),"654321")).thenReturn(new AuthResponse(7L,"Test","User","test@example.test","RECLUTADOR",null));
+        when(access.find("test@example.test")).thenReturn(new pe.com.gtel.talento.security.AccountAccessService.Account(7L,"test@example.test","RECLUTADOR",0,false,"activo"));
+        when(jwt.createToken("test@example.test","RECLUTADOR",0,"EMAIL_OTP")).thenReturn("signed-token");
+        var result=controller.verify(new OtpRequest(id,"654321")).getBody();
+        assertEquals(true,result.get("verified"));
+        assertEquals("signed-token",result.get("token"));
+    }
+    @Test void invalidCodeNeverIssuesToken() {
+        var id=UUID.randomUUID();
+        when(otp.verify(id.toString(),"000000")).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        assertThrows(ResponseStatusException.class,()->controller.verify(new OtpRequest(id,"000000")));
+        verifyNoInteractions(jwt);
     }
     @Test void badCredentialsNeverProduceToken() {
-        var request=new LoginRequest("candidate@example.test","wrong","CANDIDATO");
+        var request=new LoginRequest("candidate@example.test","wrong");
         when(candidates.autenticar(request)).thenThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED));
         assertThrows(ResponseStatusException.class,()->controller.login(request));
         verifyNoInteractions(jwt);

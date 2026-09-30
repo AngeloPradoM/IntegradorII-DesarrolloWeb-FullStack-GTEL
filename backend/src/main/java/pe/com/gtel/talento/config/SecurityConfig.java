@@ -44,10 +44,16 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
+                .exceptionHandling(errors -> errors
+                    .authenticationEntryPoint((request,response,error)->response.sendError(401))
+                    .accessDeniedHandler((request,response,error)->response.sendError(403)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**", "/api/health", "/actuator/health").permitAll()
-                        .requestMatchers("/api/recruiter/**").hasRole("RECLUTADOR")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/recruiter/**").hasAnyRole("RECLUTADOR","ADMIN")
+                        .requestMatchers("/api/candidate/**").hasAnyRole("CANDIDATO","ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

@@ -15,6 +15,9 @@ public class Usuario {
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
 
+    @Column(nullable=false, columnDefinition="enum('activo','inactivo')")
+    private String estado = "activo";
+    public boolean isActive() { return "activo".equals(estado); }
     protected Usuario() {}
     public Usuario(String email, String passwordHash, Rol rol) {
         this.email = email;

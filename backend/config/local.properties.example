@@ -1,3 +1,10 @@
 spring.datasource.username=CAMBIAR_USUARIO_LOCAL
 spring.datasource.password=CAMBIAR_PASSWORD_LOCAL
 jwt.secret=CAMBIAR_POR_CLAVE_ALEATORIA_PRIVADA_DE_AL_MENOS_32_BYTES
+
+spring.mail.username=TU_REMITENTE@gmail.com
+spring.mail.password=TU_PASSWORD_DE_APLICACION
+otp.hash-secret=CLAVE_ALEATORIA_PRIVADA_DISTINTA_DE_JWT_MINIMO_32_BYTES
+
+# Solo desarrollo local; nunca habilitar con datos de produccion.
+app.security.test-access-enabled=false

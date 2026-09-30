@@ -1,6 +1,6 @@
 ﻿# Backend GTEL Talento
 
-API REST en Java 21 y Spring Boot 3.5.5. Registro y login con MySQL, BCrypt y JWT. La verificacion por correo sigue pendiente.
+API REST en Java 21 y Spring Boot 3.5.5. Registro y login con MySQL, BCrypt y JWT. El login requiere verificacion por correo.
 
 ## Estructura
 
@@ -8,7 +8,8 @@ API REST en Java 21 y Spring Boot 3.5.5. Registro y login con MySQL, BCrypt y JW
 backend/
   pom.xml
   src/main/java/pe/com/gtel/talento/
-    auth/                    Autenticacion: controller, service, dto
+    auth/                    Autenticacion: controller, service, dto, repository
+    mail/                    Envio SMTP
     identity/                Usuarios y perfiles: entity, repository
     recruitment/             Reclutamiento: controller, service, repository
     health/                  Endpoint de salud
@@ -58,7 +59,7 @@ API: http://localhost:8080. Salud: http://localhost:8080/api/health.
 | Metodo | Ruta | Funcion |
 |---|---|---|
 | POST | /api/auth/register | Registrar candidato; responde 201 |
-| POST | /api/auth/login | Correo, password y rol; entrega JWT y requiresOtp=false |
+| POST | /api/auth/login | Correo y password; rol obtenido de MySQL. OTP normal o sesión inmediata para pruebas autorizadas |
 | GET | /api/auth/me | Perfil actual con Bearer token |
 | POST | /api/auth/logout | Instruccion para eliminar token local; no revoca JWT |
 | GET | /api/health | Salud basica |
@@ -76,7 +77,24 @@ Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propi
 ## Limites actuales
 
 - La integracion de los modulos de negocio del frontend no se resuelve con esta reorganizacion.
-- La verificacion por correo sigue pendiente; se retiro la referencia OTP inactiva.
+- Login requiere codigo de correo. La confirmacion independiente al registrarse y la recuperacion de contrasena no estan implementadas.
 - Logout no revoca JWT y la autenticacion aun no aplica usuarios.estado.
 - Las consultas conservan respuestas Map para compatibilidad; DTO tipados pueden incorporarse en otro cambio con pruebas del contrato.
 - El diagnostico previo es historico; consultar [la revision estructural](docs/estructura-colaborativa.md) para este cambio.
+
+## Login por correo
+
+Aplicar database/migrations/002_email_otp.sql una sola vez en bases existentes; el SQL inicial ya incluye la tabla. Configurar spring.mail.username, spring.mail.password (password de aplicacion Gmail) y otp.hash-secret en config/local.properties. Ver la guia completa de verificacion de correo en [README general](../README.md#10-verificación-de-acceso-por-correo-gmail-smtp).
+
+POST /api/auth/login normalmente no entrega JWT (las tres cuentas de prueba habilitadas son la excepción); POST /api/auth/verify-otp recibe sessionId y otp y entrega el JWT. POST /api/auth/resend-otp recibe sessionId. Los tokens previos sin OTP se rechazan.
+
+
+## Administración
+
+Aplicar una vez `database/migrations/003_admin_access.sql` en bases existentes, después de la 002. El esquema inicial actualizado ya incluye estas columnas. ADMIN usa ID 3 cuando está disponible; la autorización utiliza el nombre del rol.
+
+El panel React `/admin` consume GET/POST `/api/admin/users` y PUT `/api/admin/users/{id}`. Las rutas requieren ADMIN. Spring Security permite también a ADMIN los módulos de candidato y reclutador. Los JWT comprueban estado, rol y versión en cada petición. Una edición revoca sesiones anteriores y desafíos OTP pendientes.
+
+`app.security.test-access-enabled=false` es el valor seguro predeterminado. Habilitarlo solo en configuración local crea, si faltan, las tres cuentas documentadas en el [README general](../README.md#6-credenciales-de-prueba). Solo esas cuentas, con rol correcto y `otp_exempt=true`, omiten OTP después de validar contraseña. Nunca se sobrescriben cuentas existentes. Desactivar la opción invalida sus sesiones de prueba.
+
+Pruebas: `mvn.cmd test`; revisar además la sección de validación y los recorridos de navegador del README general. El registro público no permite seleccionar ni asignar ADMIN.
