@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GTEL Talento · Vista previa de acceso</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="header.css">
+</head>
+<body>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a20 20 0 0 0 18 0M12 11v4"/></symbol>
+    <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+    <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  </defs></svg>
+  <header class="nav proposal-nav">
+    <a class="brand" href="#inicio"><span class="brand-icon"><svg><use href="#briefcase"/></svg></span>GTEL Talento</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="proposal-links header-actions header-offers">Menú ☰</button>
+    <nav id="proposal-links" aria-label="Navegación principal">
+      <a href="#inicio">Inicio</a><a href="#areas">Áreas de trabajo</a><a href="#como-postular">Cómo postular</a><a href="#preguntas">Preguntas frecuentes</a>
+      <button type="button" data-open="login">Mis postulaciones</button>
+      <a class="admin-shortcut" href="admin.html">Panel admin</a>
+    </nav>
+    <span class="preview-label">Vista previa</span>
+    <div id="header-actions" class="actions nav-actions"><button data-open="login">Iniciar sesión</button><button class="secondary" data-open="register">Registrarse</button></div>
+    <a id="header-offers" class="primary offers-link" href="#vacantes">Ver ofertas</a>
+  </header>
+  <main class="proposal-main" id="inicio">
+    <section class="proposal-hero">
+    <span class="eyebrow">PROPUESTA DE NAVEGACIÓN · GTEL TALENTO</span>
+    <h1>Tu próximo paso comienza aquí</h1>
+    <p>Explora nuestras áreas, conoce cómo postular y resuelve tus dudas antes de dar el siguiente paso.</p>
+    <div class="hero-links"><a class="primary" href="#como-postular">Conoce el proceso <span aria-hidden="true">→</span></a><a class="secondary" href="#areas">Explorar áreas</a></div>
+    <p class="preview-note">Propuesta visual: contenidos orientativos para revisar antes de su publicación.</p>
+    </section>
+    <section class="proposal-section" id="areas" aria-labelledby="areas-title">
+      <span class="eyebrow">ENCUENTRA TU ÁREA</span><h2 id="areas-title">Distintas habilidades, nuevas oportunidades</h2><p>Una página para conocer los equipos y orientar tu búsqueda.</p>
+      <div class="proposal-grid">
+        <article><span class="card-number">01</span><h3>Ventas y atención</h3><p>Para quienes disfrutan escuchar, comunicar y ayudar a encontrar soluciones.</p><a href="#vacantes">Explorar oportunidades →</a></article>
+        <article><span class="card-number">02</span><h3>Soporte técnico</h3><p>Un espacio para el interés por la tecnología y la resolución de problemas.</p><a href="#vacantes">Explorar oportunidades →</a></article>
+        <article><span class="card-number">03</span><h3>Operaciones y gestión</h3><p>Para perfiles que buscan organizar, coordinar y mejorar procesos.</p><a href="#vacantes">Explorar oportunidades →</a></article>
+      </div>
+    </section>
+    <section class="proposal-section process-section" id="como-postular" aria-labelledby="process-title">
+      <span class="eyebrow">PASO A PASO</span><h2 id="process-title">Cómo postular</h2><p>Una guía para acompañarte desde la búsqueda hasta el seguimiento.</p>
+      <ol class="proposal-grid process-list"><li><h3>Explora una oferta</h3><p>Lee las funciones, la ubicación y los requisitos del puesto.</p></li><li><h3>Completa tu postulación</h3><p>Inicia sesión, revisa tus datos y adjunta tu CV.</p></li><li><h3>Consulta tu avance</h3><p>Entra a Mis postulaciones para consultar el estado de tu solicitud.</p></li></ol>
+      <button class="primary" data-open="register">Crear mi cuenta</button>
+    </section>
+    <section class="proposal-section faq-section" id="preguntas" aria-labelledby="faq-title">
+      <span class="eyebrow">TE AYUDAMOS</span><h2 id="faq-title">Preguntas frecuentes</h2><p>Respuestas accesibles sin necesidad de iniciar sesión.</p>
+      <details><summary>¿Necesito una cuenta para postular?</summary><p>Sí. Puedes explorar las ofertas antes de registrarte; para enviar una postulación debes iniciar sesión.</p></details>
+      <details><summary>¿Dónde consulto mis postulaciones?</summary><p>Desde «Mis postulaciones» en el encabezado, después de iniciar sesión con tu cuenta.</p></details>
+      <details><summary>¿Puedo actualizar mis datos de contacto?</summary><p>Sí. Abre el menú de tu perfil y selecciona «Editar perfil» para revisar tus datos.</p></details>
+      <details><summary>¿Estas secciones ya están en el frontend?</summary><p>Esta es una propuesta en la carpeta index. Los textos y la navegación se presentan aquí para revisión.</p></details>
+    </section>
+    <section class="proposal-section vacancy-section" id="vacantes" aria-labelledby="vacancy-title"><h2 id="vacancy-title">Encuentra tu próxima oportunidad</h2><p>Este acceso llevará al listado de ofertas del frontend. La vista previa no contiene vacantes reales.</p><a class="secondary" href="#areas">Volver a las áreas</a></section>
+  </main>
+  <dialog id="auth" aria-labelledby="modal-title">
+    <div class="card-header">
+      <button type="button" class="close" aria-label="Cerrar modal">×</button>
+      <div class="hero-icon"><svg><use href="#briefcase"/></svg></div>
+      <h2 id="modal-title">Bienvenido a GTEL Talento</h2>
+      <p id="subtitle">Inicia sesión para acceder a tu cuenta</p>
+    </div>
+    <div class="tabs" aria-label="Tipo de cuenta">
+      <button type="button" data-role="candidate" aria-pressed="true"><svg><use href="#user"/></svg>Soy Candidato</button>
+      <button type="button" data-role="recruiter" aria-pressed="false"><svg><use href="#briefcase"/></svg>Soy Reclutador</button>
+    </div>
+    <form id="form">
+      <div id="registration" hidden>
+        <div class="names"><label>Nombres<input name="nombres" autocomplete="given-name" disabled required></label><label>Apellidos<input name="apellidos" autocomplete="family-name" disabled required></label></div>
+      </div>
+      <div class="notice"><svg><use id="notice-icon" href="#user"/></svg><span id="notice-text">Accede a tus postulaciones y el estado de tus procesos.</span></div>
+      <label for="email">Correo electrónico</label>
+      <div class="input-icon"><svg><use href="#lock"/></svg><input id="email" name="email" type="email" placeholder="candidato@correo.com" autocomplete="username" required></div>
+      <div data-registration hidden>
+        <label for="telefono">Número de teléfono</label>
+        <div class="phone-row"><span class="phone-prefix">+51</span><input id="telefono" name="telefono" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="987654321" maxlength="9" disabled required></div>
+        <label for="ubicacion">Lugar de ubicación</label>
+        <select id="ubicacion" name="ubicacion" autocomplete="address-level1" disabled required><option value="">Selecciona un departamento</option></select>
+      </div>
+      <div class="password-label"><label for="password">Contraseña</label><button type="button" class="text-button" id="forgot">¿Olvidaste tu contraseña?</button></div>
+      <div class="input-icon"><svg><use href="#lock"/></svg><input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" id="show-password" aria-label="Mostrar contraseña" aria-pressed="false"><svg><use href="#eye"/></svg></button></div>
+      <div data-registration hidden>
+        <div class="strength" aria-live="polite"><div class="strength-label"><span>Fortaleza de contraseña</span><span id="strength-text">Sin contraseña</span></div><div class="strength-bars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div></div>
+        <label for="confirmarPassword">Confirmar contraseña</label>
+        <div class="input-icon"><svg><use href="#lock"/></svg><input id="confirmarPassword" name="confirmarPassword" type="password" autocomplete="new-password" placeholder="Repetir contraseña" disabled required><button type="button" id="show-confirm" aria-label="Mostrar confirmación" aria-pressed="false"><svg><use href="#eye"/></svg></button></div>
+        <p class="two-factor">Confirmarás tu correo al registrarte. Cada inicio de sesión requiere un nuevo código enviado a ese correo.</p>
+        <div class="security"><svg><use href="#shield"/></svg>Tu contraseña se guarda protegida en el servidor <span aria-hidden="true">✓</span></div>
+      </div>
+      <label class="remember"><input type="checkbox" name="remember">Recordar sesión en este dispositivo</label>
+      <p id="feedback" role="status" hidden></p>
+      <button class="primary submit" type="submit"><span id="submit-text">Ingresar</span><svg><use href="#arrow"/></svg></button>
+      <button type="button" class="secondary cancel" data-registration hidden>Cancelar</button>
+      <p class="switch"><span id="switch-text">¿Aún no tienes cuenta? </span><button type="button" class="text-button" id="switch-mode">Crear mi cuenta</button></p>
+    </form>
+    <footer><svg><use href="#shield"/></svg>Pruebas locales · Verificación por correo electrónico</footer>
+  </dialog>
+  <p class="copyright"><a href="admin.html">Panel administrador</a> · © 2026 GTEL Telecomunicaciones · Plataforma de Reclutamiento</p>
+  <script src="preview.js"></script>
+  <script src="profile-store.js"></script>
+  <script src="profile.js"></script>
+  <script src="navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+/* Header layout for the landing preview; profile editor keeps its own header. */
+.proposal-nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 0 20px;
+  padding: 0 max(24px, calc((100% - 1440px) / 2));
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 4px 16px #0f172a18;
+}
+.proposal-nav .brand { grid-column: 1; grid-row: 1; min-height: 72px; width: fit-content; }
+.proposal-nav .nav-actions { grid-column: 3; grid-row: 1; margin: 0; }
+.proposal-nav .offers-link { grid-column: 4; grid-row: 1; text-align: center; }
+.proposal-nav .profile { grid-column: 3; grid-row: 1; justify-self: end; }
+.proposal-nav #profile-toggle { max-width: 220px; }
+.proposal-nav nav {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border-top: 0;
+}
+.proposal-nav nav a, .proposal-nav nav button { padding: 10px 0; }
+.proposal-nav nav .admin-shortcut { padding: 8px 12px; border: 1px solid #ffffff40; border-radius: 8px; color: white; }
+.proposal-main section, .proposal-main { scroll-margin-top: 96px; }
+.proposal-nav .nav-toggle { display: none; }
+@media (max-width: 1359px) {
+  .proposal-nav { grid-template-columns: minmax(0, 1fr) auto; gap: 0 12px; padding: 0 16px; }
+  .proposal-nav .brand { min-height: 64px; font-size: 14px; }
+  .proposal-nav .nav-toggle { display: block; grid-column: 2; grid-row: 1; margin: 0; padding: 10px 12px; color: white; background: transparent; border: 1px solid #64748b; border-radius: 8px; }
+  .proposal-nav nav { grid-column: 1 / -1; grid-row: 2; display: none; align-items: stretch; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid #ffffff20; }
+  .proposal-nav nav a, .proposal-nav nav button { text-align: left; padding: 12px; border-radius: 8px; }
+  .proposal-nav nav a:hover, .proposal-nav nav button:hover { background: #ffffff0a; }
+  .proposal-nav .nav-actions { display: none; grid-column: 1 / -1; grid-row: 3; justify-content: center; padding: 12px 0; border-top: 1px solid #ffffff20; }
+  .proposal-nav .offers-link { display: none; grid-column: 1 / -1; grid-row: 4; margin: 0 0 16px; }
+  .proposal-nav .profile { grid-column: 1 / -1; grid-row: 5; justify-self: end; margin-bottom: 12px; }
+  .proposal-nav #profile-toggle { max-width: calc(100vw - 32px); }
+  .proposal-nav.is-menu-open nav, .proposal-nav.is-menu-open .nav-actions { display: flex; }
+  .proposal-nav.is-menu-open .offers-link { display: block; }
+  .proposal-main section, .proposal-main { scroll-margin-top: 140px; }
+}

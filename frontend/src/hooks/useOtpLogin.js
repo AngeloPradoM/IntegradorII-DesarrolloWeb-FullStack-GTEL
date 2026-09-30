@@ -36,7 +36,7 @@ export default function useOtpLogin(onAuthenticated) {
   return {
     session, verificationStep: Boolean(session), verificationCode, setVerificationCode,
     error, setError, loading, resendCooldown,
-    start: (credentials) => run(async isCurrent => { const data = await loginCandidate(credentials); if (isCurrent()) onAuthenticated(data); }),
+    start: (credentials) => run(async isCurrent => { const data = await loginCandidate(credentials); if (isCurrent()) { if(data.authenticated && data.token) onAuthenticated(data); else acceptSession(data); } }),
     resend: () => run(async isCurrent => {
       if (resendCooldown > 0 || !session) return;
       const data = await resendOtp(session.sessionId);
@@ -47,7 +47,7 @@ export default function useOtpLogin(onAuthenticated) {
       const result = await verifyOtp(session.sessionId, verificationCode);
       if (!isCurrent()) return;
       if (!result.verified || !result.token) throw new Error("No se pudo completar la verificación");
-      onAuthenticated({ ...result, rol: result.role });
+      onAuthenticated({ ...result, rol: result.rol });
       setSession(null);
       setVerificationCode("");
     }),

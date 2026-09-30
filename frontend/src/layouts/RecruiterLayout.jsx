@@ -30,7 +30,7 @@ export default function RecruiterLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (user?.rol !== "RECLUTADOR" || !user?.token) {
+  if (!["RECLUTADOR","ADMIN"].includes(user?.rol) || !user?.token) {
     return <Navigate to="/" replace />;
   }
 
@@ -68,6 +68,7 @@ export default function RecruiterLayout() {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
+          {user.rol === "ADMIN" && <Link className="block p-3 text-white" to="/admin">Panel administrador</Link>}
           {navItems.map(({ icon: Icon, label, path }) => {
             const active = location.pathname === path;
             return (

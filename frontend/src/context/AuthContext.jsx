@@ -52,6 +52,7 @@ export function AuthProvider({ children }) {
   }, [initialUser]);
 
   useEffect(() => {
+    if (restoring) return;
     if (user) {
       setStoredUser(user);
       return;
@@ -61,7 +62,7 @@ export function AuthProvider({ children }) {
   }, [user, restoring]);
 
   const login = (result = {}) => {
-    if (!result.token || result.demo || !result.authenticated) throw new Error("No se pudo autenticar la cuenta.");
+    if (!result.token || result.demo || !result.authenticated || !(result.verified === true || (result.authMethod === "TEST_PASSWORD" && result.otpSkipped === true))) throw new Error("No se pudo autenticar la cuenta.");
     revision.current += 1;
     const nextUser = normalizeUser({ ...result, token: result.token, email: result.email, rol: result.rol,
       nombres: result.nombres, isVerified: true, verificationPending: false, demo: result.demo });

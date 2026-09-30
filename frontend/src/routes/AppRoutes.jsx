@@ -1,3 +1,4 @@
+import AdminUsersPage from "../pages/admin/UsersPage";
 import LoginModalRedirect from "../pages/auth/LoginModalRedirect";
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout";
@@ -26,6 +27,7 @@ const router = createBrowserRouter(createRoutesFromElements(<>
         <Route element={<PublicLayout />}>
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/" element={<LandingPage />} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
           <Route path="/ofertas" element={<OfertasLaboralesPage />} />
           <Route path="/ofertas/:id" element={<OfertaDetallePage />} />
           <Route path="/postulacion" element={<ProtectedRoute allowedRoles={["CANDIDATO"]}><FormularioPostulacionPage /></ProtectedRoute>} />

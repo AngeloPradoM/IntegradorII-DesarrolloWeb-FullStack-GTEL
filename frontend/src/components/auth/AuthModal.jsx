@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, MessageSquareText, Briefcase, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, MessageSquareText } from "lucide-react";
 
 import useOtpLogin from "../../hooks/useOtpLogin";
 import useModalFocus from "../../hooks/useModalFocus";
@@ -8,8 +8,8 @@ import AuthCardFooter from "./AuthCardFooter";
 import OtpInput from "./OtpInput";
 
 
-export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, defaultRole = "CANDIDATO", notice = "" }) {
-  const [form, setForm] = useState({ email: "", password: "", rol: defaultRole });
+export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, notice = "" }) {
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const otp = useOtpLogin((user) => { if (onSubmit) onSubmit(user); else onClose?.(); });
   const { session, verificationStep, verificationCode, setVerificationCode, error, loading: isSubmitting, resendCooldown } = otp;
@@ -17,7 +17,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
   const modalRef = useRef(null);
   const handleClose = () => {
     otp.reset();
-    setForm({ email: "", password: "", rol: defaultRole });
+    setForm({ email: "", password: "" });
     setShowPassword(false);
     setIsDragging(false);
     onClose?.();
@@ -65,7 +65,8 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
   const resetState = otp.reset;
   const handleSubmit = (event) => {
     event.preventDefault();
-    otp.start({ email: form.email.trim(), password: form.password, rol: form.rol });
+    otp.start({ email: form.email.trim(), password: form.password });
+    setForm(previous => ({ ...previous, password: "" }));
   };
   const handleResendOtp = otp.resend;
   const handleVerificationSubmit = (event) => { event.preventDefault(); otp.verify(); };
@@ -98,19 +99,11 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
       >
         <AuthCardHeader
           title={verificationStep ? "Verificación segura" : "Bienvenido a GTEL Talento"}
-          subtitle={verificationStep ? "Ingresa el código enviado por WhatsApp" : "Inicia sesión para acceder a tu cuenta"}
+          subtitle={verificationStep ? "Ingresa el código enviado por correo electrónico" : "Inicia sesión para acceder a tu cuenta"}
           onPointerDown={handleDragStart}
           onClose={handleClose}
         />
-        {!verificationStep && <div className="flex border-b border-gray-100 bg-[#F8FAFC]" role="group" aria-label="Tipo de usuario">
-          {[{ value: "CANDIDATO", label: "Soy Candidato", icon: User }, { value: "RECLUTADOR", label: "Soy Reclutador", icon: Briefcase }].map(({ value, label, icon: Icon }) => (
-            <button key={value} type="button" aria-pressed={form.rol === value}
-              onClick={() => setForm(previous => ({ ...previous, rol: value }))}
-              className={"flex flex-1 items-center justify-center gap-2 border-b-2 px-1 py-3.5 text-sm font-semibold transition " + (form.rol === value ? "border-brand-red bg-white text-brand-red" : "border-transparent text-slate-600 hover:text-brand-navy")}>
-              <Icon className="h-4 w-4" />{label}
-            </button>
-          ))}
-        </div>}
+
 
         {notice && <p role="status" className="mx-5 mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
         {verificationStep ? (
@@ -120,9 +113,9 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
                   <MessageSquareText className="h-4 w-4" />
                 </span>
-                Código enviado por WhatsApp
+                Código enviado por correo electrónico
               </div>
-              <p className="text-xs text-emerald-700">Se envió un código al WhatsApp {session?.maskedPhone}.</p>
+              <p className="text-xs text-emerald-700">Se envió un código a {session?.maskedEmail}.</p>
               <div className="mt-3 rounded-2xl border border-emerald-200 bg-white px-3 py-3 text-center shadow-inner shadow-emerald-100">
                 <div className="text-xs uppercase tracking-wide text-slate-400">Revisa tu mensaje</div>
                 <div className="mt-2 text-sm font-semibold text-slate-700">Ingresa el código de 6 dígitos recibido.</div>
@@ -166,10 +159,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
           </form>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5 p-7">
-            <div className={"flex items-center gap-2.5 rounded-xl border p-3 text-xs " + (form.rol === "RECLUTADOR" ? "border-red-100 bg-red-50 text-brand-red" : "border-blue-100 bg-blue-50 text-blue-700")}>
-              {form.rol === "RECLUTADOR" ? <Briefcase className="h-4 w-4 shrink-0" /> : <User className="h-4 w-4 shrink-0" />}
-              {form.rol === "RECLUTADOR" ? "Panel ATS completo para gestión de reclutamiento." : "Accede a tus postulaciones y el estado de tus procesos."}
-            </div>
+            <p className="text-sm text-slate-600">Ingresa con tu correo y contraseña.</p>
 
 
 
@@ -185,7 +175,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
                   value={form.email}
                   onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
                   className="w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-200"
-                  placeholder={form.rol === "RECLUTADOR" ? "reclutador@gtel.com.pe" : "candidato@correo.com"}
+                  placeholder="tu@correo.com"
                   autoComplete="username" required
                 />
               </div>
@@ -228,7 +218,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
               <ArrowRight className="h-4 w-4" />
             </button>
 
-            {form.rol === "CANDIDATO" && <div className="text-center text-xs text-slate-500">
+            {<div className="text-center text-xs text-slate-500">
               ¿Aún no tienes cuenta? <button type="button" onClick={onRegisterClick} className="font-semibold text-brand-red underline-offset-4 hover:underline">Crear mi cuenta</button>
             </div>}
           </form>

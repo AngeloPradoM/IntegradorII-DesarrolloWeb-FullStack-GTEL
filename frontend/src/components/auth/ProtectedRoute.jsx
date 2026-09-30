@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children, allowedRoles = [], redirectTo
     return <Navigate to={next} replace />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.rol)) {
+  if (user.rol !== "ADMIN" && allowedRoles.length > 0 && !allowedRoles.includes(user.rol)) {
     const fallback = getDefaultRouteForRole(user.rol);
     return <Navigate to={fallback} replace />;
   }

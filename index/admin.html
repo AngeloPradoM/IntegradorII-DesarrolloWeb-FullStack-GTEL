@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Administración · GTEL</title><link rel="stylesheet" href="admin.css"><script src="admin.js" defer></script></head>
+<body>
+<header><a href="index.html">GTEL Talento</a><span>Administración · Pruebas locales</span><button id="logout" hidden>Cerrar sesión</button></header>
+<main>
+  <p id="status" role="status"></p>
+  <section id="login-panel" class="card login">
+    <h1>Acceso administrador</h1><p>Gestiona las cuentas registradas en MySQL.</p>
+    <form id="login"><label>Correo administrador<input name="email" type="email" autocomplete="username" required></label><label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label><button class="primary">Ingresar</button></form>
+  </section>
+  <section id="panel" hidden>
+    <div class="heading"><div><h1>Usuarios registrados</h1><p id="summary"></p></div><button id="refresh">Actualizar</button></div>
+    <form id="search" class="search"><input name="q" type="search" maxlength="100" aria-label="Buscar usuarios" placeholder="Buscar por nombre o correo"><button>Buscar</button></form>
+    <p>Las contraseñas se guardan protegidas y no se pueden consultar. Puedes generar una nueva contraseña de prueba; se mostrará una sola vez.</p>
+    <div class="table-wrap card"><table><thead><tr><th>Usuario</th><th>Correo</th><th>Teléfono</th><th>Correo verificado</th><th>Acciones</th></tr></thead><tbody id="users"></tbody></table></div>
+    <div class="pagination"><button id="previous">Anterior</button><span id="page"></span><button id="next">Siguiente</button></div>
+  </section>
+</main>
+<dialog id="confirmation"><form id="confirm-form"><h2 id="confirm-title"></h2><p id="confirm-description"></p><label>Escribe el correo del usuario para confirmar<input id="confirm-email" type="email" autocomplete="off" required></label><p id="confirm-error" role="alert"></p><div class="heading"><button type="button" id="cancel">Cancelar</button><button class="danger" id="confirm-action">Confirmar</button></div></form></dialog>
+<dialog id="password-result"><h2>Contraseña nueva</h2><p>Guárdala ahora. Reemplaza la anterior y no podrás volver a consultarla. Las sesiones y los códigos pendientes del usuario se invalidaron.</p><label>Contraseña de prueba<input id="new-password" readonly autocomplete="off"></label><button id="close-result">Ya la guardé</button></dialog>
+</body></html>

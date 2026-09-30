@@ -38,7 +38,7 @@ class CandidatoServiceTest {
         var profile = new Postulante(user, "Ana", "Garcia");
         profile.setTelefono("+51987654321");
         when(users.findByEmailIgnoreCase("ana@test.com")).thenReturn(Optional.of(user));
-        var request = new LoginRequest("ana@test.com", "password-test", "CANDIDATO");
+        var request = new LoginRequest("ana@test.com","password-test");
         assertThrows(ResponseStatusException.class, () -> service.autenticar(request));
         verifyNoInteractions(profiles);
         when(encoder.matches("password-test", "hashed-password")).thenReturn(true);

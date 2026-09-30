@@ -30,6 +30,8 @@ CREATE TABLE usuarios (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(150) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
+  auth_version INT NOT NULL DEFAULT 0,
+  otp_exempt BOOLEAN NOT NULL DEFAULT FALSE,
   rol_id BIGINT NOT NULL,
   estado ENUM('activo','inactivo') DEFAULT 'activo',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -188,3 +190,22 @@ CREATE TABLE auditoria (
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 INSERT INTO roles (nombre, descripcion) VALUES ('CANDIDATO', 'Postulante'), ('RECLUTADOR', 'Gestion de reclutamiento');
+
+-- Aplicar una vez en gtel_talento antes de iniciar la version con OTP.
+-- No modifica cuentas existentes. Tiempos UTC expresados en epoch milisegundos.
+CREATE TABLE auth_email_challenges (
+  usuario_id BIGINT NOT NULL PRIMARY KEY,
+  session_id VARCHAR(36) NOT NULL UNIQUE,
+  email VARCHAR(150) NOT NULL,
+  rol VARCHAR(50) NOT NULL,
+  code_hash VARCHAR(64) NOT NULL,
+  expires_at BIGINT NOT NULL,
+  deadline BIGINT NOT NULL,
+  resend_at BIGINT NOT NULL,
+  attempts INT NOT NULL DEFAULT 0,
+  sends INT NOT NULL DEFAULT 0,
+  consumed BOOLEAN NOT NULL DEFAULT FALSE,
+  CONSTRAINT fk_auth_challenge_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+INSERT INTO roles(nombre,descripcion) VALUES ('ADMIN','Administrador del sistema');
