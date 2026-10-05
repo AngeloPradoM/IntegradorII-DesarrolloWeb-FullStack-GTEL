@@ -1,16 +1,10 @@
-import { getJobs } from "../../utils/jobsData";
+import useJobs from "../../hooks/useJobs";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import AuthRequiredLink from "../../components/auth/AuthRequiredLink";
 import { Search, MapPin, Clock, DollarSign, Bookmark, BookmarkCheck, Filter, ChevronDown, Briefcase, X, Zap } from "lucide-react";
 export default function JobListings() {
-  const [jobs] = useState(() => getJobs().map(job => ({
-    ...job,
-    department: job.department || "",
-    tags: job.tags || [],
-    description: job.description || "",
-    posted: job.posted || "Disponible"
-  })));
+  const {jobs,loading,error}=useJobs();
   const [sortBy, setSortBy] = useState("recent");
   const [search, setSearch] = useState("");
   const [saved, setSaved] = useState(() => {
@@ -99,6 +93,7 @@ export default function JobListings() {
           </div>
         </div>
 
+        {error && <p role="alert">{error}</p>}{loading && <p role="status">Cargando ofertas…</p>}
         {filtered.length === 0 ? <div className="text-center py-16 text-[#475569]">
             <Briefcase className="w-10 h-10 mx-auto mb-3 text-gray-300" />
             <p className="font-medium">No se encontraron resultados</p>

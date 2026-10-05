@@ -223,6 +223,7 @@ export default function AuthModal({ isOpen, onClose, onSubmit, onRegisterClick, 
             </div>}
           </form>
         )}
+        <a href="/recuperar-acceso" className="block pb-4 text-center text-sm text-brand-red">¿Olvidaste tu contraseña?</a>
         <AuthCardFooter />
       </div>
     </div>

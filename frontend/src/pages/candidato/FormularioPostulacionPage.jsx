@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { getJobs } from "../../utils/jobsData";
+import useJobs from "../../hooks/useJobs";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Upload, FileText, Shield, CheckCircle, Clock, DollarSign, MapPin, ChevronRight, X, User, Phone, CreditCard, Mail, CalendarDays, ArrowLeft } from "lucide-react";
@@ -12,7 +12,8 @@ export default function ApplicationForm() {
     id
   } = useParams();
   const { user } = useAuth();
-  const job = getJobs().find(item => String(item.id) === id);
+  const {jobs,loading:jobsLoading,error:jobsError}=useJobs();
+  const job=jobs.find(item=>String(item.id)===id);
   const [personalData, setPersonalData] = useState({ nombres:user.nombres || '', apellidos:user.apellidos || '', email:user.email || '', telefono:user.telefono || '', dni:'', fechaNacimiento:'', distrito:'', motivacion:'' });
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -61,6 +62,8 @@ export default function ApplicationForm() {
     selectFile(file);
     e.target.value = '';
   };
+  if(jobsLoading)return <p role="status" className="p-6">Cargando oferta…</p>;
+  if(jobsError)return <p role="alert" className="p-6">{jobsError}</p>;
   if (!job) return <div className="mx-auto max-w-3xl px-4 py-16 text-center"><h1 className="text-2xl font-bold text-brand-navy">Oferta no encontrada</h1><p className="my-4 text-brand-gray">La oferta solicitada no existe o ya no está disponible.</p><Link to="/ofertas" className="text-brand-red underline">Volver a Ofertas Laborales</Link></div>;
   if (submitted) {
     return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4">
@@ -70,7 +73,7 @@ export default function ApplicationForm() {
           </div>
           <h2 className="text-xl font-bold text-[#1E293B] mb-2">¡Postulación enviada!</h2>
           <p className="text-sm text-[#475569] mb-6">
-            Tu postulación se guardó en modo demo. Se conservaron los datos del formulario y los metadatos del CV; el archivo no se envió a un servidor.
+            Tu postulación y tu CV se guardaron correctamente. Puedes consultar su avance en Mis postulaciones.
           </p>
           <div className="bg-[#F8FAFC] rounded-xl p-4 mb-6 text-left">
             <div className="text-xs font-semibold text-[#1E293B] mb-2">Código de seguimiento</div>
@@ -184,6 +187,7 @@ export default function ApplicationForm() {
                         <option>La Molina</option>
                         <option>Barranco</option>
                       </select>
+                      {fieldError('distrito')}
                     </div>
                   </div>
                 </div>
@@ -193,13 +197,13 @@ export default function ApplicationForm() {
                 <h2 className="font-bold text-[#1E293B] mb-5">Sube tu CV</h2>
 
                 {fieldError('cv')}
-                <p className="mb-3 text-xs text-brand-gray">Modo demo: se conservan solo los metadatos del CV. El archivo permanece en memoria mientras completas este formulario.</p>
+                <p className="mb-3 text-xs text-brand-gray">Adjunta tu CV en PDF (máximo 5 MB). Se enviará al confirmar la postulación.</p>
                 {/* Drag & Drop */}
                 <label onDragOver={e => {
               e.preventDefault();
               setDragOver(true);
             }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} className={`block border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all ${dragOver ? "border-[#D32F2F] bg-[#D32F2F]/5" : uploadedFile ? "border-green-400 bg-green-50" : "border-gray-200 hover:border-[#D32F2F]/50 hover:bg-[#F8FAFC]"}`}>
-                  <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileInput} />
+                  <input type="file" className="hidden" accept=".pdf" onChange={handleFileInput} />
                   {uploadedFile ? <div>
                       <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
                         <FileText className="w-6 h-6 text-green-600" />
@@ -218,7 +222,7 @@ export default function ApplicationForm() {
                       </div>
                       <p className="text-sm font-semibold text-[#1E293B]">Arrastra tu CV aquí</p>
                       <p className="text-xs text-[#475569] mt-1">o haz clic para seleccionar</p>
-                      <p className="text-[10px] text-gray-400 mt-2">PDF, DOC, DOCX — máx. 5 MB</p>
+                      <p className="text-[10px] text-gray-400 mt-2">PDF — máx. 5 MB</p>
                     </div>}
                 </label>
 

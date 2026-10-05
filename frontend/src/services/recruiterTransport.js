@@ -1,21 +1,20 @@
+import { request, jsonRequest } from './workflowService';
 export class RecruiterServiceError extends Error {
-  constructor(message, code = 'UNAVAILABLE') { super(message); this.name = 'RecruiterServiceError'; this.code = code; }
+ constructor(message,code='UNAVAILABLE'){super(message);this.name='RecruiterServiceError';this.code=code;}
 }
-
-const pending = async () => { throw new RecruiterServiceError('Esta acción aún no está disponible. No se guardaron cambios.'); };
-
-// Integration boundary: replace these operations only after backend contracts are confirmed.
-// Empty reads are intentional; this module never reads demo business data or localStorage.
-// Future implementations receive { signal } and must return parsed data or throw an error with status.
+const jobPayload = data => ({...data,
+ type:({'Full-Time':'full_time','Part-Time':'part_time','Por turnos':'por_turnos','Freelance':'freelance'}[data.type]||data.type),
+ modality:({'Presencial':'presencial','Remoto':'remoto','Híbrido':'hibrido'}[data.modality]||data.modality),
+ status:data.status||'activa',deadline:data.deadline||null,vacancies:Number(data.vacancies),salaryMin:Number(data.salaryMin),salaryMax:Number(data.salaryMax)});
 export const recruiterTransport = {
-  candidates: async () => [],
-  jobs: async () => [],
-  interviews: async () => [],
-  evaluations: async () => [],
-  notifications: async () => [],
-  publishJob: pending,
-  updateJob: pending,
-  updateCandidateStatus: pending,
-  scheduleInterview: pending,
-  createEvaluation: pending,
+ candidates: ({signal}={})=>request('/api/recruiter/applications',{signal}),
+ jobs: ({signal}={})=>request('/api/recruiter/jobs',{signal}),
+ interviews: ({signal}={})=>request('/api/recruiter/selection/interviews',{signal}),
+ evaluations: ({signal}={})=>request('/api/recruiter/selection/evaluations',{signal}),
+ notifications: ({signal}={})=>request('/api/notifications',{signal}),
+ publishJob: ({data})=>jsonRequest('/api/recruiter/jobs','POST',jobPayload(data)),
+ updateJob: ({id,data})=>jsonRequest('/api/recruiter/jobs/'+encodeURIComponent(id),'PUT',jobPayload(data)),
+ updateCandidateStatus: ({id,status})=>jsonRequest('/api/recruiter/applications/'+encodeURIComponent(id)+'/status','PUT',{status}),
+ scheduleInterview: ({data})=>jsonRequest('/api/recruiter/selection/interviews','POST',data),
+ createEvaluation: ({data})=>jsonRequest('/api/recruiter/selection/evaluations','POST',data),
 };

@@ -1,17 +1,19 @@
-import assert from 'node:assert/strict';
+﻿import assert from 'node:assert/strict';
 import { createServer } from 'vite';
-
-const server = await createServer({ configFile:false, envDir:false, server:{middlewareMode:true}, define:{'import.meta.env.VITE_DATA_MODE':'"api"'} });
-let mutations = 0;
-globalThis.localStorage = { getItem:()=>null, setItem:()=>{mutations++;}, removeItem:()=>{mutations++;} };
+const server = await createServer({configFile:false,envDir:false,server:{middlewareMode:true,hmr:false},define:{'import.meta.env.VITE_DATA_MODE':'"mock"'}});
+let mutations=0, calls=0;
+globalThis.localStorage={getItem:()=>null,setItem:()=>{mutations++;},removeItem:()=>{mutations++;}};
+globalThis.fetch=async()=>{calls++;return Response.json([]);};
 try {
-  const api = await server.ssrLoadModule('/src/services/api.js');
+  const api=await server.ssrLoadModule('/src/services/api.js');
+  const workflow=await server.ssrLoadModule('/src/services/workflowService.js');
   assert.equal(api.IS_DEMO_MODE,false);
-  await assert.rejects(api.createApplication({id:1},{},null),/modo API/);
-  await assert.rejects(api.getCandidateApplications(null),/modo API/);
-  await assert.rejects(api.updateCandidateStatus(1,'aprobada'),/aún no está disponible/);
-  await assert.rejects(api.saveProfile({},{}),/servidor/);
-  await assert.rejects(api.publishJob({}),/Título/);
+  await assert.rejects(api.getCandidateApplications(),/Inicia/);
+  await assert.rejects(api.saveProfile({},{}),/Inicia/);
+  assert.equal(calls,0);
+  assert.deepEqual(await workflow.listPublicJobs(),[]);
+  globalThis.fetch=async()=>{throw Error('offline');};
+  await assert.rejects(workflow.listPublicJobs(),/servidor/);
   assert.equal(mutations,0);
-  console.log('PASS: pending API operations return controlled errors without local writes.');
-} finally { await server.close(); delete globalThis.localStorage; }
+  console.log('PASS: API mode, authentication required, public jobs and no demo fallback.');
+} finally {await server.close();delete globalThis.localStorage;delete globalThis.fetch;}

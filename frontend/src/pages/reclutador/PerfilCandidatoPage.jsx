@@ -1,3 +1,4 @@
+import { downloadCv } from '../../services/workflowService';
 import useRecruiterData from "../../hooks/useRecruiterData";
 import DataState from "../../components/ui/DataState";
 import { useCallback, useState } from "react";
@@ -223,11 +224,11 @@ export default function CandidateProfile() {
               <CheckCircle className="w-3.5 h-3.5" />
               Aprobar candidato
             </button>
-            <button disabled={saving} onClick={() => changeStatus("entrevista")} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <Link to="/reclutador/seleccion" className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <MessageSquare className="w-3.5 h-3.5" />
               Programar entrevista
-            </button>
-            <button disabled title="Esta acción todavía no está disponible" className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-[#475569] py-2.5 rounded-lg text-xs font-medium transition-colors">
+            </Link>
+            <button onClick={()=>downloadCv(id).catch(e=>setError(e.message))} className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-[#475569] py-2.5 rounded-lg text-xs font-medium transition-colors">
               <Download className="w-3.5 h-3.5" />
               Descargar CV PDF
             </button>

@@ -22,7 +22,7 @@ export function normalizeCandidate(value) {
     phone:text(row.phone) || 'No disponible', location:text(row.location) || 'No disponible', dni:text(row.dni) || 'No disponible',
     date:text(row.date) || 'No disponible', appliedDate:text(row.date) || 'No disponible', department:text(row.department),
     status:candidateStatuses[row.status] || (['new','reviewing','interview','approved','rejected'].includes(row.status) ? row.status : 'unknown'),
-    score:score(row.score), experience:objects(row.experience,['role','company','period','desc']), education:objects(row.education,['degree','institution','period','status']),
+    score:score(row.score), experience:row.experienceText ? [{role:'Experiencia',company:'',period:'',desc:text(row.experienceText)}] : objects(row.experience,['role','company','period','desc']), education:row.educationText ? [{degree:text(row.educationText),institution:'',period:'',status:''}] : objects(row.education,['degree','institution','period','status']),
     skills:strings(row.skills), certifications:strings(row.certifications), languages:objects(row.languages,['lang','level','score']),
   };
 }

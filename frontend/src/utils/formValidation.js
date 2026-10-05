@@ -1,7 +1,7 @@
 export const MAX_CV_SIZE = 5 * 1024 * 1024;
 export function validateCv(cv) {
   if (!cv) return 'Adjunta tu CV.';
-  if (!/\.(pdf|doc|docx)$/i.test(cv.name) || !['', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(cv.type)) return 'Selecciona un CV PDF, DOC o DOCX.';
+  if (!/\.pdf$/i.test(cv.name) || !['', 'application/pdf'].includes(cv.type)) return 'Selecciona un CV en PDF.';
   if (!cv.size || cv.size > MAX_CV_SIZE) return 'El CV debe tener contenido y pesar como máximo 5 MB.';
   return '';
 }
@@ -9,12 +9,14 @@ export function validateCv(cv) {
 export function validateApplication(data, cv, termsAccepted, step) {
   const errors = {};
   if (!step || step === 1) {
+    if (!String(data.distrito || '').trim()) errors.distrito = 'Selecciona tu distrito.';
     for (const field of ['nombres', 'apellidos']) {
       if (!/^[\p{L}\p{M} '-]{2,}$/u.test((data[field] || '').trim())) errors[field] = 'Ingresa al menos dos caracteres válidos.';
     }
     if (!/^\d{8}$/.test(data.dni || '')) errors.dni = 'Ingresa un DNI de 8 dígitos.';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((data.email || '').trim())) errors.email = 'Ingresa un correo válido.';
     if (!/^(?:\+51)?\d{9}$/.test(data.telefono || '')) errors.telefono = 'Ingresa 9 dígitos, con +51 opcional.';
+    if ((data.motivacion||'').length>3000) errors.motivacion='La motivación admite hasta 3000 caracteres.';
     if (data.fechaNacimiento && (Number.isNaN(Date.parse(data.fechaNacimiento)) || Date.parse(data.fechaNacimiento) > Date.now())) errors.fechaNacimiento = 'Ingresa una fecha de nacimiento válida.';
   }
   if (!step || step === 2) {

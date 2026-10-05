@@ -31,6 +31,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [initialUser] = useState(() => normalizeUser(getStoredUser()));
   const [restoring, setRestoring] = useState(Boolean(initialUser));
+  const [restoreError,setRestoreError] = useState('');
   const revision = useRef(0);
 
   useEffect(() => {
@@ -43,8 +44,8 @@ export function AuthProvider({ children }) {
     }
     getCurrentUser(stored.token).then(profile => {
       if (!cancelled && current === revision.current) setUser(normalizeUser({ ...profile, token: stored.token }));
-    }).catch(() => {
-      if (!cancelled && current === revision.current) clearStoredUser();
+    }).catch(error => {
+      if (!cancelled && current === revision.current) { if(error.status===401 || error.status===403) clearStoredUser(); else setRestoreError(error.message); }
     }).finally(() => {
       if (!cancelled) setRestoring(false);
     });
@@ -52,14 +53,14 @@ export function AuthProvider({ children }) {
   }, [initialUser]);
 
   useEffect(() => {
-    if (restoring) return;
+    if (restoring || restoreError) return;
     if (user) {
       setStoredUser(user);
       return;
     }
 
     clearStoredUser();
-  }, [user, restoring]);
+  }, [user, restoring, restoreError]);
 
   const login = (result = {}) => {
     if (!result.token || result.demo || !result.authenticated || !(result.verified === true || (result.authMethod === "TEST_PASSWORD" && result.otpSkipped === true))) throw new Error("No se pudo autenticar la cuenta.");
@@ -93,6 +94,7 @@ export function AuthProvider({ children }) {
     [user]
   );
 
+  if (restoreError) return <div role="alert" className="p-6 text-center"><p>{restoreError}</p><button onClick={()=>window.location.reload()} className="mt-3 underline">Reintentar comprobación de sesión</button></div>;
   if (restoring) return <p role="status" className="p-6 text-center">Comprobando sesión...</p>;
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

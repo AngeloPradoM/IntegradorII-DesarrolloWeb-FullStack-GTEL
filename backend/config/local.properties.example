@@ -8,3 +8,7 @@ otp.hash-secret=CLAVE_ALEATORIA_PRIVADA_DISTINTA_DE_JWT_MINIMO_32_BYTES
 
 # Solo desarrollo local; nunca habilitar con datos de produccion.
 app.security.test-access-enabled=false
+
+# Activar solo despues de aplicar 004 y validar el remitente.
+app.notifications.email-enabled=false
+app.recovery-url=http://localhost:5173/recuperar-acceso

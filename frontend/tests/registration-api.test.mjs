@@ -6,7 +6,7 @@ const originalFetch = globalThis.fetch;
 globalThis.localStorage = {getItem(){throw Error('Registration must not access demo storage');},setItem(){throw Error('Registration must not write demo storage');}};
 try {
   const {registerCandidate,IS_DEMO_MODE} = await server.ssrLoadModule('/src/services/api.js');
-  assert.equal(IS_DEMO_MODE,true);
+  assert.equal(IS_DEMO_MODE,false);
   const input={nombres:' Ana ',apellidos:' Perez ',email:' ANA@EXAMPLE.TEST ',telefono:'987654321',password:'fixture-only',ubicacion:'Lima',rol:'RECLUTADOR'};
   let calls=0;
   globalThis.fetch=async(url,options)=>{

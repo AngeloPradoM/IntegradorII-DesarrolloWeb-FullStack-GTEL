@@ -19,6 +19,9 @@ class AdminUserServiceTest {
         jdbc.execute("CREATE TABLE usuarios(id BIGINT AUTO_INCREMENT PRIMARY KEY,email VARCHAR(150) UNIQUE,password_hash VARCHAR(100),rol_id BIGINT,estado VARCHAR(20),auth_version INT DEFAULT 0,otp_exempt BOOLEAN DEFAULT FALSE)");
         jdbc.execute("CREATE TABLE postulantes(usuario_id BIGINT UNIQUE,nombres VARCHAR(100),apellidos VARCHAR(100),telefono VARCHAR(20))");
         jdbc.execute("CREATE TABLE auth_email_challenges(usuario_id BIGINT)");
+        jdbc.execute("CREATE TABLE recuperacion_acceso(usuario_id BIGINT)");
+        jdbc.execute("CREATE TABLE perfiles_contacto(usuario_id BIGINT PRIMARY KEY,nombres VARCHAR(100),apellidos VARCHAR(100),telefono VARCHAR(20))");
+        jdbc.execute("CREATE TABLE auditoria(tabla_afectada VARCHAR(50),registro_id BIGINT,accion VARCHAR(20),detalle VARCHAR(255),usuario_id BIGINT)");
         jdbc.update("INSERT INTO roles VALUES(1,'CANDIDATO'),(2,'RECLUTADOR'),(3,'ADMIN')");
         jdbc.update("INSERT INTO usuarios(email,password_hash,rol_id,estado) VALUES('admin@example.test','hash',3,'activo')");
         service=new AdminUserService(jdbc,encoder);
@@ -36,9 +39,22 @@ class AdminUserServiceTest {
         assertEquals(1,jdbc.queryForObject("SELECT auth_version FROM usuarios WHERE id=?",Integer.class,created.id()));
         assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM auth_email_challenges",Integer.class));
         assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM postulantes",Integer.class));
+        String detail=jdbc.queryForObject("SELECT detalle FROM auditoria WHERE accion='actualizar'",String.class);
+        assertTrue(detail.contains("CANDIDATO -> RECLUTADOR"));
+        assertTrue(detail.contains("desactivación: activo -> inactivo"));
+        assertFalse(detail.contains("Temporary2026!"));
+        assertEquals(1L,jdbc.queryForObject("SELECT usuario_id FROM auditoria WHERE accion='actualizar'",Long.class));
+    }
+    @Test void administrativeEditKeepsContactProfileConsistent() {
+        var created=service.save(null,request("candidate@example.test","CANDIDATO","activo","Temporary2026!"),"admin@example.test");
+        jdbc.update("INSERT INTO perfiles_contacto VALUES(?,'Anterior','Anterior','123')",created.id());
+        service.save(created.id(),new UserRequest(created.email(),null,"CANDIDATO","activo","Nombre","Actualizado","+51987654321"),"admin@example.test");
+        assertEquals("Nombre",jdbc.queryForObject("SELECT nombres FROM perfiles_contacto WHERE usuario_id=?",String.class,created.id()));
+        assertEquals("+51987654321",jdbc.queryForObject("SELECT telefono FROM perfiles_contacto WHERE usuario_id=?",String.class,created.id()));
     }
     @Test void protectsOwnAndLastAdministratorAndRejectsDuplicates() {
         assertThrows(ResponseStatusException.class,()->service.save(1L,request("admin@example.test","ADMIN","inactivo",null),"admin@example.test"));
+        jdbc.update("INSERT INTO usuarios(email,password_hash,rol_id,estado) VALUES('another@example.test','hash',3,'inactivo')");
         assertThrows(ResponseStatusException.class,()->service.save(1L,request("admin@example.test","RECLUTADOR","activo",null),"another@example.test"));
         assertThrows(ResponseStatusException.class,()->service.save(null,request("admin@example.test","ADMIN","activo","Temporary2026!"),"admin@example.test"));
     }

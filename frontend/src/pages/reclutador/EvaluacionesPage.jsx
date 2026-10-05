@@ -43,9 +43,9 @@ export default function Evaluations() {
           <h1 className="text-xl font-bold text-[#1E293B]">Evaluaciones</h1>
           <p className="text-sm text-[#475569]">Resultados de pruebas de los candidatos</p>
         </div>
-        <button disabled title="Crear evaluaciones estará disponible al conectar el servicio" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+        <Link to="/reclutador/seleccion" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
           + Nueva Evaluación
-        </button>
+        </Link>
       </div>
 
       {/* Summary KPIs */}
