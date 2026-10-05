@@ -26,15 +26,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             try {
-                String token = header.substring(7);
+                String token = header.substring(7).trim();
                 accounts.validate(token,jwtService);
                 String email = jwtService.getEmail(token);
                 String role = jwtService.getRole(token);
                 var authentication = new UsernamePasswordAuthenticationToken(
                         email, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (RuntimeException ignored) {
+            } catch (io.jsonwebtoken.JwtException | IllegalArgumentException ignored) {
                 SecurityContextHolder.clearContext();
+            } catch (org.springframework.web.server.ResponseStatusException ex) {
+                SecurityContextHolder.clearContext();
+                if(ex.getStatusCode().value()!=401)throw ex;
+            } catch (org.springframework.dao.DataAccessException ex) {
+                SecurityContextHolder.clearContext();
+                response.setStatus(503);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"detail\":\"No se pudo comprobar la sesión. El servicio de datos no está disponible. Inténtalo nuevamente.\"}");
+                return;
             }
         }
         chain.doFilter(request, response);

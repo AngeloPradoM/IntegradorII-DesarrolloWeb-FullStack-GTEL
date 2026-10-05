@@ -1,4 +1,4 @@
-﻿# Backend GTEL Talento
+# Backend GTEL Talento
 
 API REST en Java 21 y Spring Boot 3.5.5. Registro y login con MySQL, BCrypt y JWT. El login requiere verificacion por correo.
 
@@ -11,7 +11,8 @@ backend/
     auth/                    Autenticacion: controller, service, dto, repository
     mail/                    Envio SMTP
     identity/                Usuarios y perfiles: entity, repository
-    recruitment/             Reclutamiento: controller, service, repository
+    recruitment/             Reclutamiento: controller, service, dto
+    admin/                   Usuarios y auditoría: controller, service, dto
     health/                  Endpoint de salud
     config/                  Configuracion Spring y CORS
     security/                JWT y filtros
@@ -26,7 +27,7 @@ backend/
   target/                    Generado; excluido de Git
 ```
 
-Los paquetes se agrupan por funcionalidad y mantienen capas dentro de cada modulo: Controller -> Service -> Repository -> MySQL. No es necesario dividir este backend pequeno en microservicios. El SQL del reclutador reside en RecruiterDataRepository; su servicio establece transacciones de lectura. Los contratos HTTP existentes se conservan.
+Los paquetes se agrupan por funcionalidad. Autenticación utiliza repositorios JPA y JDBC; reclutamiento utiliza controladores y servicios transaccionales con JdbcTemplate. El dashboard React combina las consultas de postulaciones, ofertas, entrevistas y evaluaciones; no consume un endpoint exclusivo de dashboard.
 
 ## Configuracion local
 
@@ -63,12 +64,11 @@ API: http://localhost:8080. Salud: http://localhost:8080/api/health.
 | GET | /api/auth/me | Perfil actual con Bearer token |
 | POST | /api/auth/logout | Instruccion para eliminar token local; no revoca JWT |
 | GET | /api/health | Salud basica |
-| GET | /api/recruiter/candidates | Candidatos |
-| GET | /api/recruiter/interviews | Entrevistas |
-| GET | /api/recruiter/evaluations | Evaluaciones |
-| GET | /api/recruiter/dashboard | Resumen de reclutamiento |
+| GET | /api/recruiter/applications | Candidatos |
+| GET | /api/recruiter/selection/interviews | Entrevistas |
+| GET | /api/recruiter/selection/evaluations | Evaluaciones |
 
-Las rutas de reclutamiento requieren RECLUTADOR. El registro publico solo crea candidatos. Registro devuelve ID de postulante; login/me devuelven ID de usuario.
+Las rutas de reclutamiento requieren RECLUTADOR o ADMIN. El registro publico solo crea candidatos. Registro devuelve ID de postulante; login/me devuelven ID de usuario.
 
 ## Trabajo colaborativo
 
@@ -76,9 +76,9 @@ Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propi
 
 ## Limites actuales
 
-- La integracion de los modulos de negocio del frontend no se resuelve con esta reorganizacion.
-- Login requiere codigo de correo. La confirmacion independiente al registrarse y la recuperacion de contrasena no estan implementadas.
-- Logout no revoca JWT y la autenticacion aun no aplica usuarios.estado.
+- Los módulos de negocio se conectan mediante la API. Ver [activación y pruebas](docs/flujo-reclutamiento.md); bases existentes requieren migración 004.
+- Login requiere codigo de correo. La recuperación usa un enlace por correo; la confirmación independiente al registrarse no está implementada.
+- Logout es local. Las peticiones autenticadas comprueban estado, rol y versión de la cuenta.
 - Las consultas conservan respuestas Map para compatibilidad; DTO tipados pueden incorporarse en otro cambio con pruebas del contrato.
 - El diagnostico previo es historico; consultar [la revision estructural](docs/estructura-colaborativa.md) para este cambio.
 

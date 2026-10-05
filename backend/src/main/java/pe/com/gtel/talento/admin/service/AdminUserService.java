@@ -35,6 +35,9 @@ public class AdminUserService {
     public UserView save(Long id,UserRequest request,String actor) {
         // Serialize administration to preserve the last active administrator even under concurrent edits.
         jdbc.queryForObject("SELECT id FROM roles WHERE nombre='ADMIN' FOR UPDATE",Long.class);
+        Long actorId=jdbc.queryForObject("SELECT id FROM usuarios WHERE LOWER(email)=LOWER(?)",Long.class,actor);
+        boolean creating=id==null;
+        String auditDetail="Creación de cuenta; rol: "+request.rol()+"; estado: "+request.estado();
         String email=request.email().trim().toLowerCase(Locale.ROOT);
         String hash=null;
         if(request.password()!=null&&!request.password().isBlank()){
@@ -52,6 +55,11 @@ public class AdminUserService {
             id=jdbc.queryForObject("SELECT id FROM usuarios WHERE email=?",Long.class,email);
         } else {
             var old=jdbc.query(VIEW+" WHERE u.id=?",mapper,id).stream().findFirst().orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Usuario no encontrado"));
+            auditDetail="Edición de cuenta";
+            if(!old.rol().equals(request.rol())) auditDetail+="; cambio de rol: "+old.rol()+" -> "+request.rol();
+            if(!old.estado().equals(request.estado())) auditDetail+="; "+("activo".equals(request.estado())?"activación":"desactivación")+": "+old.estado()+" -> "+request.estado();
+            if(!old.email().equalsIgnoreCase(email)) auditDetail+="; cambio de correo";
+            if(hash!=null) auditDetail+="; cambio de contraseña";
             if(old.email().equalsIgnoreCase(actor) && (!"ADMIN".equals(request.rol())||!"activo".equals(request.estado())))
                 throw bad("No puedes quitarte el acceso de administrador ni desactivar tu propia cuenta.");
             if("ADMIN".equals(old.rol())&&"activo".equals(old.estado())&&(!"ADMIN".equals(request.rol())||!"activo".equals(request.estado()))
@@ -61,13 +69,18 @@ public class AdminUserService {
                 email,roleId,request.estado(),hash,old.email().equalsIgnoreCase(email)&&old.rol().equals(request.rol()),id);
             // Pending OTPs cannot survive a password, role, email or status update.
             jdbc.update("DELETE FROM auth_email_challenges WHERE usuario_id=?",id);
+            jdbc.update("DELETE FROM recuperacion_acceso WHERE usuario_id=?",id);
         }
         if("CANDIDATO".equals(request.rol())){
             jdbc.update("""
                 INSERT INTO postulantes(usuario_id,nombres,apellidos,telefono) VALUES(?,?,?,?)
                 ON DUPLICATE KEY UPDATE nombres=VALUES(nombres),apellidos=VALUES(apellidos),telefono=VALUES(telefono)
                 """,id,request.nombres().trim(),request.apellidos().trim(),request.telefono());
+            jdbc.update("UPDATE perfiles_contacto SET nombres=?,apellidos=?,telefono=? WHERE usuario_id=?",
+                request.nombres().trim(),request.apellidos().trim(),request.telefono(),id);
         }
+        jdbc.update("INSERT INTO auditoria(tabla_afectada,registro_id,accion,detalle,usuario_id) VALUES('usuarios',?,?,?,?)",
+            id,creating?"crear":"actualizar",auditDetail,actorId);
         // Keep historical candidate profiles on role changes; they may have applications attached.
         return jdbc.query(VIEW+" WHERE u.id=?",mapper,id).getFirst();
     }

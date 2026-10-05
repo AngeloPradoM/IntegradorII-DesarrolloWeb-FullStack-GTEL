@@ -1,13 +1,7 @@
-import { demoCollections, writeDemo } from "./demoStore";
-import { getJobs } from "../utils/jobsData";
-import { getStoredUser } from "../utils/auth";
-import { candidateKey, ownApplications, hasApplied } from "../utils/applications";
-import { validateApplication } from "../utils/formValidation";
-
+import { request, jsonRequest } from './workflowService';
+import { validateApplication } from '../utils/formValidation';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-export const IS_DEMO_MODE = import.meta.env.VITE_DATA_MODE !== "api";
-const pause = (value, ms = 250) => new Promise((resolve) => setTimeout(() => resolve(structuredClone(value)), ms));
-const fail = (message) => Promise.reject(new Error(message));
+export const IS_DEMO_MODE = false;
 
 export async function registerCandidate(data) {
   const rawPhone = String(data.telefono || '').trim().replace(/[\s()-]/g, '');
@@ -51,7 +45,7 @@ async function authRequest(path, options = {}) {
     throw new Error('No se pudo conectar con el backend. Comprueba que Spring esté iniciado.', { cause });
   }
   const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.detail || body?.message || 'No se pudo iniciar sesión. Comprueba tus credenciales y el tipo de usuario.');
+  if (!response.ok) { const error = new Error(body?.detail || body?.message || 'No se pudo comprobar la sesión. Inténtalo nuevamente.'); error.status = response.status; throw error; }
   return body;
 }
 
@@ -101,20 +95,8 @@ export async function verifyOtp(sessionId, otp) {
   return { ...result, demo: false };
 }
 
-function publicProfile(user) {
-  return Object.fromEntries(['id', 'nombres', 'apellidos', 'email', 'telefono', 'ubicacion', 'localidad', 'correoContacto', 'foto'].map(key => [key, user[key] || '']));
-}
-
-export async function saveProfile(currentUser, changes) {
-  if (!currentUser?.demo || !IS_DEMO_MODE) throw new Error('La edición de perfil aún no tiene un servicio disponible en el servidor.');
-  const users = demoCollections.users();
-  const index = users.findIndex(item => currentUser.id ? item.id === currentUser.id : item.email === currentUser.email);
-  if (index < 0) throw new Error('No se encontró tu cuenta. Inicia sesión nuevamente.');
-  const profile = publicProfile({ ...users[index], ...changes, id: users[index].id });
-  if (users.some((item, i) => i !== index && item.email.toLowerCase() === profile.email.toLowerCase())) throw new Error('Este correo ya está registrado.');
-  users[index] = { ...users[index], ...profile };
-  writeDemo('users', users);
-  return profile;
+export async function saveProfile(_currentUser, changes) {
+  return jsonRequest('/api/profile','PUT',changes);
 }
 
 export async function resendOtp(sessionId) {
@@ -126,22 +108,20 @@ export async function resendOtp(sessionId) {
 // Recruiter business data is isolated from candidate demo storage.
 export { getRecruiterCandidates, getRecruiterCandidate, getRecruiterJobs, getRecruiterJob, getRecruiterInterviews, getRecruiterEvaluations, getRecruiterDashboard, getRecruiterNotifications, updateCandidateStatus, publishJob, updateRecruiterJob, scheduleRecruiterInterview, createRecruiterEvaluation } from './recruiterService';
 
-export function createApplication(job, data = {}, user = getStoredUser()) {
-  if (!IS_DEMO_MODE) return fail('Enviar postulaciones todavía no está disponible en modo API.');
-  const actualJob = getJobs().find(item => String(item.id) === String(job?.id));
-  if (!actualJob) return fail('Oferta no encontrada.');
-  const errors = validateApplication(data.personalData || {}, data.cv, data.termsAccepted);
-  if (Object.keys(errors).length) return fail(Object.values(errors)[0]);
-  const applications = demoCollections.applications();
-  if (hasApplied(applications, user, actualJob.id)) return fail('Ya postulaste a esta oferta.');
-  const id = crypto.randomUUID();
-  const createdAt = new Date().toISOString();
-  const item = { id, candidateId: candidateKey(user), jobId: actualJob.id, job: actualJob.title, company: 'GTEL Telecomunicaciones', createdAt, date: new Date(createdAt).toLocaleDateString('es-PE'), status: 'recibida', location: actualJob.location,
-    code: `GTEL-${id}`, personalData: { ...data.personalData },
-    cv: { name: data.cv.name, type: data.cv.type, size: data.cv.size, lastModified: data.cv.lastModified }, termsAccepted: true };
-  writeDemo("applications", [item, ...applications]); return pause(item);
+export async function createApplication(job, data = {}) {
+  const errors=validateApplication(data.personalData||{},data.cv,data.termsAccepted);
+  if(Object.keys(errors).length) throw new Error(Object.values(errors)[0]);
+  if(!job?.id) throw new Error('Oferta no encontrada.');
+  const body=new FormData();
+  const personalData = Object.fromEntries(['nombres','apellidos','dni','telefono','distrito','motivacion'].map(key=>[key,String(data.personalData[key]||'').trim()]));
+  personalData.telefono = personalData.telefono.replace(/[\s()-]/g,'');
+  if (/^\d{9}$/.test(personalData.telefono)) personalData.telefono = '+51' + personalData.telefono;
+  body.append('data',new Blob([JSON.stringify(personalData)],{type:'application/json'}));
+  body.append('cv',data.cv);body.append('terms',String(data.termsAccepted));
+  return request('/api/candidate/applications/'+encodeURIComponent(job.id),{method:'POST',body});
 }
-export const getCandidateApplications = (user = getStoredUser()) => {
-  if (!IS_DEMO_MODE) return fail('Consultar postulaciones todavía no está disponible en modo API.');
-  return pause(ownApplications(demoCollections.applications(), user));
-};
+export async function getCandidateApplications() {
+  const rows=await request('/api/candidate/applications');
+  const states={en_revision:'reviewing',entrevista:'interview',aprobada:'approved',rechazada:'rejected'};
+  return rows.map(r=>({...r,status:states[r.status]||r.status,company:'GTEL',appliedDate:String(r.date||'').slice(0,10),steps:(r.steps||[]).map(s=>({...s,rejected:s.label==='rechazada'}))}));
+}

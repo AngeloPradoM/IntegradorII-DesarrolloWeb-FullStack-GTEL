@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { listUsers, saveUser } from '../../services/adminService';
+import { listUsers, saveUser, deleteUser } from '../../services/adminService';
 
 const empty = { email: '', password: '', rol: 'CANDIDATO', estado: 'activo', nombres: '', apellidos: '', telefono: '' };
 export default function UsersPage() {
@@ -36,6 +36,14 @@ export default function UsersPage() {
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   };
+  async function remove(account) {
+    if(busy)return;
+    const confirmation=window.prompt('Eliminación definitiva: se borrarán los datos personales, postulaciones, CV y notificaciones. Se conserva auditoría y se reasignan ofertas compartidas. Escribe el correo de la cuenta para confirmar:', '');
+    if(confirmation!==account.email)return;
+    setBusy(true);setError('');setNotice('');
+    try{await deleteUser(account.id);setEditor(null);setData(null);setPage(0);setRevision(v=>v+1);setNotice('Cuenta eliminada definitivamente. Auditoría conservada.');}
+    catch(e){setError(e.message);}finally{setBusy(false);}
+  }
   const field = 'w-full rounded-lg border border-slate-300 bg-white p-2.5 text-slate-900';
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -43,7 +51,7 @@ export default function UsersPage() {
       <button className="rounded-lg bg-red-700 px-4 py-3 font-semibold text-white" onClick={() => { setEditor({ ...empty }); setError(''); setNotice(''); }}>Registrar usuario</button>
     </div>
     <nav className="flex flex-wrap gap-4 text-sm font-semibold text-red-700" aria-label="Supervisión">
-      <Link to="/ofertas">Ofertas</Link><Link to="/mis-postulaciones">Vista candidato</Link><Link to="/reclutador/dashboard">Vista reclutador</Link>
+      <Link to="/admin/auditoria">Auditoría</Link><Link to="/notificaciones">Notificaciones</Link><Link to="/ofertas">Ofertas</Link><Link to="/mis-postulaciones">Vista candidato</Link><Link to="/reclutador/dashboard">Vista reclutador</Link>
     </nav>
     {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">{error}</p>}
     {notice && <p role="status" className="rounded-lg bg-green-50 p-3 text-green-800">{notice}</p>}
@@ -68,7 +76,7 @@ export default function UsersPage() {
     </form>
     {!data ? !error && <p role="status">Cargando usuarios…</p> : <>
       <div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-left text-sm"><thead className="bg-slate-100"><tr>{['ID','Correo','Rol','Estado','Acciones'].map(label => <th key={label} className="p-3">{label}</th>)}</tr></thead><tbody>
-        {data.items.map(account => <tr key={account.id} className="border-t"><td className="p-3">{account.id}</td><td className="p-3">{account.email}</td><td className="p-3">{account.rol}</td><td className="p-3">{account.estado}</td><td className="p-3"><button className="font-semibold text-red-700" onClick={() => { setEditor({ ...account, password: '' }); setError(''); setNotice(''); }}>Editar</button></td></tr>)}
+        {data.items.map(account => <tr key={account.id} className="border-t"><td className="p-3">{account.id}</td><td className="p-3">{account.email}</td><td className="p-3">{account.rol}</td><td className="p-3">{account.estado}</td><td className="p-3"><button className="font-semibold text-red-700" onClick={() => { setEditor({ ...account, password: '' }); setError(''); setNotice(''); }}>Editar</button><button disabled={busy||String(account.id)===String(user.id)} onClick={()=>remove(account)} className="ml-4 font-semibold text-red-700 underline disabled:opacity-40">Eliminar cuenta</button></td></tr>)}
         {!data.items.length && <tr><td colSpan={5} className="p-5 text-center">No se encontraron usuarios.</td></tr>}
       </tbody></table></div>
       <div className="flex items-center justify-between"><span>{data.total} usuarios · Página {page + 1}</span><div className="flex gap-3"><button disabled={page === 0} onClick={() => { setData(null); setPage(p => p - 1); }} className="rounded border p-2 disabled:opacity-40">Anterior</button><button disabled={(page + 1) * 25 >= data.total} onClick={() => { setData(null); setPage(p => p + 1); }} className="rounded border p-2 disabled:opacity-40">Siguiente</button></div></div>

@@ -3,6 +3,7 @@ import { normalizeCollection, normalizeCandidate, normalizeJob, normalizeIntervi
 import { validateJob } from '../utils/formValidation';
 
 export function recruiterErrorMessage(error) {
+  if (error?.userFacing) return error.message;
   if (error instanceof RecruiterServiceError) return error.message;
   if (error?.name === 'AbortError' || error?.name === 'TimeoutError') return 'La solicitud tardó demasiado. Inténtalo nuevamente.';
   return ({401:'Tu sesión no es válida. Vuelve a iniciar sesión.',403:'No tienes permiso para consultar esta información.',404:'No se encontró la información solicitada.'})[error?.status] || 'No se pudo completar la solicitud. Inténtalo nuevamente.';
@@ -30,7 +31,7 @@ export async function getRecruiterDashboard() {
   const [candidates, jobs, interviews, evaluations] = await Promise.all([getRecruiterCandidates(),getRecruiterJobs(),getRecruiterInterviews(),getRecruiterEvaluations()]);
   const areas = new Map();
   for (const candidate of candidates) if (candidate.department) areas.set(candidate.department,(areas.get(candidate.department) || 0)+1);
-  return {newApplicants:candidates.length, scheduledInterviews:interviews.length, activeJobs:jobs.length, evaluations:evaluations.length, recentApplications:candidates.slice(0,5), applicationsByArea:[...areas].map(([name,value])=>({name,value}))};
+  return {newApplicants:candidates.length, scheduledInterviews:interviews.filter(i=>i.status==='programada').length, activeJobs:jobs.filter(j=>j.status==='activa').length, evaluations:evaluations.length, recentApplications:candidates.slice(0,5), applicationsByArea:[...areas].map(([name,value])=>({name,value}))};
 }
 export async function publishJob(data) {
   const errors = validateJob(data);

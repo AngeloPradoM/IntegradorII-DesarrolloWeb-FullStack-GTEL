@@ -1,3 +1,9 @@
+import JobTrash from '../pages/reclutador/JobTrash';
+import RecoveryPage from '../pages/auth/RecoveryPage';
+import AuditPage from '../pages/admin/AuditPage';
+import NotificationsPage from '../pages/candidato/NotificationsPage';
+import SelectionWorkspace from '../pages/reclutador/SelectionWorkspace';
+import JobEditor from '../pages/reclutador/JobEditor';
 import AdminUsersPage from "../pages/admin/UsersPage";
 import LoginModalRedirect from "../pages/auth/LoginModalRedirect";
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from "react-router-dom";
@@ -27,6 +33,9 @@ const router = createBrowserRouter(createRoutesFromElements(<>
         <Route element={<PublicLayout />}>
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/" element={<LandingPage />} />
+          <Route path="/recuperar-acceso" element={<RecoveryPage />} />
+          <Route path="/notificaciones" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/admin/auditoria" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AuditPage /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
           <Route path="/ofertas" element={<OfertasLaboralesPage />} />
           <Route path="/ofertas/:id" element={<OfertaDetallePage />} />
@@ -42,7 +51,10 @@ const router = createBrowserRouter(createRoutesFromElements(<>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="ofertas" element={<RecruiterJobs />} />
+          <Route path="ofertas/papelera" element={<JobTrash />} />
           <Route path="ofertas/:id" element={<RecruiterJobDetail />} />
+          <Route path="ofertas/:id/editar" element={<JobEditor />} />
+          <Route path="seleccion" element={<SelectionWorkspace />} />
           <Route path="publicar-oferta" element={<PublicarOfertaPage />} />
           <Route path="postulantes/:id" element={<PerfilCandidatoPage />} />
           <Route path="postulantes" element={<PostulantesPage />} />

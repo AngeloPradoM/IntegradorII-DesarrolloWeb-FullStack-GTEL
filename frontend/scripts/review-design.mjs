@@ -18,10 +18,11 @@ function command(method,params={}) { return new Promise((resolve,reject)=>{
   socket.send(JSON.stringify({id,method,params}));
 }); }
 const fixtures={
-  '/api/recruiter/candidates':[{id:1,name:'Candidato de prueba',job:'Agente de Ventas',date:'23 Sep 2026',status:'en_revision',score:85}],
-  '/api/recruiter/interviews':[{id:1,name:'Candidato de prueba',job:'Agente de Ventas',time:'10:00',duration:'30 min',type:'video',day:19,month:4,year:2026}],
-  '/api/recruiter/evaluations':[{id:1,name:'Candidato de prueba',job:'Agente de Ventas',test:'Ventas',score:85,time:'20 min',date:'23 Sep 2026',status:'aprobado'}],
-  '/api/recruiter/dashboard':{newApplicants:12,scheduledInterviews:3,activeJobs:4,recentApplications:[{id:1,name:'Candidato de prueba',status:'en_revision'}],applicationsByArea:[{name:'Ventas',value:8},{name:'Soporte',value:4}]},
+  '/api/recruiter/applications':[{id:1,name:'Candidato de prueba',job:'Agente de Ventas',date:'2026-09-23',status:'en_revision',score:85}],
+  '/api/recruiter/selection/interviews':[{id:1,name:'Candidato de prueba',job:'Agente de Ventas',time:'10:00',duration:'30 min',type:'video',date:'2026-05-19',status:'programada'}],
+  '/api/recruiter/selection/evaluations':[{id:1,name:'Candidato de prueba',job:'Agente de Ventas',test:'Ventas',score:85,time:'20 min',date:'2026-09-23',status:'aprobado'}],
+  '/api/recruiter/jobs':[{id:1,title:'Agente de Ventas',status:'activa',location:'Lima',type:'full_time',salary:'S/ 1500'}],
+  '/api/notifications':[],
   '/api/auth/register':{message:'Cuenta creada'},
   '/api/auth/login':{requiresOtp:true,status:'OTP_REQUIRED',sessionId:'test-session',maskedPhone:'******4321',resendAfterSeconds:0,expiresInSeconds:300},
   '/api/auth/resend-otp':{requiresOtp:true,status:'OTP_REQUIRED',sessionId:'test-session',maskedPhone:'******4321',resendAfterSeconds:0,expiresInSeconds:300},

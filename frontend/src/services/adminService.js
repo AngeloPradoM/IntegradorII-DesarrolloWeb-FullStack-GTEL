@@ -21,3 +21,5 @@ async function request(path, options = {}) {
 }
 export function listUsers(search, page, signal) { return request(`?search=${encodeURIComponent(search)}&page=${page}`, { signal }); }
 export function saveUser(id, data) { return request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST', body: JSON.stringify(data) }); }
+
+export function deleteUser(id) { return request("/"+encodeURIComponent(id), { method:"DELETE" }); }

@@ -1,13 +1,15 @@
-import { useMemo } from "react";
+
 import { Link, useParams } from "react-router-dom";
 import { MapPin, Wallet, Clock3, ArrowLeft, Briefcase } from "lucide-react";
-import { getJobs } from "../../utils/jobsData";
+import useJobs from "../../hooks/useJobs";
 import AuthRequiredLink from "../../components/auth/AuthRequiredLink";
 
 export default function OfertaDetallePage() {
   const { id } = useParams();
-  const jobs = getJobs();
-  const job = useMemo(() => jobs.find((item) => String(item.id) === String(id)), [jobs, id]);
+  const {jobs,loading,error}=useJobs();
+  const job=jobs.find(item=>String(item.id)===String(id));
+  if(loading)return <p role="status" className="p-6">Cargando oferta…</p>;
+  if(error)return <p role="alert" className="p-6">{error}</p>;
 
   if (!job) {
     return (
@@ -81,7 +83,7 @@ export default function OfertaDetallePage() {
           <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-gray">Descripción</p>
             <p className="mt-3 text-sm leading-7 text-brand-gray">
-              Serás parte del equipo GTEL y apoyarás la operación comercial con un enfoque en atención al cliente, metas de calidad y mejora continua. El rol requiere comunicación efectiva, orientación a resultados y capacidad para trabajar en equipo.
+              {job.description}
             </p>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import useRecruiterData from "../../hooks/useRecruiterData";
 import DataState from "../../components/ui/DataState";
 import { useState } from "react";
@@ -35,9 +36,9 @@ export function InterviewSchedule() {
           <h1 className="text-xl font-bold text-brand-navy">Agenda de Entrevistas</h1>
             <p className="text-sm text-brand-gray">{loading || error ? '—' : monthly.length} entrevistas programadas este mes</p>
         </div>
-        <button disabled title="Programación pendiente de integración" className="inline-flex items-center gap-2 bg-brand-red hover:bg-brand-red-hover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+        <Link to="/reclutador/seleccion" className="inline-flex items-center gap-2 bg-brand-red hover:bg-brand-red-hover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
           + Programar Entrevista
-        </button>
+        </Link>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -144,9 +145,9 @@ export function InterviewSchedule() {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center">
               <User className="w-8 h-8 text-gray-300 mx-auto mb-3" />
               <p className="text-sm text-brand-gray">{interviewData.length ? "No hay entrevistas programadas para este día." : "No hay entrevistas programadas."}</p>
-              <button disabled title="Programación pendiente de integración" className="mt-3 text-xs font-medium text-brand-red hover:underline">
+              <Link to="/reclutador/seleccion" className="mt-3 text-xs font-medium text-brand-red hover:underline">
                 Programar una entrevista
-              </button>
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -193,15 +194,9 @@ export function InterviewSchedule() {
 
                   {/* Action */}
                   {interview.type === "video" ? (
-                    <button disabled title="Acción pendiente de integración" className="flex items-center gap-2 bg-brand-red hover:bg-brand-red-hover text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-colors flex-shrink-0 shadow-sm">
-                      <Video className="w-3.5 h-3.5" />
-                      Unirse a Videollamada
-                    </button>
+                    <Link to="/reclutador/seleccion" className="flex items-center gap-2 bg-brand-red hover:bg-brand-red-hover text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-colors flex-shrink-0 shadow-sm">Gestionar entrevista</Link>
                   ) : (
-                    <button disabled title="Acción pendiente de integración" className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-colors flex-shrink-0">
-                      <MapPin className="w-3.5 h-3.5" />
-                      Ver ubicación
-                    </button>
+                    <Link to="/reclutador/seleccion" className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-colors flex-shrink-0">Gestionar entrevista</Link>
                   )}
                 </div>
               ))}

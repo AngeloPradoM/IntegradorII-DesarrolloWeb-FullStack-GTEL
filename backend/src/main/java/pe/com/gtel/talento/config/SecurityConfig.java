@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**", "/api/health", "/actuator/health").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,"/api/jobs","/api/jobs/*").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/recruiter/**").hasAnyRole("RECLUTADOR","ADMIN")
                         .requestMatchers("/api/candidate/**").hasAnyRole("CANDIDATO","ADMIN")

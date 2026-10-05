@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { saveProfile } from "../../services/api";
+import { request } from "../../services/workflowService";
 import "./perfil.css";
 import UnsavedChangesDialog from "../../components/ui/UnsavedChangesDialog";
 
 const regions = ['Amazonas','Ancash','Apurímac','Arequipa','Ayacucho','Cajamarca','Callao','Cusco','Huancavelica','Huánuco','Ica','Junín','La Libertad','Lambayeque','Lima','Loreto','Madre de Dios','Moquegua','Pasco','Piura','Puno','San Martín','Tacna','Tumbes','Ucayali'];
-const fields = user => Object.fromEntries(['nombres','apellidos','email','telefono','ubicacion','localidad','correoContacto','foto'].map(key => [key, key === 'telefono' ? (user[key] || '').replace(/^\+51/, '') : user[key] || '']));
+const fields = user => Object.fromEntries(['nombres','apellidos','email','telefono','ubicacion','localidad','correoContacto','foto','educacion','experiencia'].map(key => [key, key === 'telefono' ? (user[key] || '').replace(/^\+51/, '') : user[key] || '']));
 
 export default function ProfileEditor() {
   const { user, updateProfile } = useAuth();
@@ -14,6 +15,13 @@ export default function ProfileEditor() {
   const [form, setForm] = useState(saved);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    let active=true;
+    request('/api/profile').then(profile=>{if(active){setForm(fields(profile));setSaved(fields(profile));setLoaded(true);}})
+      .catch(e=>{if(active)setMessage(e.message);});
+    return()=>{active=false;};
+  }, []);
   const [photoLoading, setPhotoLoading] = useState(false);
   const photoVersion = useRef(0);
   const file = useRef(null);
@@ -64,12 +72,14 @@ export default function ProfileEditor() {
     } catch (error) { setMessage(error.message || 'No se pudo guardar el perfil.'); }
     finally { setBusy(false); }
   };
-  const input = (name, label, props = {}) => <label>{label}<input name={name} value={form[name]} onChange={change} {...props} /></label>;
+  const input = (name, label, props = {}) => <label>{label}<input name={name} value={form[name]} onChange={change} readOnly={name==='email'} {...props} /></label>;
   return <><UnsavedChangesDialog dirty={dirty || photoLoading} /><div className="profile-editor"><div className="page">
     <nav className="breadcrumb" aria-label="Ruta"><Link to="/">Inicio</Link><span>/</span><span>Mi perfil</span></nav>
     <div className="page-heading"><div><p className="eyebrow">MI CUENTA</p><h1>Un perfil que habla de ti</h1><p>Mantén tus datos actualizados para que podamos contactarte.</p></div><span className="account-badge">Perfil de {user.rol === 'RECLUTADOR' ? 'reclutador' : 'candidato'}</span></div>
     <div className="layout"><aside><div className="identity"><div className="portrait">{avatar}</div><h2>{form.nombres} {form.apellidos}</h2><p>{form.email}</p><span className="member">GTEL Talento</span></div><nav className="section-nav" aria-label="Secciones del perfil"><a href="#personal">01 <span>Información personal</span></a><a href="#contact">02 <span>Datos de contacto</span></a><a href="#location">03 <span>Localidad</span></a></nav><p className="aside-note">Tus datos de contacto nos permiten acompañarte durante tus procesos de selección.</p></aside>
-    <form onSubmit={submit}><fieldset disabled={busy} className="min-w-0 border-0 p-0">
+    <form onSubmit={submit}><fieldset disabled={busy || !loaded} className="min-w-0 border-0 p-0">
+      {!loaded && <p role="status">{message || 'Cargando perfil…'}</p>}
+      <section className="card"><h2>Formación y experiencia</h2><p>El correo principal se gestiona desde administración.</p><label>Formación académica<textarea name="educacion" maxLength={10000} value={form.educacion} onChange={change} className="w-full rounded border p-3" /></label><label>Experiencia laboral<textarea name="experiencia" maxLength={10000} value={form.experiencia} onChange={change} className="w-full rounded border p-3" /></label></section>
       <section className="card" id="personal"><div className="section-title"><span className="section-number">01</span><div><h2>Información personal</h2><p>Así te identificarás en la plataforma.</p></div></div>
         <div className="photo-row"><div className="photo-preview">{avatar}</div><div><h3>Foto de perfil</h3><div className="photo-actions"><button type="button" className="secondary" onClick={() => file.current.click()}>Cambiar foto</button>{form.foto && <button type="button" className="text-button" onClick={() => { photoVersion.current++; setPhotoLoading(false); setForm(previous => ({ ...previous, foto:'' })); file.current.value = ''; }}>Eliminar</button>}</div><p className="hint">JPG, PNG o WebP. Máximo 2 MB.</p><input ref={file} hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={upload} /></div></div>
         <div className="grid">{input('nombres','Nombres *',{required:true,minLength:2,autoComplete:'given-name'})}{input('apellidos','Apellidos *',{required:true,minLength:2,autoComplete:'family-name'})}</div>

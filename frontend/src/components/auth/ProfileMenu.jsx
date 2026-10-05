@@ -21,6 +21,7 @@ export default function ProfileMenu() {
       <div className="mb-1 border-b border-slate-100 px-3 py-3"><p className="text-sm font-semibold">{user.nombres} {user.apellidos}</p><p className="break-all text-xs text-slate-500">{user.email}</p></div>
       {user.rol === "ADMIN" && <Link to="/admin" onClick={() => setOpen(false)} className="block rounded-lg p-3 text-sm hover:bg-slate-50">Panel administrador</Link>}
       <Link to="/perfil" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-lg p-3 text-sm hover:bg-slate-50"><UserRound className="h-4 w-4" />Editar perfil</Link>
+      <Link to="/notificaciones" onClick={() => setOpen(false)} className="block rounded-lg p-3 text-sm hover:bg-slate-50">Mis notificaciones</Link>
       <button type="button" onClick={logout} className="flex w-full items-center gap-2 rounded-lg p-3 text-sm text-brand-red hover:bg-red-50"><LogOut className="h-4 w-4" />Cerrar sesión</button>
     </div>}
   </div>;

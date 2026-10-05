@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 
 const server = await createServer({configFile:false, envDir:false, server:{middlewareMode:true, hmr:false}});
-globalThis.localStorage = {getItem(){throw Error('Unexpected storage read');},setItem(){throw Error('Unexpected storage write');}};
+globalThis.localStorage = {getItem(){return JSON.stringify({token:'test-token'});},setItem(){throw Error('Unexpected storage write');}};
+globalThis.fetch = async()=>Response.json([]);
 try {
   const api = await server.ssrLoadModule('/src/services/recruiterService.js');
   const {recruiterTransport: transport} = await server.ssrLoadModule('/src/services/recruiterTransport.js');
@@ -11,8 +12,10 @@ try {
   assert.equal(await api.getRecruiterCandidate('missing'),null);
   const empty = await api.getRecruiterDashboard();
   assert.equal(empty.newApplicants,0);
-  await assert.rejects(api.updateCandidateStatus('test','approved'),/No se guardaron cambios/);
-  await assert.rejects(api.publishJob({title:'Test',type:'Full Time',location:'Test',description:'Test',department:'Test',vacancies:1,salaryMin:0,salaryMax:1}),/No se guardaron cambios/);
+  globalThis.fetch = async(url,options)=>{assert.ok(url.endsWith('/test/status'));assert.equal(options.headers.Authorization,'Bearer test-token');assert.equal(JSON.parse(options.body).status,'aprobada');return Response.json({id:'test',status:'aprobada'});};
+  assert.equal((await api.updateCandidateStatus('test','aprobada')).id,'test');
+  globalThis.fetch = async()=>Response.json([]);
+
   const row = adapters.normalizeCandidate({id:'test',skills:null,experience:null});
   assert.equal(row.score,null); assert.equal(row.status,'unknown'); assert.deepEqual(row.skills,[]);
   assert.throws(()=>adapters.normalizeCollection([{id:1},{id:1}],adapters.normalizeCandidate),/interpretar/);
@@ -26,5 +29,5 @@ try {
   transport.candidates = async()=>{throw Error('Private server details');};
   await assert.rejects(api.getRecruiterCandidates(),error=>!error.message.includes('Private') && error.message.includes('Inténtalo'));
   assert.equal(adapters.normalizeInterview({id:'test',date:'2026-02-30'}).date,'');
-  console.log('PASS recruiter: empty reads, missing data, malformed responses, errors, derived counts and blocked writes without storage.');
-} finally {await server.close();delete globalThis.localStorage;}
+  console.log('PASS recruiter: empty reads, missing data, malformed responses, errors, derived counts and authenticated writes without local persistence.');
+} finally {await server.close();delete globalThis.localStorage;delete globalThis.fetch;}

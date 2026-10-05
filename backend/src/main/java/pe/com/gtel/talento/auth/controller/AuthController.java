@@ -76,8 +76,10 @@ public class AuthController {
             access.validate(token,jwtService);
             email = jwtService.getEmail(token);
             role = jwtService.getRole(token);
-        } catch (RuntimeException ex) {
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido o vencido");
+        } catch (org.springframework.dao.DataAccessException ex) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "No se pudo comprobar la sesión. Inténtalo nuevamente.");
         }
         AuthResponse user = candidatoService.obtenerPerfil(email);
         if (!user.rol().equals(role)) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El rol de la cuenta cambió; inicia sesión nuevamente");

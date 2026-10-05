@@ -23,6 +23,8 @@ public class DevelopmentAccounts implements CommandLineRunner {
         Long roleId=jdbc.queryForObject("SELECT id FROM roles WHERE nombre=?",Long.class,role);
         var rows=jdbc.queryForList("SELECT id,password_hash,rol_id FROM usuarios WHERE LOWER(email)=? FOR UPDATE",email);
         if(rows.isEmpty()){
+            // Respect an explicit administrative deletion, including after restart.
+            if(jdbc.queryForObject("SELECT COUNT(*) FROM auditoria WHERE tabla_afectada='usuarios' AND accion='eliminar' AND detalle=?",Long.class,"Eliminación definitiva de cuenta: "+email)>0)return;
             jdbc.update("INSERT INTO usuarios(email,password_hash,rol_id,estado,otp_exempt) VALUES(?,?,?,'activo',TRUE)",email,encoder.encode(password),roleId);
         } else {
             var old=rows.getFirst();

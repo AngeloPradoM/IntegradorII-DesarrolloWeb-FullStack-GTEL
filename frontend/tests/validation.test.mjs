@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { validateApplication, validateCv, validateJob } from '../src/utils/formValidation.js';
 import { candidateKey, ownApplications, hasApplied, applicationFormData } from '../src/utils/applications.js';
 
-const personal = { nombres:'Juan Carlos', apellidos:'De la Cruz', dni:'12345678', email:'candidate@example.test', telefono:'987654321' };
+const personal = { nombres:'Juan Carlos', apellidos:'De la Cruz', dni:'12345678', email:'candidate@example.test', telefono:'987654321', distrito:'Lima' };
 const cv = { name:'cv.pdf', type:'application/pdf', size:100, lastModified:1 };
 test('Application step validation and terms', () => {
   assert.ok(validateApplication({}, null, false, 1).nombres);
