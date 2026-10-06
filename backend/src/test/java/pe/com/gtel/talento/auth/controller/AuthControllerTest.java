@@ -1,16 +1,17 @@
 package pe.com.gtel.talento.auth.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import pe.com.gtel.talento.auth.dto.*;
-import pe.com.gtel.talento.security.JwtService;
 import pe.com.gtel.talento.auth.service.CandidatoService;
 import pe.com.gtel.talento.auth.service.EmailOtpService;
-import java.util.Map;
-import java.util.UUID;
+import pe.com.gtel.talento.identity.dto.AccountIdentity;
+import pe.com.gtel.talento.security.JwtService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class AuthControllerTest {
     final CandidatoService candidates=mock(CandidatoService.class);
@@ -22,7 +23,7 @@ class AuthControllerTest {
     @Test void authorizedTestAccountSkipsEmailAfterPasswordValidation() {
         var request=new LoginRequest("administrador@gmail.com","AdminSecure2026*");
         var profile=new AuthResponse(1L,"Admin","",request.email(),"ADMIN",null);
-        var account=new pe.com.gtel.talento.security.AccountAccessService.Account(1,request.email(),"ADMIN",0,true,"activo");
+        var account=new pe.com.gtel.talento.identity.dto.AccountIdentity(1,request.email(),"ADMIN",0,true,"activo");
         when(candidates.autenticar(request)).thenReturn(profile);
         when(access.find(request.email())).thenReturn(account);
         when(access.bypass(account)).thenReturn(true);
@@ -51,7 +52,7 @@ class AuthControllerTest {
     @Test void verifiedCodeIssuesToken() {
         var id=UUID.randomUUID();
         when(otp.verify(id.toString(),"654321")).thenReturn(new AuthResponse(7L,"Test","User","test@example.test","RECLUTADOR",null));
-        when(access.find("test@example.test")).thenReturn(new pe.com.gtel.talento.security.AccountAccessService.Account(7L,"test@example.test","RECLUTADOR",0,false,"activo"));
+        when(access.find("test@example.test")).thenReturn(new pe.com.gtel.talento.identity.dto.AccountIdentity(7L,"test@example.test","RECLUTADOR",0,false,"activo"));
         when(jwt.createToken("test@example.test","RECLUTADOR",0,"EMAIL_OTP")).thenReturn("signed-token");
         var result=controller.verify(new OtpRequest(id,"654321")).getBody();
         assertEquals(true,result.get("verified"));

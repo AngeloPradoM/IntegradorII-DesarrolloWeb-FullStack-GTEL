@@ -1,10 +1,11 @@
 package pe.com.gtel.talento.security;
 
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.web.server.ResponseStatusException;
+import pe.com.gtel.talento.identity.dto.AccountIdentity;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AccountAccessServiceTest {
     JdbcTemplate jdbc;
@@ -15,15 +16,15 @@ class AccountAccessServiceTest {
         jdbc.execute("CREATE TABLE roles(id INT PRIMARY KEY,nombre VARCHAR(30))");
     }
     @Test void bypassRequiresFlagExactAccountRoleAndActiveStatus() {
-        var enabled=new AccountAccessService(jdbc,true);
-        var disabled=new AccountAccessService(jdbc,false);
-        var admin=new AccountAccessService.Account(1,"Administrador@gmail.com","ADMIN",0,true,"activo");
+        var enabled=new AccountAccessService(new pe.com.gtel.talento.identity.repository.AccountAccessRepository(jdbc),true);
+        var disabled=new AccountAccessService(new pe.com.gtel.talento.identity.repository.AccountAccessRepository(jdbc),false);
+        var admin=new AccountIdentity(1,"Administrador@gmail.com","ADMIN",0,true,"activo");
         assertTrue(enabled.bypass(admin));
         assertFalse(disabled.bypass(admin));
-        assertFalse(enabled.bypass(new AccountAccessService.Account(1,"other@gmail.com","ADMIN",0,true,"activo")));
-        assertFalse(enabled.bypass(new AccountAccessService.Account(1,"administrador@gmail.com","CANDIDATO",0,true,"activo")));
-        assertFalse(enabled.bypass(new AccountAccessService.Account(1,admin.email(),"ADMIN",0,false,"activo")));
-        assertFalse(enabled.bypass(new AccountAccessService.Account(1,admin.email(),"ADMIN",0,true,"inactivo")));
+        assertFalse(enabled.bypass(new AccountIdentity(1,"other@gmail.com","ADMIN",0,true,"activo")));
+        assertFalse(enabled.bypass(new AccountIdentity(1,"administrador@gmail.com","CANDIDATO",0,true,"activo")));
+        assertFalse(enabled.bypass(new AccountIdentity(1,admin.email(),"ADMIN",0,false,"activo")));
+        assertFalse(enabled.bypass(new AccountIdentity(1,admin.email(),"ADMIN",0,true,"inactivo")));
     }
     @Test void changedVersionRoleOrStatusRejectsPreviouslySignedToken() {
         var ds=new DriverManagerDataSource("jdbc:h2:mem:"+java.util.UUID.randomUUID()+";DB_CLOSE_DELAY=-1","sa","");
@@ -32,10 +33,10 @@ class AccountAccessServiceTest {
         jdbc.execute("CREATE TABLE usuarios(id BIGINT,email VARCHAR(150),rol_id INT,auth_version INT,otp_exempt BOOLEAN,estado VARCHAR(20))");
         jdbc.update("INSERT INTO roles VALUES(3,'ADMIN')");
         jdbc.update("INSERT INTO usuarios VALUES(1,'administrador@gmail.com',3,0,TRUE,'activo')");
-        access=new AccountAccessService(jdbc,true);
+        access=new AccountAccessService(new pe.com.gtel.talento.identity.repository.AccountAccessRepository(jdbc),true);
         var token=jwt.createToken("administrador@gmail.com","ADMIN",0,"TEST_PASSWORD");
         assertDoesNotThrow(()->access.validate(token,jwt));
-        assertThrows(ResponseStatusException.class,()->new AccountAccessService(jdbc,false).validate(token,jwt));
+        assertThrows(ResponseStatusException.class,()->new AccountAccessService(new pe.com.gtel.talento.identity.repository.AccountAccessRepository(jdbc),false).validate(token,jwt));
         jdbc.update("UPDATE usuarios SET auth_version=1");
         assertThrows(ResponseStatusException.class,()->access.validate(token,jwt));
         jdbc.update("UPDATE usuarios SET auth_version=0,estado='inactivo'");

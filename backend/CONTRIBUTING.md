@@ -19,4 +19,6 @@ Comprobar compatibilidad del frontend, acceso por rol, validaciones, transaccion
 
 ## Organizacion de paquetes
 
-Agregar cada funcionalidad en su modulo (auth, identity, recruitment o health). Dentro del modulo usar controller, service, repository y dto cuando sean necesarios. config y security contienen infraestructura compartida. Evitar carpetas vacias o capas sin responsabilidad. Las pruebas replican el paquete de produccion. No incorporar prototipos inactivos al backend; SQL inicial en database/schema y cambios incrementales en database/migrations.
+Agregar cada funcionalidad en su módulo. Reclutamiento se divide en `job`, `application`, `interview` y `evaluation`; perfil, notificaciones y auditoría tienen módulos propios. Dentro de cada módulo usar `controller`, `service`, `repository` y `dto` cuando sean necesarios. Los servicios mantienen las transacciones y reglas; el SQL pertenece a los repositorios. `config` y `security` contienen infraestructura compartida, y `shared/api` contratos comunes pequeños. Las tareas programadas pertenecen al módulo que ejecutan; `bootstrap` contiene la inicialización opcional de cuentas de prueba.
+
+Las pruebas específicas replican el paquete de producción; `integration` comprueba relaciones entre módulos y rutas HTTP con H2. Evitar carpetas vacías o capas sin responsabilidad. No incorporar prototipos inactivos al backend; SQL inicial en `database/schema` y cambios incrementales en `database/migrations`. Consultar [arquitectura de SRC](docs/arquitectura-src.md).

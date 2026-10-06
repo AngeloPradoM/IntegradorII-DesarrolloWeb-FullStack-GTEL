@@ -10,14 +10,23 @@ backend/
   src/main/java/pe/com/gtel/talento/
     auth/                    Autenticacion: controller, service, dto, repository
     mail/                    Envio SMTP
-    identity/                Usuarios y perfiles: entity, repository
-    recruitment/             Reclutamiento: controller, service, dto
-    admin/                   Usuarios y auditoría: controller, service, dto
+    identity/                Identidad: entity, dto, repository, service
+    profile/                 Perfil personal: controller, dto, repository, service
+    recruitment/
+      job/                   Vacantes y papelera; incluye scheduler
+      application/           Postulaciones, CV y cambios de estado
+      interview/             Agenda y reprogramación de entrevistas
+      evaluation/            Evaluaciones y criterios
+    admin/                   Gestión de usuarios: controller, dto, repository, service
+    audit/                   Consulta y registro de auditoría
+    notification/            Bandeja, entrega de correos y scheduler
+    bootstrap/               Cuentas de prueba de activación explícita
+    shared/api/              Respuestas comunes y errores de persistencia
     health/                  Endpoint de salud
     config/                  Configuracion Spring y CORS
     security/                JWT y filtros
   src/main/resources/        Configuracion compartida
-  src/test/java/             Pruebas organizadas por los mismos modulos
+  src/test/java/             Pruebas por módulo; integration/ para flujos completos
   config/                    Configuracion local privada y ejemplo
   database/
     schema/                  SQL de instalacion inicial
@@ -27,7 +36,9 @@ backend/
   target/                    Generado; excluido de Git
 ```
 
-Los paquetes se agrupan por funcionalidad. Autenticación utiliza repositorios JPA y JDBC; reclutamiento utiliza controladores y servicios transaccionales con JdbcTemplate. El dashboard React combina las consultas de postulaciones, ofertas, entrevistas y evaluaciones; no consume un endpoint exclusivo de dashboard.
+Los paquetes se agrupan por funcionalidad. Las peticiones siguen **Controller → Service → Repository**. Los controladores reciben DTO validados, los servicios conservan reglas y transacciones, y los repositorios contienen el SQL/JDBC o el acceso JPA. El dashboard React combina las consultas de postulaciones, ofertas, entrevistas y evaluaciones; no consume un endpoint exclusivo de dashboard.
+
+Consulta el [mapa de arquitectura y validación por etapas](docs/arquitectura-src.md). Esta reorganización no requiere migraciones SQL ni cambios en el frontend.
 
 ## Configuracion local
 
@@ -79,8 +90,8 @@ Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propi
 - Los módulos de negocio se conectan mediante la API. Ver [activación y pruebas](docs/flujo-reclutamiento.md); bases existentes requieren migración 004.
 - Login requiere codigo de correo. La recuperación usa un enlace por correo; la confirmación independiente al registrarse no está implementada.
 - Logout es local. Las peticiones autenticadas comprueban estado, rol y versión de la cuenta.
-- Las consultas conservan respuestas Map para compatibilidad; DTO tipados pueden incorporarse en otro cambio con pruebas del contrato.
-- El diagnostico previo es historico; consultar [la revision estructural](docs/estructura-colaborativa.md) para este cambio.
+- Las consultas de reclutamiento conservan respuestas Map para compatibilidad. Los mensajes, las páginas de usuarios/auditoría y los errores explícitos utilizan DTO tipados con los mismos campos JSON.
+- El diagnóstico previo es histórico; consultar [la arquitectura actual](docs/arquitectura-src.md).
 
 ## Login por correo
 
