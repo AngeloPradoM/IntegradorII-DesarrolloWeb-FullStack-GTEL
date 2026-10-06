@@ -401,10 +401,19 @@ Los IDs de los roles se consultan en `roles`; no asumir que siempre serán 1 y 2
 backend/
 ├── src/main/java/pe/com/gtel/talento/
 │   ├── GtelTalentoApplication.java  # Punto de entrada Spring Boot
-│   ├── auth/                       # Autenticación: controller, service, dto
-│   ├── admin/                      # Gestión de usuarios: controller, service, dto
-│   ├── identity/                   # Usuarios y perfiles: entity, repository
-│   ├── recruitment/                # Reclutamiento: controller, service, repository
+│   ├── auth/                       # Autenticación, OTP y recuperación
+│   ├── admin/                      # Gestión de usuarios y eliminación
+│   ├── identity/                   # Entidades, repositorios e identidad activa
+│   ├── profile/                    # Edición del perfil personal
+│   ├── recruitment/                # Submódulos con controller, service, repository y dto
+│   │   ├── job/                    # Vacantes, papelera y limpieza programada
+│   │   ├── application/            # Postulaciones, CV e historial de estados
+│   │   ├── interview/              # Entrevistas y agenda
+│   │   └── evaluation/             # Evaluaciones y criterios
+│   ├── audit/                      # Auditoría administrativa
+│   ├── notification/               # Notificaciones y entrega programada
+│   ├── bootstrap/                  # Inicialización opcional de cuentas de prueba
+│   ├── shared/api/                 # Mensajes y errores compartidos
 │   ├── mail/                       # Envío SMTP de códigos
 │   ├── health/                     # Endpoint de salud
 │   ├── config/                     # Configuración Spring y CORS
@@ -423,7 +432,7 @@ backend/
 └── pom.xml                         # Dependencias y configuración Maven
 ```
 
-Las solicitudes recorren Controller → Service → Repository/JDBC → MySQL. La configuración local, las dependencias descargadas y los archivos compilados no deben subirse a GitHub.
+Las solicitudes recorren Controller → Service → Repository → MySQL. Los servicios mantienen las reglas y las transacciones; los repositorios contienen SQL/JDBC o JPA. La configuración local, las dependencias descargadas y los archivos compilados no deben subirse a GitHub. Ver [arquitectura de SRC y pruebas](backend/docs/arquitectura-src.md).
 
 ### 8. Tablas MySQL
 
