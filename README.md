@@ -268,6 +268,7 @@ Si no existe, copiar `backend/config/local.properties.example` como `backend/con
 Ambos archivos `.properties` participan en una misma configuración. El archivo local se carga porque el proyecto declara `spring.config.import=optional:file:./config/local.properties`; su nombre no tiene un significado automático en Spring. Si se define directamente una propiedad en el archivo local, no debe suponerse que cambiar la variable usada como placeholder en el archivo base sustituirá ese valor local.
 
 ```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/gtel_talento?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 spring.datasource.username=root
 spring.datasource.password=TU_PASSWORD_AQUI
 jwt.secret=TU_CLAVE_ALEATORIA_PRIVADA_DE_AL_MENOS_32_BYTES
@@ -295,16 +296,16 @@ JWT identifica las solicitudes autenticadas. Se emite tras validar el código de
 
 | Configuración | Valor predeterminado / uso |
 |---|---|
-| `DB_URL` | JDBC hacia `localhost:3306/gtel_talento` |
-| `DB_USERNAME` | `root` |
-| `DB_PASSWORD` | Contraseña MySQL si se utiliza variable de entorno |
+| `DB_URL` | JDBC de MySQL; obligatorio si no se define `spring.datasource.url` local |
+| `DB_USERNAME` | Usuario MySQL; obligatorio si no se define localmente |
+| `DB_PASSWORD` | Contraseña MySQL; obligatoria, aunque su valor puede estar vacío solo si la cuenta fue creada sin contraseña |
 | `JWT_SECRET` | Alternativa a `jwt.secret` local |
 | `SERVER_PORT` | `8080` |
 | `FRONTEND_URL` | `http://localhost:5173,http://127.0.0.1:5173` |
 | `JWT_EXPIRATION_MS` | `3600000` (una hora) |
 | `JPA_DDL_AUTO` | `validate` |
 
-Spring no carga `.env` automáticamente. Usar variables del proceso/IDE o el archivo local anterior. Arrancar desde `backend/` para resolver `./config/local.properties`.
+Spring no carga `.env` automáticamente. MySQL y JWT no tienen credenciales predeterminadas en la configuración versionada. Usar variables del proceso/IDE o el archivo local anterior y arrancar desde `backend/` para resolver `./config/local.properties`.
 
 ### 4. Levantar el servidor
 
