@@ -1,17 +1,8 @@
-import { loadConfig, connections, checkSchema } from './config.js';
-import { createApp } from './app.js';
-try {
-  const config=loadConfig();
-  const {pool,mailer}=connections();
-  await checkSchema(pool);
-  createApp({pool,mailer,config}).listen(config.port,'127.0.0.1',(error)=>{
-    if (error) {
-      console.error(error.code==='EADDRINUSE'
-        ? `El puerto ${config.port} ya está ocupado. Cambia PORT y APP_ORIGIN en index/.env.`
-        : `No se pudo iniciar el servidor (${error.code || 'error de escucha'}).`);
-      pool.end().finally(()=>process.exit(1));
-      return;
-    }
-    console.log(`GTEL pruebas: ${config.origin}`);
-  });
-} catch(error) {console.error(error.code ? 'No se pudo conectar a MySQL. Revisa index/.env y las tablas.' : error.message);process.exit(1);}
+// Optional static file hosting only. No API, authentication, SQL or mail.
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+const files=new Set(['index.html','editar-perfil.html','admin.html','styles.css','header.css','perfil.css','admin.css','preview.js','navigation.js','profile.js','profile-store.js','editar-perfil.js','admin.js']);
+const mime={html:'text/html; charset=utf-8',css:'text/css; charset=utf-8',js:'text/javascript; charset=utf-8'};
+const server=createServer(async(req,res)=>{const name=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';if(!['GET','HEAD'].includes(req.method)||!files.has(name)){res.writeHead(404);res.end('Not found');return;}try{const content=await readFile(new URL('../'+name,import.meta.url));res.writeHead(200,{'Content-Type':mime[name.split('.').pop()],'Cache-Control':'no-store'});res.end(req.method==='HEAD'?undefined:content);}catch{res.writeHead(404);res.end('Not found');}});
+server.on('error',error=>{console.error('No se pudo abrir el servidor estático: '+error.code);process.exitCode=1;});
+server.listen(Number(process.env.PORT||3001),'127.0.0.1',()=>console.log('Prototipo local: http://127.0.0.1:'+server.address().port));
