@@ -1,13 +1,16 @@
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomUUID} from 'node:crypto';
 ﻿import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 globalThis.localStorage={getItem:()=>JSON.stringify({id:11,rol:'CANDIDATO',token:'test-token'}),setItem(){throw Error('Unexpected local persistence');}};
-const server=await createServer({configFile:false,envDir:false,server:{middlewareMode:true,hmr:false}});
+const server=await createServer({cacheDir:join(tmpdir(),'gtel-vite-'+randomUUID()),optimizeDeps:{noDiscovery:true,include:[]},configFile:false,envDir:false,server:{middlewareMode:true,hmr:false}});
 let calls=0, captured;
 globalThis.fetch=async(url,options)=>{calls++;captured={url,options};return Response.json({id:1,status:'recibida'});};
 try {
   const api=await server.ssrLoadModule('/src/services/api.js');
   const cv=new File(['%PDF-1.7\nexample\n%%EOF'],'cv.pdf',{type:'application/pdf'});
-  const data={personalData:{nombres:'Juan Carlos',apellidos:'De la Cruz',dni:'12345678',email:'candidate@example.test',telefono:'987654321',distrito:'Lima'},cv,termsAccepted:true};
+  const data={personalData:{nombres:'Juan Carlos',apellidos:'De la Cruz',dni:'12345678',email:'candidate@example.test',telefono:'987654321',distrito:'Lima',fechaNacimiento:'1995-01-01'},cv,termsAccepted:true};
   await assert.rejects(api.createApplication({},data),/Oferta/);
   await assert.rejects(api.createApplication({id:1},{...data,termsAccepted:false}),/términos/);
   assert.equal(calls,0);
@@ -17,6 +20,7 @@ try {
   assert.equal(captured.options.headers['Content-Type'],undefined);
   assert.equal(await captured.options.body.get('cv').text(),await cv.text());
   assert.equal(JSON.parse(await captured.options.body.get('data').text()).telefono,'+51987654321');
+  const snapshot=JSON.parse(await captured.options.body.get('data').text());assert.equal(snapshot.email,'candidate@example.test');assert.equal(snapshot.fechaNacimiento,'1995-01-01');
   globalThis.fetch=async()=>Response.json({detail:'Ya postulaste'},{status:409});
   await assert.rejects(api.createApplication({id:1},data),/Ya postulaste/);
   globalThis.fetch=async()=>Response.json([{id:1,status:'en_revision'}]);

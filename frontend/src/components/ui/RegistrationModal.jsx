@@ -67,7 +67,7 @@ const sanitizePhone = (value = "") => value.replace(/\D/g, "").slice(0, 9);
 const getPasswordStrength = (password = "") => {
   let score = 0;
   const checks = {
-    length: password.length >= 8,
+    length: password.length >= 12,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /\d/.test(password),
@@ -208,14 +208,10 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginCl
       nextErrors.ubicacion = "Seleccione su departamento.";
     }
 
-    if (!form.password || form.password.length < 8) {
-      nextErrors.password = "La contraseña debe tener al menos 8 caracteres.";
+    if (!form.password || form.password.length < 12 || new TextEncoder().encode(form.password).length > 72) {
+      nextErrors.password = "La contraseña debe tener al menos 12 caracteres y no superar 72 bytes.";
     }
 
-    const hasStrongPassword = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(form.password || "");
-    if (form.password && !hasStrongPassword) {
-      nextErrors.password = "La contraseña debe incluir mayúsculas, minúsculas, números y símbolos.";
-    }
 
     if (!form.confirmarPassword || form.confirmarPassword !== form.password) {
       nextErrors.confirmarPassword = "Las contraseñas no coinciden.";

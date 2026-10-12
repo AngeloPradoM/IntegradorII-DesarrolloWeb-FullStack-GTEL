@@ -31,4 +31,10 @@ public class ApplicationController {
     @GetMapping("/api/applications/{id}/cv") public ResponseEntity<byte[]> cv(@PathVariable long id,Principal p){return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).header("Content-Disposition","attachment; filename=curriculum.pdf").header("Cache-Control","no-store").header("X-Content-Type-Options","nosniff").body(service.document(id,p.getName()));}
 
     @PutMapping("/api/recruiter/applications/{id}/status") public Map<String,Object> status(@PathVariable long id,@Valid @RequestBody ApplicationStateRequest r,Principal p){return service.status(id,r.status(),p.getName());}
+
+    @GetMapping("/api/recruiter/applications/page")
+    public Map<String,Object> page(Principal principal,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(defaultValue="") String search,@RequestParam(defaultValue="") String state){return service.page(principal.getName(),page,size,search,state);}
+
+    @GetMapping("/api/recruiter/applications/{id}")
+    public Map<String,Object> detail(@PathVariable long id,Principal principal){return service.get(id,principal.getName());}
 }

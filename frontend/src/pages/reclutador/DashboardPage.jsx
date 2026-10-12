@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { downloadCv } from '../../services/workflowService';
 import useRecruiterData from "../../hooks/useRecruiterData";
 import DataState from "../../components/ui/DataState";
 import { getRecruiterDashboard } from "../../services/api";
@@ -37,6 +39,7 @@ const statusLabel = {
 };
 const avatarColors = ["bg-[#D32F2F]", "bg-blue-600", "bg-green-600", "bg-purple-600", "bg-orange-600", "bg-teal-600"];
 export default function RecruiterDashboard() {
+  const [downloadError,setDownloadError]=useState('');
   const {data:dashboard, loading, error, retry} = useRecruiterData(getRecruiterDashboard);
   const kpis = kpiDesign.map((item, index) => ({...item, value:dashboard?.[['newApplicants','scheduledInterviews','activeJobs','evaluations'][index]] ?? '—', sub:'Registros disponibles'}));
   const recentApplications = dashboard?.recentApplications || [];
@@ -44,7 +47,7 @@ export default function RecruiterDashboard() {
     ...row,
     color: row.color || ["#D32F2F", "#1E293B", "#3B82F6", "#F59E0B"][index % 4]
   }));
-  return <div className="p-6 space-y-6"><DataState loading={loading} error={error} retry={retry} empty={dashboard && kpis.every(item=>item.value===0)} />
+  return <div className="p-6 space-y-6">{downloadError && <p role="alert" className="text-red-700">{downloadError}</p>}<DataState loading={loading} error={error} retry={retry} empty={dashboard && kpis.every(item=>item.value===0)} />
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
@@ -125,7 +128,7 @@ export default function RecruiterDashboard() {
                         <Link to={`/reclutador/postulantes/${encodeURIComponent(app.id)}`} className="p-1.5 text-[#475569] hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 rounded-lg transition-colors" title="Ver perfil">
                           <Eye className="w-3.5 h-3.5" />
                         </Link>
-                        <button disabled className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descarga de CV pendiente de integración">
+                        <button className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descargar CV" onClick={()=>downloadCv(app.id).catch(e=>setDownloadError(e.message))}>
                           <Download className="w-3.5 h-3.5" />
                         </button>
                       </div>

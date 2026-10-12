@@ -18,7 +18,7 @@ class AuthControllerTest {
     final JwtService jwt=mock(JwtService.class);
     final EmailOtpService otp=mock(EmailOtpService.class);
     final pe.com.gtel.talento.security.AccountAccessService access=mock(pe.com.gtel.talento.security.AccountAccessService.class);
-    final AuthController controller=new AuthController(candidates,jwt,otp,access);
+    final AuthController controller=new AuthController(candidates,jwt,otp,access,mock(pe.com.gtel.talento.profile.service.ProfileService.class));
 
     @Test void authorizedTestAccountSkipsEmailAfterPasswordValidation() {
         var request=new LoginRequest("administrador@gmail.com","AdminSecure2026*");

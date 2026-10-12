@@ -67,12 +67,12 @@ class WorkflowTest {
         jdbc.update("INSERT INTO usuarios(id,email,password_hash,rol_id,estado) VALUES(10,'recruiter@test.example','hash',2,'activo'),(11,'a@test.example','hash',1,'activo'),(12,'b@test.example','hash',1,'activo')");
         jdbc.update("INSERT INTO postulantes(usuario_id,nombres,apellidos) VALUES(11,'Ana','Test'),(12,'Bea','Test')");
         identity=new WorkflowIdentity(new WorkflowIdentityRepository(jdbc), new pe.com.gtel.talento.audit.service.AuditService(new pe.com.gtel.talento.audit.repository.AuditRepository(jdbc)));mail=mock(JavaMailSender.class);notifications=transactional(new NotificationService(new NotificationRepository(jdbc),mail,"sender@test.example"));
-        applications=transactional(new ApplicationService(new ApplicationRepository(jdbc),identity,notifications,new ObjectMapper()));jobs=transactional(new JobService(new JobRepository(jdbc),identity));interviews=transactional(new InterviewService(new InterviewRepository(jdbc),identity,applications,notifications));evaluations=transactional(new EvaluationService(new EvaluationRepository(jdbc),identity,applications));
+        applications=transactional(new ApplicationService(new ApplicationRepository(jdbc),identity,notifications,new ObjectMapper().findAndRegisterModules().disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)));jobs=transactional(new JobService(new JobRepository(jdbc),identity));interviews=transactional(new InterviewService(new InterviewRepository(jdbc),identity,applications,notifications));evaluations=transactional(new EvaluationService(new EvaluationRepository(jdbc),identity,applications));
         job=((Number)jobs.save(null,jobRequest("activa"),"recruiter@test.example").get("id")).longValue();
     }
     JobRequest jobRequest(String state){return new JobRequest("Ventas","Descripción","Ventas","Lima","full_time","presencial",BigDecimal.valueOf(1000),BigDecimal.valueOf(2000),2,state,LocalDate.now().plusDays(20),"Secundaria","Sin experiencia",List.of("Ventas"));}
     MockMultipartFile cv(){return new MockMultipartFile("cv","cv.pdf","application/pdf","%PDF-1.4\nfixture\n%%EOF".getBytes(StandardCharsets.US_ASCII));}
-    ApplicationPersonalRequest personal(){return new ApplicationPersonalRequest("Ana","Test","12345678","+51987654321","Lima","Interés");}
+    ApplicationPersonalRequest personal(){return new ApplicationPersonalRequest("Ana","Test","12345678","+51987654321","Lima","Interés","contact@example.test",java.time.LocalDate.of(1995,1,1));}
     long apply(){return ((Number)applications.apply(job,personal(),true,cv(),"a@test.example").get("id")).longValue();}
     @Test void appliesOnceStoresPdfAndEnforcesOwnership() throws Exception {
         long id=apply();assertArrayEquals(cv().getBytes(),applications.document(id,"a@test.example"));
@@ -240,5 +240,14 @@ class WorkflowTest {
         assertEquals(other,((Number)jobs.get(other,true).get("id")).longValue());
         assertEquals(3,jdbc.queryForObject("SELECT COUNT(*) FROM usuarios",Integer.class));
         assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM auditoria WHERE accion='eliminar'",Integer.class));
+    }
+
+    @Test void submittedContactIsAnImmutableApplicationSnapshot(){
+        long id=apply();
+        jdbc.update("UPDATE postulantes SET nombres='Changed',telefono='+51911111111' WHERE usuario_id=11");
+        var row=applications.get(id,"recruiter@test.example");
+        assertEquals("Ana Test",row.get("name"));assertEquals("+51987654321",row.get("phone"));
+        assertEquals("contact@example.test",row.get("email"));assertEquals("1995-01-01",row.get("birthDate"));
+        assertEquals("Lima",row.get("location"));assertFalse(row.containsKey("personalData"));
     }
 }

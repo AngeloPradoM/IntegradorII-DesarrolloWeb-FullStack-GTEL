@@ -44,7 +44,7 @@ Consulta el [mapa de arquitectura y validación por etapas](docs/arquitectura-sr
 
 1. Instalar Java 21, Maven 3.9 y MySQL 8.x.
 2. En DBeaver, conectar a MySQL y ejecutar `database/schema/gtel_talento.sql` solamente en una base nueva. Incluye roles, no cuentas.
-3. Copiar `config/local.properties.example` a `config/local.properties` y completar las credenciales locales. No sobrescribir un archivo local existente.
+3. Copiar `config/local.properties.example` a `config/local.properties` y completar URL, usuario y contraseña de MySQL, además de las claves privadas. No sobrescribir un archivo local existente; actualizarlo manualmente.
 4. Generar una clave JWT privada de al menos 32 bytes. No compartirla en Git.
 5. Ejecutar los comandos desde `backend/`, para que Spring encuentre la configuracion local.
 
@@ -73,7 +73,7 @@ API: http://localhost:8080. Salud: http://localhost:8080/api/health.
 | POST | /api/auth/register | Registrar candidato; responde 201 |
 | POST | /api/auth/login | Correo y password; rol obtenido de MySQL. OTP normal o sesión inmediata para pruebas autorizadas |
 | GET | /api/auth/me | Perfil actual con Bearer token |
-| POST | /api/auth/logout | Instruccion para eliminar token local; no revoca JWT |
+| POST | /api/auth/logout | Revoca las sesiones actuales de la cuenta mediante auth_version |
 | GET | /api/health | Salud basica |
 | GET | /api/recruiter/applications | Candidatos |
 | GET | /api/recruiter/selection/interviews | Entrevistas |
@@ -89,7 +89,7 @@ Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propi
 
 - Los módulos de negocio se conectan mediante la API. Ver [activación y pruebas](docs/flujo-reclutamiento.md); bases existentes requieren migración 004.
 - Login requiere codigo de correo. La recuperación usa un enlace por correo; la confirmación independiente al registrarse no está implementada.
-- Logout es local. Las peticiones autenticadas comprueban estado, rol y versión de la cuenta.
+- Logout revoca las sesiones de la cuenta. Las peticiones autenticadas comprueban estado, rol y versión de la cuenta.
 - Las consultas de reclutamiento conservan respuestas Map para compatibilidad. Los mensajes, las páginas de usuarios/auditoría y los errores explícitos utilizan DTO tipados con los mismos campos JSON.
 - El diagnóstico previo es histórico; consultar [la arquitectura actual](docs/arquitectura-src.md).
 
@@ -109,3 +109,7 @@ El panel React `/admin` consume GET/POST `/api/admin/users` y PUT `/api/admin/us
 `app.security.test-access-enabled=false` es el valor seguro predeterminado. Habilitarlo solo en configuración local crea, si faltan, las tres cuentas documentadas en el [README general](../README.md#6-credenciales-de-prueba). Solo esas cuentas, con rol correcto y `otp_exempt=true`, omiten OTP después de validar contraseña. Nunca se sobrescriben cuentas existentes. Desactivar la opción invalida sus sesiones de prueba.
 
 Pruebas: `mvn.cmd test`; revisar además la sección de validación y los recorridos de navegador del README general. El registro público no permite seleccionar ni asignar ADMIN.
+
+## Cierre de pendientes
+
+Consultar el [informe de cambios y validaciones](docs/informe-cierre-pendientes.md) y la [guía operativa](docs/operacion-produccion.md).

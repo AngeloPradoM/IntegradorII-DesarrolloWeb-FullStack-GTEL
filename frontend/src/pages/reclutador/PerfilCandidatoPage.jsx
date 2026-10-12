@@ -1,3 +1,4 @@
+import { canTransition } from '../../utils/applicationStates';
 import { downloadCv } from '../../services/workflowService';
 import useRecruiterData from "../../hooks/useRecruiterData";
 import DataState from "../../components/ui/DataState";
@@ -50,15 +51,15 @@ export default function CandidateProfile() {
                   <p className="text-sm text-[#475569]">{candidate.job}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button disabled={saving} onClick={() => changeStatus("aprobada")} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving || !canTransition(candidate.status,"aprobada")} onClick={() => changeStatus("aprobada")} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <CheckCircle className="w-3.5 h-3.5" />
                     Aprobar
                   </button>
-                  <button disabled={saving} onClick={() => changeStatus("entrevista")} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving || !canTransition(candidate.status,"entrevista")} onClick={() => changeStatus("entrevista")} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <MessageSquare className="w-3.5 h-3.5" />
                     Entrevista
                   </button>
-                  <button disabled={saving} onClick={() => changeStatus("rechazada")} className="flex items-center gap-1.5 px-4 py-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving || !canTransition(candidate.status,"rechazada")} onClick={() => changeStatus("rechazada")} className="flex items-center gap-1.5 px-4 py-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <XCircle className="w-3.5 h-3.5" />
                     Descartar
                   </button>
@@ -191,24 +192,30 @@ export default function CandidateProfile() {
             <h3 className="text-xs font-bold text-[#1E293B] uppercase tracking-wide mb-3">Datos de contacto</h3>
             <div className="space-y-3">
               {[{
+              key: 'email',
               icon: Mail,
               value: candidate.email
             }, {
+              key: 'phone',
               icon: Phone,
               value: candidate.phone
             }, {
+              key: 'location',
               icon: MapPin,
               value: candidate.location
             }, {
+              key: 'application-date',
               icon: Calendar,
               value: `Postulado: ${candidate.appliedDate}`
             }, {
+              key: 'document',
               icon: FileText,
               value: `DNI: ${candidate.dni}`
             }].map(({
+              key,
               icon: Icon,
               value
-            }) => <div key={value} className="flex items-start gap-2.5">
+            }) => <div key={key} className="flex items-start gap-2.5">
                   <div className="w-7 h-7 bg-[#F8FAFC] rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon className="w-3.5 h-3.5 text-[#D32F2F]" />
                   </div>
@@ -220,7 +227,7 @@ export default function CandidateProfile() {
           {/* Actions */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
             <h3 className="text-xs font-bold text-[#1E293B] uppercase tracking-wide mb-1">Acciones</h3>
-            <button disabled={saving} onClick={() => changeStatus("aprobada")} className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button disabled={saving || !canTransition(candidate.status,"aprobada")} onClick={() => changeStatus("aprobada")} className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <CheckCircle className="w-3.5 h-3.5" />
               Aprobar candidato
             </button>
@@ -232,7 +239,7 @@ export default function CandidateProfile() {
               <Download className="w-3.5 h-3.5" />
               Descargar CV PDF
             </button>
-            <button disabled={saving} onClick={() => changeStatus("rechazada")} className="w-full flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button disabled={saving || !canTransition(candidate.status,"rechazada")} onClick={() => changeStatus("rechazada")} className="w-full flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <XCircle className="w-3.5 h-3.5" />
               Descartar candidato
             </button>

@@ -1,7 +1,9 @@
+import { downloadCv } from '../../services/workflowService';
 import useRecruiterData from "../../hooks/useRecruiterData";
 import DataState from "../../components/ui/DataState";
-import { getRecruiterCandidates } from "../../services/api";
-import { useState } from "react";
+import { getRecruiterCandidatesPage } from '../../services/recruiterService';
+import { canonicalStatus } from '../../utils/applicationStates';
+import { useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Search, Eye, Download, Filter, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 const statusConfig = {
@@ -28,29 +30,25 @@ const statusConfig = {
 };
 const avatarColors = ["bg-[#D32F2F]", "bg-blue-600", "bg-green-600", "bg-purple-600", "bg-orange-600", "bg-teal-600", "bg-pink-600", "bg-indigo-600", "bg-cyan-600", "bg-amber-600"];
 export default function CandidateDirectory() {
-  const {data, loading, error, retry} = useRecruiterData(getRecruiterCandidates);
-  const candidates = data || [];
+  const [downloadError,setDownloadError]=useState('');
   const [params, setParams] = useSearchParams();
   const search = params.get('q') || '';
   const setSearch = value => setParams(previous => { const next = new URLSearchParams(previous); value ? next.set('q',value) : next.delete('q'); return next; }, {replace:true});
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 8;
-  const filtered = candidates.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.job.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "all" || c.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const paged = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
-  return <div className="p-6"><DataState loading={loading} error={error} retry={retry} />
+  const load=useCallback(()=>getRecruiterCandidatesPage(currentPage-1,perPage,search,statusFilter==='all'?'':canonicalStatus(statusFilter)),[currentPage,search,statusFilter]);
+  const {data,loading,error,retry}=useRecruiterData(load);
+  const candidates=data?.items||[];const paged=candidates;const total=data?.total||0;
+  const totalPages=Math.max(1,Math.ceil(total/perPage));
+  return <div className="p-6">{downloadError && <p role="alert" className="text-red-700">{downloadError}</p>}<DataState loading={loading} error={error} retry={retry} />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-[#1E293B]">Directorio de Postulantes</h1>
-          <p className="text-sm text-[#475569]">{loading || error ? '—' : candidates.length} candidatos registrados</p>
+          <p className="text-sm text-[#475569]">{loading || error ? '—' : total} candidatos registrados</p>
         </div>
-        <button disabled title="Exportación pendiente de integración" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+        <button hidden disabled title="Exportación pendiente de integración" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
           <Download className="w-4 h-4" />
           Exportar Excel
         </button>
@@ -97,7 +95,7 @@ export default function CandidateDirectory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {!loading && !error && !filtered.length && <tr><td colSpan={6} className="p-8 text-center text-sm text-brand-gray">{candidates.length ? "No hay resultados para estos filtros." : "No hay postulantes disponibles."}</td></tr>}
+              {!loading && !error && !total && <tr><td colSpan={6} className="p-8 text-center text-sm text-brand-gray">{candidates.length ? "No hay resultados para estos filtros." : "No hay postulantes disponibles."}</td></tr>}
               {paged.map((c, idx) => {
               const s = statusConfig[c.status] || {label:'N/D',color:'bg-slate-100 text-slate-600'};
               return <tr key={c.id} className="hover:bg-[#F8FAFC] transition-colors">
@@ -131,7 +129,7 @@ export default function CandidateDirectory() {
                         <Link to={`/reclutador/postulantes/${encodeURIComponent(c.id)}`} className="p-1.5 text-[#475569] hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 rounded-lg transition-colors" title="Ver perfil">
                           <Eye className="w-4 h-4" />
                         </Link>
-                        <button disabled className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descarga de CV pendiente de integración">
+                        <button className="p-1.5 text-[#475569] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Descargar CV" onClick={()=>downloadCv(c.id).catch(e=>setDownloadError(e.message))}>
                           <Download className="w-4 h-4" />
                         </button>
                       </div>
@@ -145,17 +143,17 @@ export default function CandidateDirectory() {
         {/* Pagination */}
         <div className="px-5 py-3.5 border-t border-gray-100 bg-[#F8FAFC] flex items-center justify-between">
           <p className="text-xs text-[#475569]">
-            Mostrando {filtered.length ? (currentPage - 1) * perPage + 1 : 0}–{Math.min(currentPage * perPage, filtered.length)} de {filtered.length} resultados
+            Mostrando {total ? (currentPage - 1) * perPage + 1 : 0}–{Math.min(currentPage * perPage, total)} de {total} resultados
           </p>
           <div className="flex items-center gap-1.5">
             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1.5 rounded-lg text-[#475569] hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
               <ChevronLeft className="w-4 h-4" />
             </button>
             {Array.from({
-            length: totalPages
-          }).map((_, i) => <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${currentPage === i + 1 ? "bg-[#D32F2F] text-white" : "text-[#475569] hover:bg-gray-200"}`}>
+            length: Math.min(totalPages,7)
+          }).map((_, offset) => {const i=Math.max(0,Math.min(currentPage-4,totalPages-7))+offset;return <button key={i} onClick={() => setCurrentPage(i + 1)} className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${currentPage === i + 1 ? "bg-[#D32F2F] text-white" : "text-[#475569] hover:bg-gray-200"}`}>
                 {i + 1}
-              </button>)}
+              </button>;})}
             <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-1.5 rounded-lg text-[#475569] hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
               <ChevronRight className="w-4 h-4" />
             </button>

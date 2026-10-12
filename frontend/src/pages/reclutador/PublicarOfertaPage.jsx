@@ -198,7 +198,7 @@ export default function PublishJob() {
           }].map(({
             icon: Icon,
             tip
-          }) => <button disabled key={tip} title={`${tip}: formato pendiente de implementación`} className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors">
+          }) => <button hidden disabled key={tip} title={`${tip}: formato pendiente de implementación`} className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors">
                 <Icon className="w-4 h-4" />
               </button>)}
             <div className="w-px h-4 bg-gray-200 mx-1" />
@@ -260,7 +260,7 @@ export default function PublishJob() {
             <X className="w-4 h-4" />
             Cancelar
           </Link>
-          <button disabled title="Borradores pendientes de integración" className="flex items-center gap-2 px-6 py-2.5 border border-[#D32F2F] text-[#D32F2F] rounded-lg text-sm font-medium hover:bg-[#D32F2F]/5 transition-colors">
+          <button hidden disabled title="Borradores pendientes de integración" className="flex items-center gap-2 px-6 py-2.5 border border-[#D32F2F] text-[#D32F2F] rounded-lg text-sm font-medium hover:bg-[#D32F2F]/5 transition-colors">
             Guardar borrador
           </button>
           <button disabled={saving} onClick={publishJob} className="flex items-center gap-2 px-6 py-2.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-sm font-semibold transition-colors">

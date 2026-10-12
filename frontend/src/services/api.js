@@ -113,7 +113,8 @@ export async function createApplication(job, data = {}) {
   if(Object.keys(errors).length) throw new Error(Object.values(errors)[0]);
   if(!job?.id) throw new Error('Oferta no encontrada.');
   const body=new FormData();
-  const personalData = Object.fromEntries(['nombres','apellidos','dni','telefono','distrito','motivacion'].map(key=>[key,String(data.personalData[key]||'').trim()]));
+  const personalData = Object.fromEntries(['nombres','apellidos','dni','telefono','distrito','motivacion','email'].map(key=>[key,String(data.personalData[key]||'').trim()]));
+  personalData.fechaNacimiento = data.personalData.fechaNacimiento || null;
   personalData.telefono = personalData.telefono.replace(/[\s()-]/g,'');
   if (/^\d{9}$/.test(personalData.telefono)) personalData.telefono = '+51' + personalData.telefono;
   body.append('data',new Blob([JSON.stringify(personalData)],{type:'application/json'}));
@@ -125,3 +126,5 @@ export async function getCandidateApplications() {
   const states={en_revision:'reviewing',entrevista:'interview',aprobada:'approved',rechazada:'rejected'};
   return rows.map(r=>({...r,status:states[r.status]||r.status,company:'GTEL',appliedDate:String(r.date||'').slice(0,10),steps:(r.steps||[]).map(s=>({...s,rejected:s.label==='rechazada'}))}));
 }
+
+export const logoutSession = token => authRequest('/api/auth/logout', {method:'POST',headers:{Authorization:'Bearer '+token}});

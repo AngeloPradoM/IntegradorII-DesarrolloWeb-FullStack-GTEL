@@ -13,4 +13,6 @@ public class AccountAccessRepository {
             SELECT u.id,u.email,r.nombre,u.auth_version,u.otp_exempt,u.estado
             FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE LOWER(u.email)=LOWER(?)
             """,(r,n)->new AccountIdentity(r.getLong(1),r.getString(2),r.getString(3),r.getInt(4),r.getBoolean(5),r.getString(6)),email); }
+
+    public int revoke(long id,int version){return jdbc.update("UPDATE usuarios SET auth_version=auth_version+1 WHERE id=? AND auth_version=?",id,version);}
 }

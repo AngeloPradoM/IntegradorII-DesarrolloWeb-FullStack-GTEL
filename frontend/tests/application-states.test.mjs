@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {canTransition,nextApplicationStates} from '../src/utils/applicationStates.js';
+test('Recruiter actions respect backend transitions and terminal states',()=>{assert.equal(canTransition('new','aprobada'),false);assert.equal(canTransition('reviewing','aprobada'),true);assert.deepEqual(nextApplicationStates('approved'),[]);assert.deepEqual(nextApplicationStates('rejected'),[]);assert.deepEqual(nextApplicationStates('unknown'),[]);});

@@ -23,15 +23,17 @@ import pe.com.gtel.talento.shared.api.MessageResponse;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final CandidatoService candidatoService;
+    private final pe.com.gtel.talento.profile.service.ProfileService profiles;
     private final JwtService jwtService;
     private final EmailOtpService otp;
     private final pe.com.gtel.talento.security.AccountAccessService access;
 
-    public AuthController(CandidatoService candidatoService, JwtService jwtService, EmailOtpService otp, pe.com.gtel.talento.security.AccountAccessService access) {
+    public AuthController(CandidatoService candidatoService, JwtService jwtService, EmailOtpService otp, pe.com.gtel.talento.security.AccountAccessService access, pe.com.gtel.talento.profile.service.ProfileService profiles) {
         this.candidatoService = candidatoService;
         this.jwtService = jwtService;
         this.otp = otp;
         this.access = access;
+        this.profiles=profiles;
     }
 
     @PostMapping("/register")
@@ -95,9 +97,11 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public MessageResponse logout() {
-        // JWT remains valid until expiry; revocation policy is a separate pending task.
-        return new MessageResponse("Elimina el token del cliente para cerrar sesión");
+    public MessageResponse logout(@RequestHeader(value="Authorization",required=false) String authorization) {
+        if(authorization==null||!authorization.startsWith("Bearer "))throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"No autenticado");
+        try { access.revoke(authorization.substring(7).trim(),jwtService); }
+        catch(io.jsonwebtoken.JwtException|IllegalArgumentException ex){throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Sesión inválida");}
+        return new MessageResponse("Sesiones cerradas en todos tus dispositivos.");
     }
 
     private Map<String,Object> profile(AuthResponse user) {
@@ -109,6 +113,11 @@ public class AuthController {
         response.put("telefono", user.telefono());
         response.put("rol", user.rol());
         response.put("role", user.rol());
+        var saved=profiles.get(user.email());
+        for(String key:java.util.List.of("nombres","apellidos","telefono","ubicacion","localidad","correoContacto","foto")) {
+            Object value=saved.get(key);
+            if(value!=null&&(!key.equals("nombres")||!value.toString().isBlank()))response.put(key,value);
+        }
         return response;
     }
 }

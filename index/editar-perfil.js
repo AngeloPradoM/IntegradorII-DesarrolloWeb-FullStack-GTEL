@@ -90,7 +90,7 @@ editor.addEventListener('submit', event => {
   saved = next;
   dirty = false;
   paint();
-  status.textContent = 'Cambios guardados solo en esta vista previa. Tu cuenta de MySQL no fue modificada.';
+  status.textContent = 'Perfil guardado en este navegador.';
 });
 window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
 restore();

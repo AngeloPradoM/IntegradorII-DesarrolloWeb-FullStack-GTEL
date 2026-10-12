@@ -20,7 +20,8 @@ public class EvaluationService {
     public EvaluationService(EvaluationRepository repository,WorkflowIdentity identity,ApplicationService applications){this.repository=repository;this.identity=identity;this.applications=applications;}
     public List<Map<String,Object>> evaluations(){
         var rows=repository.evaluations();
-        for(var row:rows)row.put("details",repository.criteria(row.get("id")));return rows;
+        var criteria=repository.criteriaFor(rows.stream().map(row->((Number)row.get("id")).longValue()).toList());
+        for(var row:rows)row.put("details",criteria.getOrDefault(((Number)row.get("id")).longValue(),List.of()));return rows;
     }
     @Transactional public Map<String,Object> evaluate(EvaluationRequest r,String email){
         var actor=identity.actor(email);identity.recruiter(actor);applications.get(r.applicationId(),email);

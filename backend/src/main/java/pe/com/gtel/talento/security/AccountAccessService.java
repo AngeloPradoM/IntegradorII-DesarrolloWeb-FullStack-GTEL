@@ -33,4 +33,10 @@ public class AccountAccessService {
             || ("TEST_PASSWORD".equals(jwt.getMethod(token)) && !bypass(a)))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"La sesión cambió. Inicia sesión nuevamente.");
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void revoke(String token,JwtService jwt){
+        validate(token,jwt);var account=find(jwt.getEmail(token));
+        if(repository.revoke(account.id(),jwt.getVersion(token))!=1)throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"La sesión ya no está activa.");
+    }
 }

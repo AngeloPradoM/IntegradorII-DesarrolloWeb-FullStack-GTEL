@@ -20,17 +20,20 @@ public class CandidatoService {
     private final PostulanteRepository postulanteRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+    private final pe.com.gtel.talento.security.LoginAttemptService attempts;
 
     public CandidatoService(UsuarioRepository usuarioRepository, PostulanteRepository postulanteRepository,
-                             RolRepository rolRepository, PasswordEncoder passwordEncoder) {
+                             RolRepository rolRepository, PasswordEncoder passwordEncoder, pe.com.gtel.talento.security.LoginAttemptService attempts) {
         this.usuarioRepository = usuarioRepository;
         this.postulanteRepository = postulanteRepository;
         this.rolRepository = rolRepository;
         this.passwordEncoder = passwordEncoder;
+        this.attempts=attempts;
     }
 
     @Transactional
     public CandidatoResponse registrar(RegistroCandidatoRequest request) {
+        pe.com.gtel.talento.security.PasswordPolicy.validate(request.password());
         if (usuarioRepository.existsByEmailIgnoreCase(request.email())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Ese correo ya está registrado");
         }
@@ -50,6 +53,8 @@ public class CandidatoService {
 
     @Transactional(readOnly = true)
     public AuthResponse autenticar(LoginRequest request) {
+        attempts.begin(request.email());
+        if(request.password().getBytes(java.nio.charset.StandardCharsets.UTF_8).length>72)throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Credenciales inválidas");
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(request.email())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciales inválidas"));
 
@@ -58,6 +63,7 @@ public class CandidatoService {
         }
 
 
+        attempts.succeeded(request.email());
         return perfil(usuario);
     }
 
