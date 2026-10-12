@@ -35,7 +35,7 @@ GTEL es un sistema de reclutamiento. Roles incluidos: ADMIN, RECLUTADOR y CANDID
 | 2 / E1-02 | Matriz de permisos — responsable funcional y backend | Matriz validada para cada operación y alcance de registro | En desarrollo | Revisar todas las operaciones del catálogo; la decisión de acceso compartido ya está confirmada |
 | 3 / E1-03 | Comprobar permisos en API e interfaz — backend, frontend y QA | Acceso del equipo, aislamiento del candidato, rechazo a anónimos y bloqueo administrativo | En pruebas | Completar cobertura de edición/borrado y recorrido real en navegador; evidencia parcial aprobatoria abajo |
 | 4 / E1-04 | Revisar configuración y privilegios — backend y operaciones | Configuración sin secretos publicados, excepciones de prueba desactivadas en producción, usuario MySQL con privilegios necesarios | En desarrollo | Revisar historial y configuración efectiva, confirmar rotación de credenciales expuestas y privilegios reales de MySQL |
-| 5 / E1-05 | Contrastar esquema y migraciones — backend, DBA y QA | MySQL aislado con esquema y migraciones compatibles, integridad y concurrencia verificadas | En desarrollo | MySQL no detectado escuchando en localhost:3306; falta ejecución aislada, comparación completa de columnas/índices/FK y pruebas concurrentes |
+| 5 / E1-05 | Contrastar esquema y migraciones — backend, DBA y QA | MySQL aislado con esquema y migraciones compatibles, integridad y concurrencia verificadas | En desarrollo | Falta ejecutar y archivar la validación sobre una base MySQL aislada `gtel_qa_*`, comparar columnas/índices/FK y realizar pruebas concurrentes |
 
 Los responsables son funciones propuestas; falta asignar integrantes concretos. No hay tareas ni entregas marcadas Aprobadas por ausencia de aprobación integral.
 
@@ -108,3 +108,5 @@ La ejecución local utilizó además -Dmaven.repo.local=C:\Users\ASUS\.m2\reposi
 Seguimiento: [Entrega 2](entrega-2-proteccion-recuperacion.md).
 
 Seguimiento: [Entrega 3](entrega-3-validacion-calidad.md).
+
+Preparación: [Entrega 4](entrega-4-despliegue-aprobacion.md).

@@ -1,6 +1,6 @@
 # Activar y verificar el flujo de reclutamiento
 
-Actualización de administración: [reporte y activación de eliminación de cuentas](reporte-cambios-administracion.md). Requiere migración 006; conserva auditoría y elimina datos personales relacionados.
+Actualización de administración: [reporte y activación de eliminación de cuentas](../reports/reporte-cambios-administracion.md). Requiere migración 006; conserva auditoría y elimina datos personales relacionados.
 
 El frontend usa la API para perfiles, vacantes, postulaciones con CV, entrevistas, evaluaciones, notificaciones y auditoría. Se mantienen los roles CANDIDATO, RECLUTADOR y ADMIN. Esta entrega no incorpora jefaturas ni aprobaciones de requerimientos de personal.
 

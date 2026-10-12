@@ -1,8 +1,0 @@
-{
-  "name": "gtel-index-local",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "start": "node server/main.js"
-  }
-}

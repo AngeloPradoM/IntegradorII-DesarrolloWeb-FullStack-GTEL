@@ -20,6 +20,8 @@ Fecha de ejecución: 12/10/2026. Estado general: **En desarrollo**, con los paso
 | Frontend `npm run lint` | Sin errores |
 | Frontend `node --test tests/*.test.mjs` | 12 pruebas aprobadas |
 | Build Vite | Correcto: 2490 módulos, aproximadamente 0.58 s en esta ejecución |
+| Auditoría npm | 0 vulnerabilidades después de actualizar `brace-expansion` y `source-map-js` dentro de rangos compatibles |
+| Backend local con MySQL | Inicio correcto con MySQL 9.7 y `GET /api/health` respondió `UP`; no sustituye los recorridos UAT ni la BD QA aislada |
 | Recorrido Chrome | Ofertas, detalle, recuperación, selección, edición, papelera y notificaciones aprobados con HTTP simulado |
 | Responsive | Selección validada a 390 × 844 sin desbordamiento horizontal |
 
@@ -60,7 +62,7 @@ $env:GTEL_QA_TOKEN='TOKEN_DE_CUENTA_QA'
 Remove-Item Env:GTEL_QA_TOKEN
 ```
 
-La meta inicial propuesta es p95 ≤ 1000 ms para búsquedas habituales. Debe acordarse y probarse con datos similares a producción. No hay resultado real porque MySQL/backend no estaban disponibles.
+La meta inicial propuesta es p95 ≤ 1000 ms para búsquedas habituales. Debe acordarse y probarse con datos similares a producción. La medición p95 todavía debe ejecutarse y archivarse con el backend conectado a una base MySQL aislada y con volumen representativo.
 
 ## Observabilidad
 

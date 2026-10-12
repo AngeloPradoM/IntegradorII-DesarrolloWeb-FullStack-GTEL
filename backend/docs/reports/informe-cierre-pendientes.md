@@ -69,4 +69,4 @@ El build normal no pudo reemplazar frontend/dist/assets por un error EPERM de pe
 7. Si forman parte del alcance final, implementar exportaciones/borradores, sincronización de favoritos y paginación en las restantes listas. Hoy no se presentan como funcionalidades terminadas.
 8. Registrar la aplicación de migraciones de cada entorno y acordar automatización de versiones; no se incorporó un gestor automático de migraciones en esta entrega.
 
-Ver [operación y validación externa](operacion-produccion.md). No se hizo commit, push ni despliegue.
+Ver [operación y validación externa](../operations/operacion-produccion.md). No se hizo commit, push ni despliegue.

@@ -32,13 +32,16 @@ backend/
     schema/                  SQL de instalacion inicial
     migrations/              Cambios manuales historicos
   docs/
-    history/                 Diagnosticos historicos
+    architecture/            Diseño y flujos
+    deliveries/              Control y evidencias por entrega
+    operations/              Operación y producción
+    reports/                 Informes y correcciones históricas
   target/                    Generado; excluido de Git
 ```
 
 Los paquetes se agrupan por funcionalidad. Las peticiones siguen **Controller → Service → Repository**. Los controladores reciben DTO validados, los servicios conservan reglas y transacciones, y los repositorios contienen el SQL/JDBC o el acceso JPA. El dashboard React combina las consultas de postulaciones, ofertas, entrevistas y evaluaciones; no consume un endpoint exclusivo de dashboard.
 
-Consulta el [mapa de arquitectura y validación por etapas](docs/arquitectura-src.md). Esta reorganización no requiere migraciones SQL ni cambios en el frontend.
+Consulta el [mapa de arquitectura y validación por etapas](docs/architecture/arquitectura-src.md). Esta reorganización no requiere migraciones SQL ni cambios en el frontend.
 
 ## Configuracion local
 
@@ -83,15 +86,15 @@ Las rutas de reclutamiento requieren RECLUTADOR o ADMIN. El registro publico sol
 
 ## Trabajo colaborativo
 
-Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propia BD y secretos. No versionar target, archivos del IDE, credenciales o datos personales.
+Consultar [CONTRIBUTING.md](../CONTRIBUTING.md). Cada integrante configura su propia BD y secretos. No versionar target, archivos del IDE, credenciales o datos personales.
 
 ## Limites actuales
 
-- Los módulos de negocio se conectan mediante la API. Ver [activación y pruebas](docs/flujo-reclutamiento.md); bases existentes requieren migración 004.
+- Los módulos de negocio se conectan mediante la API. Ver [activación y pruebas](docs/architecture/flujo-reclutamiento.md); bases existentes requieren migración 004.
 - Login requiere codigo de correo. La recuperación usa un enlace por correo; la confirmación independiente al registrarse no está implementada.
 - Logout revoca las sesiones de la cuenta. Las peticiones autenticadas comprueban estado, rol y versión de la cuenta.
 - Las consultas de reclutamiento conservan respuestas Map para compatibilidad. Los mensajes, las páginas de usuarios/auditoría y los errores explícitos utilizan DTO tipados con los mismos campos JSON.
-- El diagnóstico previo es histórico; consultar [la arquitectura actual](docs/arquitectura-src.md).
+- El diagnóstico previo es histórico; consultar [la arquitectura actual](docs/architecture/arquitectura-src.md).
 
 ## Login por correo
 
@@ -112,4 +115,4 @@ Pruebas: `mvn.cmd test`; revisar además la sección de validación y los recorr
 
 ## Cierre de pendientes
 
-Consultar el [informe de cambios y validaciones](docs/informe-cierre-pendientes.md) y la [guía operativa](docs/operacion-produccion.md).
+Consultar el [informe de cambios y validaciones](docs/reports/informe-cierre-pendientes.md) y la [guía operativa](docs/operations/operacion-produccion.md).

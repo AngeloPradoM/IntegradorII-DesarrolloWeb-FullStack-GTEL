@@ -70,12 +70,12 @@ mysql_config_editor set --login-path=gtel --host=localhost --user=USUARIO_RESPAL
 Crear previamente una carpeta privada fuera del repositorio. Desde backend:
 
 ~~~powershell
-.scriptsackup.ps1 -LoginPath gtel -Database gtel_talento -Destination 'D:RespaldosGTELgtel-2026-10-08.sql'
+.\scripts\backup.ps1 -LoginPath gtel -Database gtel_talento -Destination 'D:\Respaldos\GTEL\gtel-2026-10-08.sql'
 ~~~
 
 El script no sobrescribe archivos. Si falla, la salida puede estar incompleta y no debe considerarse respaldo. Guardar el SHA-256 junto con la fecha y custodiar las copias: contienen datos personales y documentos. No ejecutarlo durante cambios de esquema. Definir frecuencia, retención, cifrado y acceso según el entorno.
 
-Para comprobar una copia, crear una base independiente, por ejemplo gtel_restore_check. En el cliente MySQL, conectado a esa base de prueba, ejecutar SOURCE D:/RespaldosGTEL/gtel-2026-10-08.sql; o abrir el SQL en DBeaver con esa base seleccionada. El respaldo generado no contiene CREATE DATABASE/USE de la base original. Revisar conteos, relaciones y lectura de documentos, y hacer un recorrido de la aplicación apuntando SOLO a la base restaurada. No declarar el respaldo validado antes de esta comprobación.
+Para comprobar una copia, crear una base independiente, por ejemplo gtel_restore_check. En el cliente MySQL, conectado a esa base de prueba, ejecutar SOURCE D:/Respaldos/GTEL/gtel-2026-10-08.sql; o abrir el SQL en DBeaver con esa base seleccionada. El respaldo generado no contiene CREATE DATABASE/USE de la base original. Revisar conteos, relaciones y lectura de documentos, y hacer un recorrido de la aplicación apuntando SOLO a la base restaurada. No declarar el respaldo validado antes de esta comprobación.
 
 ## Comprobación funcional real
 
@@ -88,4 +88,4 @@ Para comprobar una copia, crear una base independiente, por ejemplo gtel_restore
 
 Conservar fecha, versión desplegada, entorno, resultado y evidencia sin contraseñas, tokens, códigos ni datos personales innecesarios.
 
-Actualización: backup.ps1 conserva fallos como .partial y genera un manifiesto SHA-256. Verificar con scripts/verify-backup.ps1; no sustituye restaurar. Consultar [Entrega 2](entrega-2-proteccion-recuperacion.md).
+Actualización: backup.ps1 conserva fallos como .partial y genera un manifiesto SHA-256. Verificar con scripts/verify-backup.ps1; no sustituye restaurar. Consultar [Entrega 2](../deliveries/entrega-2-proteccion-recuperacion.md).
