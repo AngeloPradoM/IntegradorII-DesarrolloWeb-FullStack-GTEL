@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(Ordered.LOWEST_PRECEDENCE)
 @RestControllerAdvice(basePackages = "pe.com.gtel.talento")
 public class ApiExceptionHandler {
+    private static final org.slf4j.Logger log=org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class);
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> conflict(DataIntegrityViolationException exception) {
         return ResponseEntity.status(409)
@@ -20,7 +21,10 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ApiError> unavailable(DataAccessException exception) {
-        return ResponseEntity.status(503)
-            .body(new ApiError("El servicio de datos no está disponible. Inténtalo nuevamente."));
+        String reference=java.util.UUID.randomUUID().toString();
+        log.error("Persistence failure reference={} type={}",reference,exception.getClass().getSimpleName());
+        boolean unavailable=exception instanceof org.springframework.dao.DataAccessResourceFailureException;
+        return ResponseEntity.status(unavailable?503:500).header("X-Error-Id",reference)
+            .body(new ApiError(unavailable?"El servicio de datos no está disponible. Inténtalo nuevamente.":"Ocurrió un error interno. Comunica al administrador la referencia de esta solicitud."));
     }
 }

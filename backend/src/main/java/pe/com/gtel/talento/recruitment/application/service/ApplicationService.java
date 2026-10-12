@@ -28,13 +28,14 @@ public class ApplicationService {
     public List<Map<String,Object>> list(String email,boolean recruiter){
         var actor=identity.actor(email);if(recruiter)identity.recruiter(actor);
         var rows=recruiter?repository.listAll():repository.listByUser(actor.id());
-        for(var row:rows)row.put("steps",repository.timeline(row.get("id")));
+        decorate(rows);
         return rows;
     }
     public Map<String,Object> get(long id,String email){
         var actor=identity.actor(email);var rows=repository.find(id);
         if(rows.isEmpty())throw new ResponseStatusException(NOT_FOUND);
         var row=rows.getFirst();
+        applySnapshot(row);
         if(!actor.role().equals("ADMIN")&&!actor.role().equals("RECLUTADOR")&&((Number)row.get("userId")).longValue()!=actor.id())throw new ResponseStatusException(NOT_FOUND);
         return row;
     }
@@ -86,4 +87,33 @@ public class ApplicationService {
         var result=get(id,email);notifications.enqueue(((Number)result.get("userId")).longValue(),"Estado de postulación","Tu postulación "+result.get("code")+" cambió a "+state+".");return result;
     }
     private void timeline(long id,String old,String state,long actor,String comment){repository.insertTimeline(id,old,state,actor,comment);}
+
+    private void applySnapshot(Map<String,Object> row) {
+        Object snapshot = row.remove("personalData");
+        if(snapshot == null) return;
+        try {
+            var data = json.readTree(snapshot instanceof byte[] bytes ? new String(bytes, StandardCharsets.UTF_8) : snapshot.toString());
+            if(data.isTextual())data=json.readTree(data.asText());
+            if(!data.isObject())throw new IllegalStateException("Invalid application snapshot shape");
+            if(data.hasNonNull("nombres") && data.hasNonNull("apellidos")) row.put("name",data.get("nombres").asText()+" "+data.get("apellidos").asText());
+            for(var mapping: Map.of("telefono","phone","distrito","location","dni","dni","email","email","motivacion","motivation","fechaNacimiento","birthDate").entrySet()) {
+                var value=data.get(mapping.getKey());
+                if(value!=null&&!value.isNull()&&!value.asText().isBlank()) row.put(mapping.getValue(),value.asText());
+            }
+        } catch(com.fasterxml.jackson.core.JsonProcessingException ex) {
+            throw new IllegalStateException("Stored application snapshot is invalid",ex);
+        }
+    }
+
+    private void decorate(List<Map<String,Object>> rows){
+        var timelines=repository.timelines(rows.stream().map(row->((Number)row.get("id")).longValue()).toList());
+        for(var row:rows){applySnapshot(row);row.put("steps",timelines.getOrDefault(((Number)row.get("id")).longValue(),List.of()));}
+    }
+    @Transactional(readOnly=true)
+    public Map<String,Object> page(String email,int page,int size,String search,String state){
+        identity.recruiter(identity.actor(email));
+        if(page<0||page>100000||size<1||size>100||search.length()>150||!Set.of("","recibida","en_revision","entrevista","aprobada","rechazada").contains(state))throw new ResponseStatusException(BAD_REQUEST,"Filtros inválidos");
+        var rows=repository.page(page,size,search.trim(),state);decorate(rows);
+        return Map.of("items",rows,"total",repository.count(search.trim(),state),"page",page,"size",size);
+    }
 }

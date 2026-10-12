@@ -13,11 +13,12 @@ public class ApplicationRepository {
     private static final String VIEW="""
         SELECT po.id,po.codigo code,p.usuario_id userId,CONCAT(p.nombres,' ',p.apellidos) name,
         u.email,p.telefono phone,CASE WHEN p.tipo_documento='DNI' THEN p.numero_documento ELSE NULL END dni,COALESCE(c.localidad,'') location,v.titulo job,v.id jobId,
-        d.nombre department,CAST(po.fecha_postulacion AS CHAR(30)) date,po.estado status,po.puntaje_general score,
+        doc.datos_personales personalData,d.nombre department,CAST(po.fecha_postulacion AS CHAR(30)) date,po.estado status,po.puntaje_general score,
         COALESCE(p.educacion,'') educationText,COALESCE(p.experiencia,'') experienceText
         FROM postulaciones po JOIN postulantes p ON p.id=po.postulante_id JOIN usuarios u ON u.id=p.usuario_id
         JOIN vacantes v ON v.id=po.vacante_id JOIN departamentos d ON d.id=v.departamento_id
         LEFT JOIN perfiles_contacto c ON c.usuario_id=u.id
+        LEFT JOIN documentos_postulacion doc ON doc.postulacion_id=po.id
         """;
 
     public List<Map<String,Object>> listAll() {
@@ -77,4 +78,18 @@ public class ApplicationRepository {
     public void insertTimeline(long id,String old,String state,long actor,String comment) {
         jdbc.update("INSERT INTO postulacion_timeline(postulacion_id,estado_anterior,estado_nuevo,comentario,usuario_id) VALUES(?,?,?,?,?)",id,old,state,comment,actor);
     }
+
+    public Map<Long,List<Map<String,Object>>> timelines(List<Long> ids){
+        var grouped=new java.util.HashMap<Long,List<Map<String,Object>>>();
+        for(int offset=0;offset<ids.size();offset+=500){
+            var batch=ids.subList(offset,Math.min(offset+500,ids.size()));
+            String placeholders=String.join(",",java.util.Collections.nCopies(batch.size(),"?"));
+            for(var row:jdbc.queryForList("SELECT postulacion_id parentId,estado_nuevo label,CAST(fecha_cambio AS CHAR(30)) date,TRUE done FROM postulacion_timeline WHERE postulacion_id IN ("+placeholders+") ORDER BY id",batch.toArray())){
+                long parent=((Number)row.remove("parentId")).longValue();grouped.computeIfAbsent(parent,k->new java.util.ArrayList<>()).add(row);
+            }
+        }return grouped;
+    }
+    private static final String FILTER=" WHERE (?='' OR po.estado=?) AND (LOWER(CONCAT(p.nombres,' ',p.apellidos,' ',v.titulo,' ',po.codigo)) LIKE ? OR LOWER(CAST(doc.datos_personales AS CHAR(20000))) LIKE ?) ";
+    public List<Map<String,Object>> page(int page,int size,String search,String state){String pattern="%"+search.toLowerCase(java.util.Locale.ROOT)+"%";return jdbc.queryForList(VIEW+FILTER+" ORDER BY po.id DESC LIMIT ? OFFSET ?",state,state,pattern,pattern,size,page*size);}
+    public long count(String search,String state){String pattern="%"+search.toLowerCase(java.util.Locale.ROOT)+"%";return jdbc.queryForObject("SELECT COUNT(*) FROM postulaciones po JOIN postulantes p ON p.id=po.postulante_id JOIN vacantes v ON v.id=po.vacante_id LEFT JOIN documentos_postulacion doc ON doc.postulacion_id=po.id"+FILTER,Long.class,state,state,pattern,pattern);}
 }

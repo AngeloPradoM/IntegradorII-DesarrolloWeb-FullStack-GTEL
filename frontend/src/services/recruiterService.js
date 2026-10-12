@@ -1,3 +1,4 @@
+import { request } from './workflowService';
 import { recruiterTransport, RecruiterServiceError } from './recruiterTransport';
 import { normalizeCollection, normalizeCandidate, normalizeJob, normalizeInterview, normalizeEvaluation, normalizeNotification } from './recruiterAdapters';
 import { validateJob } from '../utils/formValidation';
@@ -25,7 +26,10 @@ export const getRecruiterJobs = () => collection('jobs', normalizeJob);
 export const getRecruiterInterviews = () => collection('interviews', normalizeInterview);
 export const getRecruiterEvaluations = () => collection('evaluations', normalizeEvaluation);
 export const getRecruiterNotifications = () => collection('notifications', normalizeNotification);
-export const getRecruiterCandidate = async id => (await getRecruiterCandidates()).find(row=>row.id === String(id)) || null;
+export async function getRecruiterCandidate(id) {
+  try { return normalizeCandidate(await request('/api/recruiter/applications/'+encodeURIComponent(id))); }
+  catch (error) { if (error.status === 404) return null; throw error; }
+}
 export const getRecruiterJob = async id => (await getRecruiterJobs()).find(row=>row.id === String(id)) || null;
 export async function getRecruiterDashboard() {
   const [candidates, jobs, interviews, evaluations] = await Promise.all([getRecruiterCandidates(),getRecruiterJobs(),getRecruiterInterviews(),getRecruiterEvaluations()]);
@@ -45,3 +49,5 @@ export async function updateCandidateStatus(id, status) {
 export const updateRecruiterJob = async (id,data) => normalizeJob(await operation('updateJob',{id,data}));
 export const scheduleRecruiterInterview = async data => normalizeInterview(await operation('scheduleInterview',{data}));
 export const createRecruiterEvaluation = async data => normalizeEvaluation(await operation('createEvaluation',{data}));
+
+export async function getRecruiterCandidatesPage(page,size,search,state){const result=await request('/api/recruiter/applications/page?'+new URLSearchParams({page,size,search,state}));return {...result,items:normalizeCollection(result.items,normalizeCandidate)};}

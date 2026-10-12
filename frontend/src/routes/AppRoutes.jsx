@@ -1,31 +1,33 @@
-import JobTrash from '../pages/reclutador/JobTrash';
-import RecoveryPage from '../pages/auth/RecoveryPage';
-import AuditPage from '../pages/admin/AuditPage';
-import NotificationsPage from '../pages/candidato/NotificationsPage';
-import SelectionWorkspace from '../pages/reclutador/SelectionWorkspace';
-import JobEditor from '../pages/reclutador/JobEditor';
-import AdminUsersPage from "../pages/admin/UsersPage";
-import LoginModalRedirect from "../pages/auth/LoginModalRedirect";
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import PublicLayout from "../layouts/PublicLayout";
 import RecruiterLayout from "../layouts/RecruiterLayout";
-import LandingPage from "../pages/candidato/LandingPage";
-import OfertasLaboralesPage from "../pages/candidato/OfertasLaboralesPage";
-import FormularioPostulacionPage from "../pages/candidato/FormularioPostulacionPage";
-import MisPostulacionesPage from "../pages/candidato/MisPostulacionesPage";
-import OfertaDetallePage from "../pages/candidato/OfertaDetallePage";
-import PerfilPage from "../pages/candidato/PerfilPage";
-import ContactarReclutadorPage from "../pages/candidato/ContactarReclutadorPage";
-import PerfilCandidatoPage from "../pages/reclutador/PerfilCandidatoPage";
-import DashboardPage from "../pages/reclutador/DashboardPage";
-import PublicarOfertaPage from "../pages/reclutador/PublicarOfertaPage";
-import PostulantesPage from "../pages/reclutador/PostulantesPage";
-import EntrevistasPage from "../pages/reclutador/EntrevistasPage";
-import EvaluacionesPage from "../pages/reclutador/EvaluacionesPage";
-import RecruiterJobs, { RecruiterJobDetail } from "../pages/reclutador/OfertasPage";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
-import NotFoundPage from "../pages/NotFoundPage";
+const JobTrash = lazy(() => import('../pages/reclutador/JobTrash'));
+const RecoveryPage = lazy(() => import('../pages/auth/RecoveryPage'));
+const AuditPage = lazy(() => import('../pages/admin/AuditPage'));
+const NotificationsPage = lazy(() => import('../pages/candidato/NotificationsPage'));
+const SelectionWorkspace = lazy(() => import('../pages/reclutador/SelectionWorkspace'));
+const JobEditor = lazy(() => import('../pages/reclutador/JobEditor'));
+const AdminUsersPage = lazy(() => import('../pages/admin/UsersPage'));
+const LoginModalRedirect = lazy(() => import('../pages/auth/LoginModalRedirect'));
+const LandingPage = lazy(() => import('../pages/candidato/LandingPage'));
+const OfertasLaboralesPage = lazy(() => import('../pages/candidato/OfertasLaboralesPage'));
+const FormularioPostulacionPage = lazy(() => import('../pages/candidato/FormularioPostulacionPage'));
+const MisPostulacionesPage = lazy(() => import('../pages/candidato/MisPostulacionesPage'));
+const OfertaDetallePage = lazy(() => import('../pages/candidato/OfertaDetallePage'));
+const PerfilPage = lazy(() => import('../pages/candidato/PerfilPage'));
+const ContactarReclutadorPage = lazy(() => import('../pages/candidato/ContactarReclutadorPage'));
+const PerfilCandidatoPage = lazy(() => import('../pages/reclutador/PerfilCandidatoPage'));
+const DashboardPage = lazy(() => import('../pages/reclutador/DashboardPage'));
+const PublicarOfertaPage = lazy(() => import('../pages/reclutador/PublicarOfertaPage'));
+const PostulantesPage = lazy(() => import('../pages/reclutador/PostulantesPage'));
+const EntrevistasPage = lazy(() => import('../pages/reclutador/EntrevistasPage'));
+const EvaluacionesPage = lazy(() => import('../pages/reclutador/EvaluacionesPage'));
+const RecruiterJobs = lazy(() => import('../pages/reclutador/OfertasPage'));
+const RecruiterJobDetail = lazy(() => import('../pages/reclutador/OfertasPage').then(module => ({ default: module.RecruiterJobDetail })));
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
 const router = createBrowserRouter(createRoutesFromElements(<>
         <Route path="/login" element={<LoginModalRedirect />} />
@@ -64,4 +66,6 @@ const router = createBrowserRouter(createRoutesFromElements(<>
         </Route>
 </>));
 
-export default function AppRoutes() { return <RouterProvider router={router} />; }
+export default function AppRoutes() {
+  return <Suspense fallback={<main aria-busy="true" aria-live="polite">Cargando...</main>}><RouterProvider router={router} /></Suspense>;
+}

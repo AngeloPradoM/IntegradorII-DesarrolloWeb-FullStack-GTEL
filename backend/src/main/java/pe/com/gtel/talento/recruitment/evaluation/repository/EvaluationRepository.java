@@ -41,4 +41,11 @@ public class EvaluationRepository {
     public void updateScore(long applicationId,int score) {
         jdbc.update("UPDATE postulaciones SET puntaje_general=? WHERE id=?",score,applicationId);
     }
+
+    public Map<Long,List<Map<String,Object>>> criteriaFor(List<Long> ids){
+        var grouped=new java.util.HashMap<Long,List<Map<String,Object>>>();
+        for(int offset=0;offset<ids.size();offset+=500){var batch=ids.subList(offset,Math.min(offset+500,ids.size()));String placeholders=String.join(",",java.util.Collections.nCopies(batch.size(),"?"));
+            for(var row:jdbc.queryForList("SELECT evaluacion_id parentId,criterio area,puntaje score,observacion note FROM evaluacion_detalle WHERE evaluacion_id IN ("+placeholders+") ORDER BY id",batch.toArray())){long id=((Number)row.remove("parentId")).longValue();grouped.computeIfAbsent(id,k->new java.util.ArrayList<>()).add(row);}
+        }return grouped;
+    }
 }

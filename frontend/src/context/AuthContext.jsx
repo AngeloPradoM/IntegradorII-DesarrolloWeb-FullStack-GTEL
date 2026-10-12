@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { AUTH_STORAGE_KEY, clearStoredUser, getStoredUser, setStoredUser } from "../utils/auth";
 
-import { getCurrentUser } from "../services/api";
+import { getCurrentUser, logoutSession } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -32,6 +32,7 @@ export function AuthProvider({ children }) {
   const [initialUser] = useState(() => normalizeUser(getStoredUser()));
   const [restoring, setRestoring] = useState(Boolean(initialUser));
   const [restoreError,setRestoreError] = useState('');
+  const [logoutNotice,setLogoutNotice]=useState('');
   const revision = useRef(0);
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export function AuthProvider({ children }) {
 
   const login = (result = {}) => {
     if (!result.token || result.demo || !result.authenticated || !(result.verified === true || (result.authMethod === "TEST_PASSWORD" && result.otpSkipped === true))) throw new Error("No se pudo autenticar la cuenta.");
+    setLogoutNotice('');
     revision.current += 1;
     const nextUser = normalizeUser({ ...result, token: result.token, email: result.email, rol: result.rol,
       nombres: result.nombres, isVerified: true, verificationPending: false, demo: result.demo });
@@ -72,11 +74,13 @@ export function AuthProvider({ children }) {
     return nextUser;
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    const token=user?.token;
+    if(token)logoutSession(token).catch(error=>{if(error.status!==401)setLogoutNotice('Sesión cerrada en este navegador. No se pudo confirmar el cierre en el servidor.');});
     revision.current += 1;
     setUser(null);
     clearStoredUser();
-  };
+  }, [user?.token]);
 
   const value = useMemo(
     () => ({
@@ -91,13 +95,13 @@ export function AuthProvider({ children }) {
         setUser(next);
       },
     }),
-    [user]
+    [user, logout]
   );
 
   if (restoreError) return <div role="alert" className="p-6 text-center"><p>{restoreError}</p><button onClick={()=>window.location.reload()} className="mt-3 underline">Reintentar comprobación de sesión</button></div>;
   if (restoring) return <p role="status" className="p-6 text-center">Comprobando sesión...</p>;
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{logoutNotice&&<p role="alert" className="p-3 text-amber-800">{logoutNotice}</p>}{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

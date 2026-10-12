@@ -1,6 +1,9 @@
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomUUID} from 'node:crypto';
 ﻿import assert from 'node:assert/strict';
 import { createServer } from 'vite';
-const server = await createServer({configFile:false,envDir:false,server:{middlewareMode:true,hmr:false},define:{'import.meta.env.VITE_DATA_MODE':'"mock"'}});
+const server = await createServer({cacheDir:join(tmpdir(),'gtel-vite-'+randomUUID()),optimizeDeps:{noDiscovery:true,include:[]},configFile:false,envDir:false,server:{middlewareMode:true,hmr:false},define:{'import.meta.env.VITE_DATA_MODE':'"mock"'}});
 let mutations=0, calls=0;
 globalThis.localStorage={getItem:()=>null,setItem:()=>{mutations++;},removeItem:()=>{mutations++;}};
 globalThis.fetch=async()=>{calls++;return Response.json([]);};

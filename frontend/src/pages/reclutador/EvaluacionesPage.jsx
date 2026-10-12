@@ -169,7 +169,7 @@ export default function Evaluations() {
                   <Link to={ev.candidateId ? `/reclutador/postulantes/${encodeURIComponent(ev.candidateId)}` : "/reclutador/postulantes"} className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-[#D32F2F] hover:border-[#D32F2F]/30 transition-colors" title="Ver candidato">
                     <Eye className="w-4 h-4" />
                   </Link>
-                  <button disabled className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-blue-600 hover:border-blue-200 transition-colors" title="Descarga de reportes pendiente de integración">
+                  <button hidden disabled className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-blue-600 hover:border-blue-200 transition-colors" title="Descarga de reportes pendiente de integración">
                     <Download className="w-4 h-4" />
                   </button>
                 </div>

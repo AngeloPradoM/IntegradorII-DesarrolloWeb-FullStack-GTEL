@@ -1,6 +1,7 @@
+import AdminHeader from '../components/layout/AdminHeader';
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { Link, Outlet, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Outlet, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Briefcase, Menu, X } from "lucide-react";
 import AuthModal from "../components/auth/AuthModal";
 import ProfileMenu from "../components/auth/ProfileMenu";
@@ -15,6 +16,8 @@ export default function PublicLayout() {
     user,
     isVerificationPending
   } = useAuth();
+  const { pathname } = useLocation();
+  const adminHeader=user?.rol==='ADMIN'&&(pathname.startsWith('/admin')||pathname==='/notificaciones'||pathname.startsWith('/ofertas')||pathname==='/perfil');
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const modal = searchParams.get("auth");
@@ -52,7 +55,7 @@ export default function PublicLayout() {
   };
   return <div className="min-h-screen bg-[#F8FAFC] font-['Inter',sans-serif]">
       {/* Header */}
-      <header className="bg-[#1E293B] text-white sticky top-0 z-50 shadow-lg">
+      {adminHeader ? <AdminHeader key={pathname}/> : <header className="bg-[#1E293B] text-white sticky top-0 z-50 shadow-lg">
         <div className="max-w-[1488px] mx-auto px-4 sm:px-6">
           <div className="flex min-h-18 flex-nowrap items-center justify-between gap-4">
             <Link to="/" className="flex shrink-0 items-center gap-3">
@@ -109,7 +112,7 @@ export default function PublicLayout() {
               <button type="button" onClick={openRegister} className="block w-full py-2 text-left text-sm font-semibold text-white hover:text-red-300">Registrarse</button>
             </>}
           </div>}
-      </header>
+      </header>}
 
       <main id="contenido"><Outlet context={{ openLogin, openRegister }} /></main>
       {modal === "login" && <AuthModal isOpen onClose={() => setModal(null)} onSubmit={handleAuthenticated} onRegisterClick={openRegister} notice={registrationNotice} />}

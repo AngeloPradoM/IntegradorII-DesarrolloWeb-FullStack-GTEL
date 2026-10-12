@@ -18,7 +18,7 @@ class CandidatoServiceTest {
     final PostulanteRepository profiles = mock(PostulanteRepository.class);
     final RolRepository roles = mock(RolRepository.class);
     final PasswordEncoder encoder = mock(PasswordEncoder.class);
-    final CandidatoService service = new CandidatoService(users, profiles, roles, encoder);
+    final CandidatoService service = new CandidatoService(users, profiles, roles, encoder, new pe.com.gtel.talento.security.LoginAttemptService());
     final Rol role = new Rol("CANDIDATO", "Candidato");
 
     @Test void registrationSavesPhoneOnCandidateProfile() {

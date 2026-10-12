@@ -1,3 +1,4 @@
+import useSavedJobs from '../../hooks/useSavedJobs';
 import useJobs from "../../hooks/useJobs";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -7,23 +8,10 @@ export default function JobListings() {
   const {jobs,loading,error}=useJobs();
   const [sortBy, setSortBy] = useState("recent");
   const [search, setSearch] = useState("");
-  const [saved, setSaved] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("gtel-saved-jobs") || "[]");
-    } catch {
-      return [];
-    }
-  });
+  const {saved,toggleSave}=useSavedJobs();
   const [filterOpen, setFilterOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
-  const toggleSave = id => {
-    setSaved(prev => {
-      const next = prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id];
-      localStorage.setItem("gtel-saved-jobs", JSON.stringify(next));
-      return next;
-    });
-  };
   const filtered = jobs.filter(j => {
     const matchSearch = j.title.toLowerCase().includes(search.toLowerCase()) || j.department.toLowerCase().includes(search.toLowerCase()) || j.tags.some(t => t.toLowerCase().includes(search.toLowerCase()));
     const matchType = typeFilter === "all" || j.type === typeFilter;
