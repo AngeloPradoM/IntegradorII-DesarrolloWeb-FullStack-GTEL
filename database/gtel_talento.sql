@@ -117,6 +117,32 @@ INSERT INTO `departamentos` VALUES (1,'Ventas y Comercial','Campa?as comerciales
 UNLOCK TABLES;
 
 --
+-- Table structure for table `documentos_postulacion`
+--
+
+DROP TABLE IF EXISTS `documentos_postulacion`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `documentos_postulacion` (
+  `postulacion_id` bigint(20) NOT NULL,
+  `nombre` varchar(150) NOT NULL,
+  `contenido` longblob NOT NULL,
+  `datos_personales` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`datos_personales`)),
+  PRIMARY KEY (`postulacion_id`),
+  CONSTRAINT `fk_documentos_postulacion` FOREIGN KEY (`postulacion_id`) REFERENCES `postulaciones` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `documentos_postulacion`
+--
+
+LOCK TABLES `documentos_postulacion` WRITE;
+/*!40000 ALTER TABLE `documentos_postulacion` DISABLE KEYS */;
+/*!40000 ALTER TABLE `documentos_postulacion` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `entrevistas`
 --
 
@@ -541,7 +567,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'administrador@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,3,'activo','2026-10-02 18:18:54'),(2,'postulante1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,1,'activo','2026-10-02 18:18:54'),(3,'reclutador1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,2,'activo','2026-10-02 18:18:54'),(4,'jefatura1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,4,'activo','2026-10-09 20:00:48'),(5,'analista1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,5,'activo','2026-10-09 20:00:48'),(6,'entrevistador1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,6,'activo','2026-10-09 20:00:48'),(101,'ana.torres@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(102,'carlos.mendoza@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(103,'lucia.ramos@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(104,'diego.salazar@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(105,'valeria.ponce@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(106,'jose.castillo@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54');
+INSERT INTO `usuarios` VALUES (1,'administrador@gmail.com','.KiwIOHJa1fxOuvJ.kHJW.J7zN34uyIgkNqzwmFB8kCVcXHG',0,1,3,'activo','2026-10-02 18:18:54'),(2,'postulante1@gmail.com','.T6lAo0BW1c2.gBz7H6Gne.sr.cM9FwYjVysTeKdPpZu',0,1,1,'activo','2026-10-02 18:18:54'),(3,'reclutador1@gmail.com','.ZrKoth8tO6e',0,1,2,'activo','2026-10-02 18:18:54'),(4,'jefatura1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,4,'activo','2026-10-09 20:00:48'),(5,'analista1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,5,'activo','2026-10-09 20:00:48'),(6,'entrevistador1@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,1,6,'activo','2026-10-09 20:00:48'),(101,'ana.torres@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(102,'carlos.mendoza@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(103,'lucia.ramos@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(104,'diego.salazar@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(105,'valeria.ponce@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54'),(106,'jose.castillo@gmail.com','$2a$10$6wccwZvidcExyauzXPSEQuCIbn/1wUWpS0DxZGIF8.AvWucGwxz5W',0,0,1,'activo','2026-10-09 17:46:54');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -637,4 +663,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-20 17:53:32
+-- Dump completed on 2026-10-20 19:55:02
