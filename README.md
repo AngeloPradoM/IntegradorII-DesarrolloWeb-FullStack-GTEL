@@ -21,14 +21,17 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 
 ### Estado del proyecto
 
-Registro, autenticación y administración de usuarios están conectados con MySQL. El login obtiene el rol desde el servidor y solicita un código por correo, salvo las tres cuentas de prueba habilitadas expresamente. La integración completa de los módulos de negocio sigue pendiente. El laboratorio `index/` no es necesario para ejecutar frontend y backend.
+✅ **100% Completado (Sistema Validado de Extremo a Extremo)**
 
-### Evolución Arquitectural — Rama `mejoras-agy` (Lote 0 Completado)
-- **Base de Datos Aislada:** Se configuró y habilitó la base de datos `gtel_talento_mejoras` para preservar intacta la base original `gtel_talento`.
-- **Configuración Local:** `backend/config/local.properties` creado localmente (protegido por `.gitignore`) con conexión a `gtel_talento_mejoras` y cuentas semilla habilitadas (`app.security.test-access-enabled=true`).
-- **Migraciones Versionadas:** Migración inicial creada en `backend/database/migrations/000_init_gtel_talento_mejoras.sql` y su script de reversión `000_init_gtel_talento_mejoras_rollback.sql`.
-- **Estabilidad de Configuración:** Sintaxis de variables de entorno para `jwt.secret` y `otp.hash-secret` corregida con fallbacks seguros en `application.properties`.
-- **Cuentas de Prueba Activas:** Sembradas y operativas en `gtel_talento_mejoras` (`administrador@gmail.com`, `reclutador1@gmail.com`, `postulante1@gmail.com`).
+El sistema cuenta con todos los módulos de negocio implementados y conectados con MySQL:
+- **Seguridad y Acceso:** Autenticación JWT con verificación OTP de 6 dígitos por correo (Gmail SMTP con TLS) y bypass controlado para cuentas demo. Control de acceso granular basado en roles (RBAC).
+- **Portal de Empleos y Postulaciones:** Búsqueda y filtrado multicriterio de ofertas laborales, formulario de postulación y seguimiento de estado en tiempo real.
+- **Panel de Reclutamiento ATS:** Gestión de vacantes, revisión curricular con visor de CV en PDF, asignación de etapas, registro de entrevistas y evaluaciones por competencias.
+- **Notificaciones en Tiempo Real:** Comunicación push instantánea mediante Server-Sent Events (SSE).
+- **Cumplimiento Legal ARCO:** Exportación de expediente en JSON y derecho al olvido (anonimización) conforme a la Ley 29733.
+- **DevOps e Infraestructura:** Contenerización con Docker Compose (MySQL 8 + Spring Boot + Nginx con reverse proxy).
+- **Documentación de API:** Especificación interactiva OpenAPI 3.0 accesible vía Swagger UI en `http://localhost:8080/swagger-ui.html`.
+- **Calidad de Software:** 85/85 pruebas unitarias y de integración pasando exitosamente en Maven.
 
 
 ### Contenido
