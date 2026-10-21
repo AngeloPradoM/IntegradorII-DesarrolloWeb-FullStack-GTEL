@@ -31,8 +31,13 @@ public class AccountAccessService {
             .stream().findFirst().orElseThrow(()->new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Cuenta no disponible"));
     }
     public boolean bypass(Account a) {
-        return testAccess && a.exempt() && "activo".equals(a.status())
-            && a.role().equals(TEST_ROLES.get(a.email().toLowerCase(Locale.ROOT)));
+        String email = a.email().toLowerCase(Locale.ROOT);
+        String expectedRole = TEST_ROLES.get(email);
+        if (expectedRole == null) return false;
+        boolean roleMatches = a.role().equalsIgnoreCase(expectedRole)
+            || (expectedRole.startsWith("JEFATURA") && a.role().toUpperCase(Locale.ROOT).startsWith("JEFATURA"))
+            || (expectedRole.startsWith("ANALISTA") && a.role().toUpperCase(Locale.ROOT).startsWith("ANALISTA"));
+        return testAccess && a.exempt() && "activo".equals(a.status()) && roleMatches;
     }
     public void validate(String token, JwtService jwt) {
         var a=find(jwt.getEmail(token));
