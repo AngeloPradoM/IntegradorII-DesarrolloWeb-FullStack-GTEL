@@ -15,8 +15,25 @@ public record EvaluationResponse(
         Integer score,
         String time,
         String date,
-        List<Map<String, Object>> details
+        List<Map<String, Object>> details,
+        Long applicationId,
+        String evaluator
 ) {
+    public EvaluationResponse(
+            String id,
+            String candidateId,
+            String name,
+            String job,
+            String test,
+            String status,
+            Integer score,
+            String time,
+            String date,
+            List<Map<String, Object>> details
+    ) {
+        this(id, candidateId, name, job, test, status, score, time, date, details, null, "Equipo de Evaluación");
+    }
+
     public static EvaluationResponse fromEntity(Evaluacion e) {
         var post = e.getPostulacion();
         var cand = post != null ? post.getPostulante() : null;
@@ -40,11 +57,19 @@ public record EvaluationResponse(
         String timeStr = (e.getTiempoMin() != null ? e.getTiempoMin() : 45) + " min";
 
         List<Map<String, Object>> detailsList = e.getDetalles().stream()
-                .map(d -> Map.<String, Object>of(
-                        "area", d.getCriterio(),
-                        "score", d.getPuntaje()
-                ))
+                .map(d -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("area", d.getCriterio());
+                    map.put("score", d.getPuntaje());
+                    map.put("note", d.getObservacion() != null ? d.getObservacion() : "");
+                    return map;
+                })
                 .toList();
+
+        Long appId = post != null ? post.getId() : null;
+        String evalEmail = (e.getUsuario() != null && e.getUsuario().getEmail() != null)
+                ? e.getUsuario().getEmail()
+                : "Equipo de Evaluación";
 
         return new EvaluationResponse(
                 String.valueOf(e.getId()),
@@ -56,7 +81,9 @@ public record EvaluationResponse(
                 e.getPuntajeTotal(),
                 timeStr,
                 dateStr,
-                detailsList
+                detailsList,
+                appId,
+                evalEmail
         );
     }
 }

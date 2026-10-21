@@ -1,13 +1,11 @@
 package pe.com.gtel.talento.recruitment.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public record InterviewRequest(
-        @NotNull(message = "El identificador del candidato o postulación es obligatorio")
         Long candidateId,
-
         Long postulacionId,
+        Long applicationId,
 
         @NotBlank(message = "La fecha de la entrevista es obligatoria")
         String date,
@@ -16,10 +14,38 @@ public record InterviewRequest(
         String time,
 
         Integer durationMin,
+        Integer minutes,
 
         String type, // "video" | "presencial"
 
         String location, // URL de Teams/Meet o Sede física
 
+        String status,
+
         String notes
-) {}
+) {
+    public InterviewRequest(
+            Long candidateId,
+            Long postulacionId,
+            String date,
+            String time,
+            Integer durationMin,
+            String type,
+            String location,
+            String notes
+    ) {
+        this(candidateId, postulacionId, postulacionId, date, time, durationMin, durationMin, type, location, "programada", notes);
+    }
+
+    public Long getTargetId() {
+        if (applicationId != null) return applicationId;
+        if (postulacionId != null) return postulacionId;
+        return candidateId;
+    }
+
+    public int getDuracionMinutos() {
+        if (durationMin != null && durationMin > 0) return durationMin;
+        if (minutes != null && minutes > 0) return minutes;
+        return 30;
+    }
+}

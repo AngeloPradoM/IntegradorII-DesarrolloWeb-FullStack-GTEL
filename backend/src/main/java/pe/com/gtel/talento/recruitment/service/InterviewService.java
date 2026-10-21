@@ -51,7 +51,7 @@ public class InterviewService {
 
     @Transactional
     public InterviewResponse scheduleInterview(InterviewRequest request, String recruiterEmail) {
-        Long targetId = request.postulacionId() != null ? request.postulacionId() : request.candidateId();
+        Long targetId = request.getTargetId();
         if (targetId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes especificar el candidato o postulación.");
         }
@@ -87,10 +87,13 @@ public class InterviewService {
                 postulacion,
                 parsedDate,
                 parsedTime,
-                request.durationMin() != null ? request.durationMin() : 30,
+                request.getDuracionMinutos(),
                 normalizedType,
                 location
         );
+        if (request.status() != null && !request.status().isBlank()) {
+            entrevista.setEstado(request.status().trim().toLowerCase());
+        }
         entrevista = entrevistaRepository.save(entrevista);
 
         // Promover automáticamente el estado de la postulación a "entrevista"
@@ -140,6 +143,43 @@ public class InterviewService {
             }
         } catch (Exception ignored) {}
 
+        return InterviewResponse.fromEntity(entrevista, recruiterEmail);
+    }
+
+    @Transactional
+    public InterviewResponse updateInterview(Long id, InterviewRequest request, String recruiterEmail) {
+        Entrevista entrevista = entrevistaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrevista no encontrada con id: " + id));
+
+        if (request.date() != null && !request.date().isBlank()) {
+            try {
+                entrevista.setFecha(LocalDate.parse(request.date().trim(), DateTimeFormatter.ISO_LOCAL_DATE));
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Formato de fecha inválido. Se espera YYYY-MM-DD.");
+            }
+        }
+        if (request.time() != null && !request.time().isBlank()) {
+            try {
+                String timeStr = request.time().trim();
+                if (timeStr.length() == 5) timeStr += ":00";
+                entrevista.setHora(LocalTime.parse(timeStr));
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Formato de hora inválido. Se espera HH:mm.");
+            }
+        }
+        if (request.getDuracionMinutos() > 0) {
+            entrevista.setDuracionMin(request.getDuracionMinutos());
+        }
+        if (request.type() != null && !request.type().isBlank()) {
+            entrevista.setTipo(request.type().toLowerCase().contains("presencial") ? "presencial" : "video");
+        }
+        if (request.location() != null && !request.location().isBlank()) {
+            entrevista.setUbicacion(request.location().trim());
+        }
+        if (request.status() != null && !request.status().isBlank()) {
+            entrevista.setEstado(request.status().trim().toLowerCase());
+        }
+        entrevista = entrevistaRepository.save(entrevista);
         return InterviewResponse.fromEntity(entrevista, recruiterEmail);
     }
 }

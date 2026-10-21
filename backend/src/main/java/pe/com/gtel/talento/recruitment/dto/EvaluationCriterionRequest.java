@@ -7,8 +7,21 @@ public record EvaluationCriterionRequest(
         Integer puntaje,
         Integer weight,
         Integer porcentaje,
-        String observacion
+        String observacion,
+        String note
 ) {
+    public EvaluationCriterionRequest(
+            String area,
+            String criterio,
+            Integer score,
+            Integer puntaje,
+            Integer weight,
+            Integer porcentaje,
+            String observacion
+    ) {
+        this(area, criterio, score, puntaje, weight, porcentaje, observacion, observacion);
+    }
+
     public String getNombreCriterio() {
         if (criterio != null && !criterio.isBlank()) return criterio.trim();
         if (area != null && !area.isBlank()) return area.trim();
@@ -24,5 +37,11 @@ public record EvaluationCriterionRequest(
     public Integer getValorPorcentaje() {
         if (porcentaje != null) return porcentaje;
         return weight;
+    }
+
+    public String getObservacionTexto() {
+        if (observacion != null && !observacion.isBlank()) return observacion.trim();
+        if (note != null && !note.isBlank()) return note.trim();
+        return "";
     }
 }

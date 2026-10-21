@@ -1,11 +1,14 @@
 package pe.com.gtel.talento.recruitment.repository;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-@org.springframework.stereotype.Repository
+@Repository
 public class RecruiterDataRepository {
 
     private final JdbcTemplate jdbcTemplate;
@@ -38,6 +41,51 @@ public class RecruiterDataRepository {
                 LEFT JOIN departamentos d ON d.id = v.departamento_id
                 ORDER BY po.fecha_postulacion DESC, p.id DESC
                 """);
+    }
+
+    public List<Map<String, Object>> applications() {
+        List<Map<String, Object>> raw = jdbcTemplate.queryForList("""
+                SELECT po.id,
+                       p.id AS candidateId,
+                       CONCAT(p.nombres, ' ', p.apellidos) AS name,
+                       COALESCE(u.email, '') AS email,
+                       COALESCE(v.titulo, 'Sin vacante') AS job,
+                       v.id AS jobId,
+                       COALESCE(po.codigo, CONCAT('POST-', po.id)) AS code,
+                       po.estado AS status,
+                       COALESCE(po.puntaje_general, 0) AS score,
+                       COALESCE(po.cv_url, p.cv_url, '') AS cvUrl,
+                       COALESCE(po.cv_nombre, 'CV.pdf') AS cvNombre,
+                       DATE_FORMAT(po.fecha_postulacion, '%d %b %Y') AS date,
+                       COALESCE(p.educacion, 'Superior / Universitaria') AS educationText,
+                       COALESCE(p.experiencia, 'Experiencia laboral relevante') AS experienceText
+                FROM postulaciones po
+                JOIN postulantes p ON p.id = po.postulante_id
+                JOIN usuarios u ON u.id = p.usuario_id
+                LEFT JOIN vacantes v ON v.id = po.vacante_id
+                ORDER BY po.fecha_postulacion DESC, po.id DESC
+                """);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> row : raw) {
+            Map<String, Object> app = new HashMap<>(row);
+            Long appId = ((Number) app.get("id")).longValue();
+            List<Map<String, Object>> steps = jdbcTemplate.queryForList("""
+                    SELECT DATE_FORMAT(fecha_cambio, '%Y-%m-%d') AS date,
+                           estado_nuevo AS label
+                    FROM postulacion_timeline
+                    WHERE postulacion_id = ?
+                    ORDER BY fecha_cambio ASC, id ASC
+                    """, appId);
+            if (steps.isEmpty()) {
+                String d = app.get("date") != null ? app.get("date").toString() : "";
+                String st = app.get("status") != null ? app.get("status").toString() : "recibida";
+                steps = List.of(Map.of("date", d, "label", st));
+            }
+            app.put("steps", steps);
+            result.add(app);
+        }
+        return result;
     }
 
     public List<Map<String, Object>> interviews() {
@@ -203,7 +251,7 @@ public class RecruiterDataRepository {
                 LIMIT 8
                 """);
 
-        Map<String, Object> result = new java.util.HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         result.put("newApplicants", applicants == null ? 0 : applicants.intValue());
         result.put("totalApplications", nTotal);
         result.put("scheduledInterviews", interviews == null ? 0 : interviews.intValue());

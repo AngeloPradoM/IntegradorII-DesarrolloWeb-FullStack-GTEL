@@ -30,8 +30,7 @@ public class EvaluationService {
             EvaluacionRepository evaluacionRepository,
             PostulacionRepository postulacionRepository,
             PostulacionTimelineRepository timelineRepository,
-            UsuarioRepository usuarioRepository
-    ) {
+            UsuarioRepository usuarioRepository) {
         this.evaluacionRepository = evaluacionRepository;
         this.postulacionRepository = postulacionRepository;
         this.timelineRepository = timelineRepository;
@@ -47,7 +46,7 @@ public class EvaluationService {
 
     @Transactional
     public EvaluationResponse createEvaluation(EvaluationRequest request, String evaluatorEmail) {
-        Long targetId = request.postulacionId() != null ? request.postulacionId() : request.candidateId();
+        Long targetId = request.getTargetId();
         if (targetId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes especificar el candidato o postulación.");
         }
@@ -73,9 +72,13 @@ public class EvaluationService {
             finalScore = 75;
         }
 
+        String rawResultado = request.status() != null && !request.status().isBlank()
+                ? request.status()
+                : request.resultado();
+
         String resultado;
-        if (request.resultado() != null && !request.resultado().isBlank()) {
-            String raw = request.resultado().trim().toLowerCase();
+        if (rawResultado != null && !rawResultado.isBlank()) {
+            String raw = rawResultado.trim().toLowerCase();
             resultado = switch (raw) {
                 case "aprobado", "passed" -> "aprobado";
                 case "no_aprobado", "failed", "descartado" -> "no_aprobado";
@@ -99,7 +102,7 @@ public class EvaluationService {
                 postulacion,
                 request.getNombreTest(),
                 finalScore,
-                request.time() != null ? request.time() : (request.tiempoMin() != null ? request.tiempoMin() : 45),
+                request.getTiempoMinutos(),
                 resultado,
                 evaluador
         );
@@ -110,7 +113,7 @@ public class EvaluationService {
                         c.getNombreCriterio(),
                         c.getValorPuntaje(),
                         c.getValorPorcentaje(),
-                        c.observacion()
+                        c.getObservacionTexto()
                 ));
             }
         } else {
