@@ -60,7 +60,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
-                        .requestMatchers("/api/auth/**", "/api/health", "/actuator/health", "/api/jobs/**", "/api/departments/**", "/api/candidate/privacy/policy").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/health",
+                                "/actuator/health",
+                                "/api/jobs/**",
+                                "/api/departments/**",
+                                "/api/candidate/privacy/policy",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/recruiter/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")
                         .requestMatchers("/api/applications/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR","CANDIDATO")
