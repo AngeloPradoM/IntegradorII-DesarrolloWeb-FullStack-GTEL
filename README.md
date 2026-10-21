@@ -34,6 +34,7 @@ El sistema cuenta con todos los módulos de negocio implementados y conectados c
 - **Calidad de Software:** 85/85 pruebas unitarias y de integración pasando exitosamente en Maven.
 
 
+
 ### Contenido
 
 - [Frontend](#frontend): instalación, configuración y ejecución de React.
