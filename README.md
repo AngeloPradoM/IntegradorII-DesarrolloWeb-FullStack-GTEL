@@ -23,7 +23,7 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 
 Registro, autenticación y administración de usuarios están conectados con MySQL. El login obtiene el rol desde el servidor y solicita un código por correo, salvo las tres cuentas de prueba habilitadas expresamente. La integración completa de los módulos de negocio sigue pendiente. El laboratorio `index/` no es necesario para ejecutar frontend y backend.
 
-### Evolución Arquitectural — Rama `mejoras-agy` (Lote 0 Completado)
+### Evolución Arquitectural —
 - **Base de Datos Aislada:** Se configuró y habilitó la base de datos `gtel_talento_mejoras` para preservar intacta la base original `gtel_talento`.
 - **Configuración Local:** `backend/config/local.properties` creado localmente (protegido por `.gitignore`) con conexión a `gtel_talento_mejoras` y cuentas semilla habilitadas (`app.security.test-access-enabled=true`).
 - **Migraciones Versionadas:** Migración inicial creada en `backend/database/migrations/000_init_gtel_talento_mejoras.sql` y su script de reversión `000_init_gtel_talento_mejoras_rollback.sql`.
