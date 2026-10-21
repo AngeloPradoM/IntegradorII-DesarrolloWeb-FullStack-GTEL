@@ -1,6 +1,8 @@
 package pe.com.gtel.talento.recruitment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +20,7 @@ import pe.com.gtel.talento.recruitment.service.CvStorageService;
 
 @RestController
 @RequestMapping("/api/candidate")
+@Tag(name = "3. Portal del Candidato", description = "Endpoints para registro de postulaciones con CV, consulta de estado personal y descarga de documentos.")
 public class CandidateApplicationController {
 
     private final CandidateApplicationService service;
@@ -35,6 +38,7 @@ public class CandidateApplicationController {
 
     @PostMapping(value = "/applications", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Enviar postulación con CV adjunto", description = "Registra una nueva postulación vinculada a una vacante activa, validando el archivo PDF y actualizando el perfil del candidato.")
     public ApplicationResponse submitApplication(
             @RequestPart(value = "cv", required = false) MultipartFile cvFile,
             @RequestPart(value = "file", required = false) MultipartFile fileFallback,
@@ -60,18 +64,17 @@ public class CandidateApplicationController {
 
         ApplicationSubmitRequest request = new ApplicationSubmitRequest();
 
-        // 1. Si enviaron el objeto 'application' como JSON multipart part
+        // 1. Extraer desde el JSON si vino
         if (applicationJson != null && !applicationJson.isBlank()) {
             try {
                 request = objectMapper.readValue(applicationJson, ApplicationSubmitRequest.class);
             } catch (Exception e) {
-                // Intentar leer campos anidados como { personalData: { nombres, ... }, jobId }
                 try {
-                    var tree = objectMapper.readTree(applicationJson);
-                    if (tree.has("jobId")) request.setJobId(tree.get("jobId").asLong());
-                    if (tree.has("termsAccepted")) request.setTermsAccepted(tree.get("termsAccepted").asBoolean());
-                    if (tree.has("personalData")) {
-                        var pd = tree.get("personalData");
+                    com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(applicationJson);
+                    if (root.has("jobId")) request.setJobId(root.get("jobId").asLong());
+                    if (root.has("termsAccepted")) request.setTermsAccepted(root.get("termsAccepted").asBoolean());
+                    if (root.has("personalData")) {
+                        com.fasterxml.jackson.databind.JsonNode pd = root.get("personalData");
                         if (pd.has("nombres")) request.setNombres(pd.get("nombres").asText());
                         if (pd.has("apellidos")) request.setApellidos(pd.get("apellidos").asText());
                         if (pd.has("dni")) request.setDni(pd.get("dni").asText());
@@ -97,6 +100,7 @@ public class CandidateApplicationController {
     }
 
     @GetMapping("/applications")
+    @Operation(summary = "Listar postulaciones del candidato", description = "Devuelve el historial de todas las vacantes a las que ha postulado el candidato autenticado con su estado y fecha.")
     public List<ApplicationResponse> getMyApplications(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Inicia sesión como candidato.");
@@ -105,6 +109,7 @@ public class CandidateApplicationController {
     }
 
     @GetMapping("/applications/{id}")
+    @Operation(summary = "Obtener detalle de postulación", description = "Devuelve información detallada de una postulación específica del candidato.")
     public ApplicationResponse getMyApplication(@PathVariable Long id, Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Inicia sesión como candidato.");
@@ -113,6 +118,7 @@ public class CandidateApplicationController {
     }
 
     @GetMapping("/cv/{filename:.+}")
+    @Operation(summary = "Descargar archivo CV", description = "Permite la descarga segura del currículum verificando la propiedad del archivo o privilegios de reclutador.")
     public ResponseEntity<Resource> downloadCv(@PathVariable String filename, Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Debes iniciar sesión para descargar documentos.");
