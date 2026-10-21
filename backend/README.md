@@ -1,4 +1,4 @@
-# Backend GTEL Talento
+﻿# Backend GTEL Talento
 
 API REST en Java 21 y Spring Boot 3.5.5. Registro y login con MySQL, BCrypt y JWT. El login requiere verificacion por correo.
 
@@ -10,44 +10,29 @@ backend/
   src/main/java/pe/com/gtel/talento/
     auth/                    Autenticacion: controller, service, dto, repository
     mail/                    Envio SMTP
-    identity/                Identidad: entity, dto, repository, service
-    profile/                 Perfil personal: controller, dto, repository, service
-    recruitment/
-      job/                   Vacantes y papelera; incluye scheduler
-      application/           Postulaciones, CV y cambios de estado
-      interview/             Agenda y reprogramación de entrevistas
-      evaluation/            Evaluaciones y criterios
-    admin/                   Gestión de usuarios: controller, dto, repository, service
-    audit/                   Consulta y registro de auditoría
-    notification/            Bandeja, entrega de correos y scheduler
-    bootstrap/               Cuentas de prueba de activación explícita
-    shared/api/              Respuestas comunes y errores de persistencia
+    identity/                Usuarios y perfiles: entity, repository
+    recruitment/             Reclutamiento: controller, service, repository
     health/                  Endpoint de salud
     config/                  Configuracion Spring y CORS
     security/                JWT y filtros
   src/main/resources/        Configuracion compartida
-  src/test/java/             Pruebas por módulo; integration/ para flujos completos
+  src/test/java/             Pruebas organizadas por los mismos modulos
   config/                    Configuracion local privada y ejemplo
   database/
     schema/                  SQL de instalacion inicial
     migrations/              Cambios manuales historicos
   docs/
-    architecture/            Diseño y flujos
-    deliveries/              Control y evidencias por entrega
-    operations/              Operación y producción
-    reports/                 Informes y correcciones históricas
+    history/                 Diagnosticos historicos
   target/                    Generado; excluido de Git
 ```
 
-Los paquetes se agrupan por funcionalidad. Las peticiones siguen **Controller → Service → Repository**. Los controladores reciben DTO validados, los servicios conservan reglas y transacciones, y los repositorios contienen el SQL/JDBC o el acceso JPA. El dashboard React combina las consultas de postulaciones, ofertas, entrevistas y evaluaciones; no consume un endpoint exclusivo de dashboard.
-
-Consulta el [mapa de arquitectura y validación por etapas](docs/architecture/arquitectura-src.md). Esta reorganización no requiere migraciones SQL ni cambios en el frontend.
+Los paquetes se agrupan por funcionalidad y mantienen capas dentro de cada modulo: Controller -> Service -> Repository -> MySQL. No es necesario dividir este backend pequeno en microservicios. El SQL del reclutador reside en RecruiterDataRepository; su servicio establece transacciones de lectura. Los contratos HTTP existentes se conservan.
 
 ## Configuracion local
 
 1. Instalar Java 21, Maven 3.9 y MySQL 8.x.
 2. En DBeaver, conectar a MySQL y ejecutar `database/schema/gtel_talento.sql` solamente en una base nueva. Incluye roles, no cuentas.
-3. Copiar `config/local.properties.example` a `config/local.properties` y completar URL, usuario y contraseña de MySQL, además de las claves privadas. No sobrescribir un archivo local existente; actualizarlo manualmente.
+3. Copiar `config/local.properties.example` a `config/local.properties` y completar las credenciales locales. No sobrescribir un archivo local existente.
 4. Generar una clave JWT privada de al menos 32 bytes. No compartirla en Git.
 5. Ejecutar los comandos desde `backend/`, para que Spring encuentre la configuracion local.
 
@@ -76,25 +61,26 @@ API: http://localhost:8080. Salud: http://localhost:8080/api/health.
 | POST | /api/auth/register | Registrar candidato; responde 201 |
 | POST | /api/auth/login | Correo y password; rol obtenido de MySQL. OTP normal o sesión inmediata para pruebas autorizadas |
 | GET | /api/auth/me | Perfil actual con Bearer token |
-| POST | /api/auth/logout | Revoca las sesiones actuales de la cuenta mediante auth_version |
+| POST | /api/auth/logout | Instruccion para eliminar token local; no revoca JWT |
 | GET | /api/health | Salud basica |
-| GET | /api/recruiter/applications | Candidatos |
-| GET | /api/recruiter/selection/interviews | Entrevistas |
-| GET | /api/recruiter/selection/evaluations | Evaluaciones |
+| GET | /api/recruiter/candidates | Candidatos |
+| GET | /api/recruiter/interviews | Entrevistas |
+| GET | /api/recruiter/evaluations | Evaluaciones |
+| GET | /api/recruiter/dashboard | Resumen de reclutamiento |
 
-Las rutas de reclutamiento requieren RECLUTADOR o ADMIN. El registro publico solo crea candidatos. Registro devuelve ID de postulante; login/me devuelven ID de usuario.
+Las rutas de reclutamiento requieren RECLUTADOR. El registro publico solo crea candidatos. Registro devuelve ID de postulante; login/me devuelven ID de usuario.
 
 ## Trabajo colaborativo
 
-Consultar [CONTRIBUTING.md](../CONTRIBUTING.md). Cada integrante configura su propia BD y secretos. No versionar target, archivos del IDE, credenciales o datos personales.
+Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propia BD y secretos. No versionar target, archivos del IDE, credenciales o datos personales.
 
 ## Limites actuales
 
-- Los módulos de negocio se conectan mediante la API. Ver [activación y pruebas](docs/architecture/flujo-reclutamiento.md); bases existentes requieren migración 004.
-- Login requiere codigo de correo. La recuperación usa un enlace por correo; la confirmación independiente al registrarse no está implementada.
-- Logout revoca las sesiones de la cuenta. Las peticiones autenticadas comprueban estado, rol y versión de la cuenta.
-- Las consultas de reclutamiento conservan respuestas Map para compatibilidad. Los mensajes, las páginas de usuarios/auditoría y los errores explícitos utilizan DTO tipados con los mismos campos JSON.
-- El diagnóstico previo es histórico; consultar [la arquitectura actual](docs/architecture/arquitectura-src.md).
+- La integracion de los modulos de negocio del frontend no se resuelve con esta reorganizacion.
+- Login requiere codigo de correo. La confirmacion independiente al registrarse y la recuperacion de contrasena no estan implementadas.
+- Logout no revoca JWT y la autenticacion aun no aplica usuarios.estado.
+- Las consultas conservan respuestas Map para compatibilidad; DTO tipados pueden incorporarse en otro cambio con pruebas del contrato.
+- El diagnostico previo es historico; consultar [la revision estructural](docs/estructura-colaborativa.md) para este cambio.
 
 ## Login por correo
 
@@ -112,7 +98,3 @@ El panel React `/admin` consume GET/POST `/api/admin/users` y PUT `/api/admin/us
 `app.security.test-access-enabled=false` es el valor seguro predeterminado. Habilitarlo solo en configuración local crea, si faltan, las tres cuentas documentadas en el [README general](../README.md#6-credenciales-de-prueba). Solo esas cuentas, con rol correcto y `otp_exempt=true`, omiten OTP después de validar contraseña. Nunca se sobrescriben cuentas existentes. Desactivar la opción invalida sus sesiones de prueba.
 
 Pruebas: `mvn.cmd test`; revisar además la sección de validación y los recorridos de navegador del README general. El registro público no permite seleccionar ni asignar ADMIN.
-
-## Cierre de pendientes
-
-Consultar el [informe de cambios y validaciones](docs/reports/informe-cierre-pendientes.md) y la [guía operativa](docs/operations/operacion-produccion.md).

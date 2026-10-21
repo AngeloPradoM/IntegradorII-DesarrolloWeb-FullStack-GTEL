@@ -1,13 +1,13 @@
-# -----------------------------------------------------------------------------
-# Backend — Maven / Spring Boot
-# -----------------------------------------------------------------------------
-
-# Compilación y caché local de Maven
 /target/
 /.m2-cache/
-
-# Configuración privada de desarrollo
+.env
+.env.*
+!.env.example
+*.log
 /config/local.properties
-
-# Respaldos locales de base de datos
-/backups/
+/.idea/
+/.vscode/
+*.iml
+.classpath
+.project
+.settings/

@@ -67,7 +67,7 @@ const sanitizePhone = (value = "") => value.replace(/\D/g, "").slice(0, 9);
 const getPasswordStrength = (password = "") => {
   let score = 0;
   const checks = {
-    length: password.length >= 12,
+    length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /\d/.test(password),
@@ -208,10 +208,14 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginCl
       nextErrors.ubicacion = "Seleccione su departamento.";
     }
 
-    if (!form.password || form.password.length < 12 || new TextEncoder().encode(form.password).length > 72) {
-      nextErrors.password = "La contraseña debe tener al menos 12 caracteres y no superar 72 bytes.";
+    if (!form.password || form.password.length < 8) {
+      nextErrors.password = "La contraseña debe tener al menos 8 caracteres.";
     }
 
+    const hasStrongPassword = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(form.password || "");
+    if (form.password && !hasStrongPassword) {
+      nextErrors.password = "La contraseña debe incluir mayúsculas, minúsculas, números y símbolos.";
+    }
 
     if (!form.confirmarPassword || form.confirmarPassword !== form.password) {
       nextErrors.confirmarPassword = "Las contraseñas no coinciden.";
@@ -465,7 +469,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginCl
             <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4" />
-                <span>Protección de datos y cifrado seguro</span>
+                <span>Tratamiento de datos personales conforme a la Ley N° 29733 (Perú)</span>
               </div>
               <CheckCircle2 className="h-4 w-4" />
             </div>

@@ -1,13 +1,13 @@
-import AdminHeader from '../components/layout/AdminHeader';
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { Link, Outlet, useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { Link, Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import { Briefcase, Menu, X } from "lucide-react";
 import AuthModal from "../components/auth/AuthModal";
 import ProfileMenu from "../components/auth/ProfileMenu";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import { registerCandidate } from "../services/api";
 import { getDefaultRouteForRole, getSafeAuthRedirect } from "../utils/auth";
+import ThemeToggle from "../components/ui/ThemeToggle";
 export default function PublicLayout() {
   const {
     login,
@@ -16,8 +16,6 @@ export default function PublicLayout() {
     user,
     isVerificationPending
   } = useAuth();
-  const { pathname } = useLocation();
-  const adminHeader=user?.rol==='ADMIN'&&(pathname.startsWith('/admin')||pathname==='/notificaciones'||pathname.startsWith('/ofertas')||pathname==='/perfil');
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const modal = searchParams.get("auth");
@@ -53,9 +51,14 @@ export default function PublicLayout() {
     setRegistrationNotice("Cuenta registrada correctamente en el servidor. Ya puedes iniciar sesión con tu correo y contraseña.");
     setModal("login");
   };
-  return <div className="min-h-screen bg-[#F8FAFC] font-['Inter',sans-serif]">
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 font-['Inter',sans-serif] text-slate-800 dark:text-slate-100">
+      <a href="#contenido" className="skip-link">
+        Saltar al contenido principal
+      </a>
+
       {/* Header */}
-      {adminHeader ? <AdminHeader key={pathname}/> : <header className="bg-[#1E293B] text-white sticky top-0 z-50 shadow-lg">
+      <header className="bg-[#1E293B] dark:bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-transparent dark:border-slate-800">
         <div className="max-w-[1488px] mx-auto px-4 sm:px-6">
           <div className="flex min-h-18 flex-nowrap items-center justify-between gap-4">
             <Link to="/" className="flex shrink-0 items-center gap-3">
@@ -78,6 +81,7 @@ export default function PublicLayout() {
             </nav>
 
             <div className="flex shrink-0 items-center gap-3 whitespace-nowrap">
+              <ThemeToggle />
               {isAuthenticated ? <ProfileMenu /> : <>
                 <button type="button" onClick={openLogin} className="hidden xl:block text-sm font-medium text-white/80 hover:text-white transition-colors">
                   Iniciar Sesión
@@ -97,7 +101,11 @@ export default function PublicLayout() {
         </div>
 
         {/* Mobile menu */}
-        {menuOpen && <div id="public-mobile-menu" className="xl:hidden bg-[#1E293B] border-t border-white/10 px-4 py-3 space-y-2">
+        {menuOpen && <div id="public-mobile-menu" className="xl:hidden bg-[#1E293B] dark:bg-slate-900 border-t border-white/10 dark:border-slate-800 px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10 dark:border-slate-800">
+              <span className="text-xs uppercase tracking-wider text-white/60">Tema</span>
+              <ThemeToggle />
+            </div>
             <Link to="/" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Inicio</Link>
             <Link to="/#areas" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Áreas de trabajo</Link>
             <Link to="/#como-postular" onClick={() => setMenuOpen(false)} className="block py-2 text-sm text-white/80 hover:text-white">Cómo postular</Link>
@@ -112,10 +120,11 @@ export default function PublicLayout() {
               <button type="button" onClick={openRegister} className="block w-full py-2 text-left text-sm font-semibold text-white hover:text-red-300">Registrarse</button>
             </>}
           </div>}
-      </header>}
+      </header>
 
       <main id="contenido"><Outlet context={{ openLogin, openRegister }} /></main>
       {modal === "login" && <AuthModal isOpen onClose={() => setModal(null)} onSubmit={handleAuthenticated} onRegisterClick={openRegister} notice={registrationNotice} />}
       <RegistrationModal isOpen={modal === "register"} onClose={() => setModal(null)} onSubmit={handleRegister} onLoginClick={openLogin} closeOnSubmit={false} />
-    </div>;
+    </div>
+  );
 }

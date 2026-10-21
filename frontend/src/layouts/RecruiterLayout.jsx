@@ -9,19 +9,40 @@ import {
   ChevronLeft,
   ChevronRight,
   Briefcase,
+  FileCheck2,
+  Trash2,
+  Layers,
   LogOut,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import { useAuth } from "../context/AuthContext";
 
-const navItems = [
-  { icon: ClipboardList, label: "Proceso de selección", path: "/reclutador/seleccion" },
-  { icon: Briefcase, label: "Ofertas", path: "/reclutador/ofertas" },
-  { icon: LayoutDashboard, label: "Dashboard", path: "/reclutador/dashboard" },
-  { icon: PlusSquare, label: "Publicar oferta", path: "/reclutador/publicar-oferta" },
-  { icon: Users, label: "Postulantes", path: "/reclutador/postulantes" },
-  { icon: CalendarDays, label: "Entrevistas", path: "/reclutador/entrevistas" },
-  { icon: ClipboardList, label: "Evaluaciones", path: "/reclutador/evaluaciones" },
+const ALLOWED_STAFF_ROLES = [
+  "RECLUTADOR",
+  "ADMIN",
+  "JEFATURA_SOLICITANTE",
+  "ANALISTA_RRHH",
+  "ENTREVISTADOR"
+];
+
+const ROLE_METADATA = {
+  RECLUTADOR: { label: "Reclutador Senior", tag: "bg-red-500/20 text-red-300", avatarBg: "bg-brand-red/40" },
+  ADMIN: { label: "Administrador ATS", tag: "bg-slate-500/20 text-slate-300", avatarBg: "bg-slate-600" },
+  JEFATURA_SOLICITANTE: { label: "Jefatura Solicitante", tag: "bg-blue-500/20 text-blue-300", avatarBg: "bg-blue-600" },
+  ANALISTA_RRHH: { label: "Analista de RRHH", tag: "bg-purple-500/20 text-purple-300", avatarBg: "bg-purple-600" },
+  ENTREVISTADOR: { label: "Entrevistador Técnico", tag: "bg-amber-500/20 text-amber-300", avatarBg: "bg-amber-600" },
+};
+
+const allNavItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/reclutador/dashboard", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH", "JEFATURA_SOLICITANTE", "ENTREVISTADOR"] },
+  { icon: FileCheck2, label: "Requerimientos", path: "/reclutador/requerimientos", roles: ["RECLUTADOR", "ADMIN", "JEFATURA_SOLICITANTE", "ANALISTA_RRHH"] },
+  { icon: Briefcase, label: "Ofertas", path: "/reclutador/ofertas", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH", "JEFATURA_SOLICITANTE"] },
+  { icon: PlusSquare, label: "Publicar oferta", path: "/reclutador/publicar-oferta", roles: ["RECLUTADOR", "ADMIN"] },
+  { icon: Trash2, label: "Papelera", path: "/reclutador/ofertas/papelera", roles: ["RECLUTADOR", "ADMIN"] },
+  { icon: Users, label: "Postulantes", path: "/reclutador/postulantes", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH", "ENTREVISTADOR", "JEFATURA_SOLICITANTE"] },
+  { icon: Layers, label: "Selección", path: "/reclutador/seleccion", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH"] },
+  { icon: CalendarDays, label: "Entrevistas", path: "/reclutador/entrevistas", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH", "ENTREVISTADOR"] },
+  { icon: ClipboardList, label: "Evaluaciones", path: "/reclutador/evaluaciones", roles: ["RECLUTADOR", "ADMIN", "ENTREVISTADOR"] },
 ];
 
 export default function RecruiterLayout() {
@@ -31,9 +52,17 @@ export default function RecruiterLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (!["RECLUTADOR","ADMIN"].includes(user?.rol) || !user?.token) {
+  if (!ALLOWED_STAFF_ROLES.includes(user?.rol) || !user?.token) {
     return <Navigate to="/" replace />;
   }
+
+  const roleInfo = ROLE_METADATA[user?.rol] || {
+    label: "Equipo GTEL",
+    tag: "bg-slate-500/20 text-slate-300",
+    avatarBg: "bg-brand-red/30"
+  };
+
+  const navItems = allNavItems.filter((item) => item.roles.includes(user?.rol));
 
   const handleLogout = () => {
     logout();
@@ -41,7 +70,11 @@ export default function RecruiterLayout() {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-brand-bg font-sans">
+    <div className="flex h-dvh overflow-hidden bg-brand-bg font-sans dark:bg-slate-950 dark:text-slate-100">
+      <a href="#contenido" className="skip-link">
+        Saltar al contenido principal
+      </a>
+
       {mobileOpen && (
         <button
           type="button"
@@ -52,7 +85,7 @@ export default function RecruiterLayout() {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-40 flex h-full flex-col bg-brand-navy text-white transition-all duration-300 ease-in-out lg:relative ${
+        className={`fixed left-0 top-0 z-40 flex h-full flex-col bg-brand-navy dark:bg-slate-900 dark:border-r dark:border-slate-800 text-white transition-all duration-300 ease-in-out lg:relative ${
           collapsed ? "w-16" : "w-64"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
@@ -63,13 +96,17 @@ export default function RecruiterLayout() {
           {!collapsed && (
             <div>
               <div className="text-sm font-bold leading-tight">GTEL Talento</div>
-              <div className="text-xs uppercase tracking-wide text-white/50">Reclutador</div>
+              <div className="text-xs uppercase tracking-wide text-white/50">{roleInfo.label}</div>
             </div>
           )}
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
-          {user.rol === "ADMIN" && <Link className="block p-3 text-white" to="/admin">Panel administrador</Link>}
+          {user.rol === "ADMIN" && (
+            <Link className="block p-3 text-xs font-semibold text-amber-300 hover:text-white" to="/admin">
+              ⚙️ Panel Administrador
+            </Link>
+          )}
           {navItems.map(({ icon: Icon, label, path }) => {
             const active = location.pathname === path;
             return (
@@ -101,14 +138,14 @@ export default function RecruiterLayout() {
         </div>
 
         <div className={`flex items-center gap-3 border-t border-white/10 p-3 ${collapsed ? "justify-center" : ""}`}>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-red/30 text-xs font-bold">
-            {(user.nombres || user.email || "R").slice(0, 2).toUpperCase()}
+          <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${roleInfo.avatarBg} text-xs font-bold`}>
+            {(user.nombres || user.email || "U").slice(0, 2).toUpperCase()}
           </div>
           {!collapsed && (
             <>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-xs font-semibold">{user.nombres || user.email}</div>
-                <div className="truncate text-xs text-white/50">Reclutador</div>
+                <div className="truncate text-[10px] text-white/50">{roleInfo.label}</div>
               </div>
               <button
                 type="button"

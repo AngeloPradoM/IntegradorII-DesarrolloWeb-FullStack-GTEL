@@ -1,17 +1,14 @@
 package pe.com.gtel.talento.admin.controller;
 
-import org.springframework.core.annotation.Order;
+import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pe.com.gtel.talento.shared.api.ApiError;
+import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice(assignableTypes=AdminUserController.class)
-@Order(-1)
 public class AdminErrors {
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiError> conflict(DataIntegrityViolationException exception){
-        return ResponseEntity.status(409).body(new ApiError("No se pudo guardar: correo duplicado o datos relacionados incompatibles."));
+    public ResponseEntity<Map<String,String>> conflict(DataIntegrityViolationException exception){
+        return ResponseEntity.status(409).body(Map.of("detail","No se pudo guardar: correo duplicado o datos relacionados incompatibles."));
     }
 }
