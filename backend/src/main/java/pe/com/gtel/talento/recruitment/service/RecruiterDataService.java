@@ -16,6 +16,7 @@ public class RecruiterDataService {
     }
 
     public List<Map<String, Object>> candidates() { return repository.candidates(); }
+    public List<Map<String, Object>> applications() { return repository.applications(); }
     public List<Map<String, Object>> interviews() { return repository.interviews(); }
     public List<Map<String, Object>> evaluations() { return repository.evaluations(); }
     public Map<String, Object> dashboard() { return repository.dashboard(); }

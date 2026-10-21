@@ -16,8 +16,27 @@ public record InterviewResponse(
         String status,
         String notes,
         Long candidateId,
-        Long postulacionId
+        Long postulacionId,
+        Long applicationId
 ) {
+    public InterviewResponse(
+            String id,
+            String name,
+            String job,
+            String date,
+            String time,
+            String duration,
+            String type,
+            String location,
+            String interviewer,
+            String status,
+            String notes,
+            Long candidateId,
+            Long postulacionId
+    ) {
+        this(id, name, job, date, time, duration, type, location, interviewer, status, notes, candidateId, postulacionId, postulacionId);
+    }
+
     public static InterviewResponse fromEntity(Entrevista e, String interviewerEmail) {
         var post = e.getPostulacion();
         var cand = post != null ? post.getPostulante() : null;
@@ -31,6 +50,7 @@ public record InterviewResponse(
         String typeStr = "presencial".equalsIgnoreCase(e.getTipo()) ? "Presencial" : "Videollamada";
         String locationStr = e.getUbicacion() != null && !e.getUbicacion().isBlank() ? e.getUbicacion() : "Enlace pendiente";
         String interviewerStr = (interviewerEmail != null && !interviewerEmail.isBlank()) ? interviewerEmail : "Equipo de Reclutamiento";
+        Long appId = post != null ? post.getId() : null;
 
         return new InterviewResponse(
                 String.valueOf(e.getId()),
@@ -45,7 +65,8 @@ public record InterviewResponse(
                 e.getEstado() != null ? e.getEstado() : "programada",
                 "Entrevista programada para el proceso de selección",
                 cand != null ? cand.getId() : null,
-                post != null ? post.getId() : null
+                appId,
+                appId
         );
     }
 }

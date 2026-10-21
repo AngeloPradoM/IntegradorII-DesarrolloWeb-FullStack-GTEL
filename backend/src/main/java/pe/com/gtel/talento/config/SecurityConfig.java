@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/health", "/actuator/health", "/api/jobs/**", "/api/departments/**", "/api/candidate/privacy/policy").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/recruiter/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")
+                        .requestMatchers("/api/applications/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR","CANDIDATO")
                         .requestMatchers("/api/candidate/cv/**").hasAnyRole("CANDIDATO","RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")
                         .requestMatchers("/api/candidate/**").hasAnyRole("CANDIDATO","ADMIN")
                         .anyRequest().authenticated())

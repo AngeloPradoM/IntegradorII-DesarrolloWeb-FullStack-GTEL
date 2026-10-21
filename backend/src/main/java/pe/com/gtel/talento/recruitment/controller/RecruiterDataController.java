@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -74,12 +75,17 @@ public class RecruiterDataController {
         return service.candidates();
     }
 
-    @GetMapping("/interviews")
+    @GetMapping("/applications")
+    public List<Map<String, Object>> applications() {
+        return service.applications();
+    }
+
+    @GetMapping({"/interviews", "/selection/interviews"})
     public List<InterviewResponse> interviews() {
         return interviewService.getRecruiterInterviews();
     }
 
-    @PostMapping("/interviews")
+    @PostMapping({"/interviews", "/selection/interviews"})
     @ResponseStatus(HttpStatus.CREATED)
     public InterviewResponse scheduleInterview(
             @Valid @RequestBody InterviewRequest request,
@@ -87,12 +93,20 @@ public class RecruiterDataController {
         return interviewService.scheduleInterview(request, authentication.getName());
     }
 
-    @GetMapping("/evaluations")
+    @PutMapping({"/interviews/{id}", "/selection/interviews/{id}"})
+    public InterviewResponse updateInterview(
+            @PathVariable Long id,
+            @RequestBody InterviewRequest request,
+            Authentication authentication) {
+        return interviewService.updateInterview(id, request, authentication.getName());
+    }
+
+    @GetMapping({"/evaluations", "/selection/evaluations"})
     public List<EvaluationResponse> evaluations() {
         return evaluationService.getRecruiterEvaluations();
     }
 
-    @PostMapping("/evaluations")
+    @PostMapping({"/evaluations", "/selection/evaluations"})
     @ResponseStatus(HttpStatus.CREATED)
     public EvaluationResponse createEvaluation(
             @Valid @RequestBody EvaluationRequest request,
@@ -155,7 +169,10 @@ public class RecruiterDataController {
                 .body(resource);
     }
 
-    @PatchMapping("/candidates/{id}/status")
+    @RequestMapping(
+            value = {"/candidates/{id}/status", "/applications/{id}/status"},
+            method = {RequestMethod.PATCH, RequestMethod.PUT}
+    )
     public Map<String, Object> updateCandidateStatus(
             @PathVariable Long id,
             @RequestBody CandidateStatusUpdateRequest request,
@@ -165,7 +182,7 @@ public class RecruiterDataController {
         return candidateApplicationService.updateCandidateStatus(id, status, comment, authentication.getName());
     }
 
-    @GetMapping("/candidates/{id}/timeline")
+    @GetMapping({"/candidates/{id}/timeline", "/applications/{id}/timeline"})
     public List<Map<String, Object>> getCandidateTimeline(@PathVariable Long id) {
         return candidateApplicationService.getCandidateTimeline(id);
     }
