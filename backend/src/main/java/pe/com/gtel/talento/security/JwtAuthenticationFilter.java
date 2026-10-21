@@ -24,26 +24,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)
             throws ServletException, IOException {
         String header = request.getHeader("Authorization");
+        String token = null;
         if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
+        } else {
+            String param = request.getParameter("token");
+            if (param != null && !param.isBlank()) {
+                token = param.trim();
+            }
+        }
+
+        if (token != null) {
             try {
-                String token = header.substring(7).trim();
-                accounts.validate(token,jwtService);
+                accounts.validate(token, jwtService);
                 String email = jwtService.getEmail(token);
                 String role = jwtService.getRole(token);
                 var authentication = new UsernamePasswordAuthenticationToken(
                         email, null, java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (io.jsonwebtoken.JwtException | IllegalArgumentException ignored) {
+            } catch (RuntimeException ignored) {
                 SecurityContextHolder.clearContext();
-            } catch (org.springframework.web.server.ResponseStatusException ex) {
-                SecurityContextHolder.clearContext();
-                if(ex.getStatusCode().value()!=401)throw ex;
-            } catch (org.springframework.dao.DataAccessException ex) {
-                SecurityContextHolder.clearContext();
-                response.setStatus(503);
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"detail\":\"No se pudo comprobar la sesión. El servicio de datos no está disponible. Inténtalo nuevamente.\"}");
-                return;
             }
         }
         chain.doFilter(request, response);

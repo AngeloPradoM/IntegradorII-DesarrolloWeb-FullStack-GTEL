@@ -24,5 +24,8 @@ export function clearStoredUser() {
 export function getDefaultRouteForRole(role) {
   if (role === "ADMIN") return "/admin";
   if (role === "RECLUTADOR") return "/reclutador/dashboard";
+  if (role === "JEFATURA_SOLICITANTE") return "/reclutador/requerimientos";
+  if (role === "ANALISTA_RRHH") return "/reclutador/dashboard";
+  if (role === "ENTREVISTADOR") return "/reclutador/entrevistas";
   return "/mis-postulaciones";
 }

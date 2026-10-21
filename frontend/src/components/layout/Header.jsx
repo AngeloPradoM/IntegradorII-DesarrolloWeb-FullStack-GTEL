@@ -1,6 +1,3 @@
-import useRecruiterData from "../../hooks/useRecruiterData";
-import DataState from "../ui/DataState";
-import { getRecruiterNotifications } from "../../services/api";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -16,6 +13,8 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import ThemeToggle from "../ui/ThemeToggle";
+import NotificationBell from "./NotificationBell";
 
 const publicNavItems = [
   { label: "Inicio", href: "/" },
@@ -50,12 +49,9 @@ export default function Header({
   onToggleSidebar,
 }) {
   const { user: authUser, logout } = useAuth();
-  const notificationState = useRecruiterData(getRecruiterNotifications);
-  const notifications = notificationState.data || [];
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const [searchValue, setSearchValue] = useState(() => {
     if (typeof window === "undefined") {
@@ -98,7 +94,6 @@ export default function Header({
   const closeMenus = () => {
     setMenuOpen(false);
     setProfileMenuOpen(false);
-    setNotificationsOpen(false);
   };
 
   const handleRegister = () => {
@@ -144,11 +139,11 @@ export default function Header({
    */
   if (isRecruiter) {
     return (
-      <header className="bg-white border-b border-gray-100 px-4 lg:px-6 py-3 flex items-center gap-4 flex-shrink-0">
+      <header className="bg-white border-b border-gray-100 px-4 lg:px-6 py-3 flex items-center gap-4 flex-shrink-0 dark:bg-slate-900 dark:border-slate-800">
         <button
           type="button"
           aria-label="Abrir menú lateral"
-          className="rounded-md p-2 text-brand-navy transition-colors hover:bg-slate-100 lg:hidden"
+          className="rounded-md p-2 text-brand-navy transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
           onClick={onToggleSidebar}
         >
           {isMobileOpen ? (
@@ -160,61 +155,21 @@ export default function Header({
 
         <form className="max-w-md flex-1" onSubmit={event=>{event.preventDefault();navigate(`/reclutador/postulantes?q=${encodeURIComponent(searchValue.trim())}`);}}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
 
             <input
               type="text"
               value={searchValue}
               onChange={handleSearchChange}
               placeholder="Buscar candidatos (Enter)..."
-              className="w-full rounded-lg border border-gray-200 bg-brand-bg py-2.5 pl-9 pr-4 text-sm text-brand-navy placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+              className="w-full rounded-lg border border-gray-200 bg-brand-bg py-2.5 pl-9 pr-4 text-sm text-brand-navy placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400"
             />
           </div>
         </form>
 
         <div className="ml-auto flex items-center gap-3">
-          <div className="relative">
-            <button
-              type="button"
-              aria-label="Notificaciones"
-              aria-expanded={notificationsOpen}
-              onClick={() =>
-                setNotificationsOpen((value) => !value)
-              }
-              className="relative rounded-lg p-2 text-brand-gray transition-colors hover:bg-gray-100"
-            >
-              <Bell className="h-5 w-5" />
-
-              {notifications.length > 0 && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-brand-red" />}
-            </button>
-
-            {notificationsOpen && (
-              <div className="absolute right-0 z-30 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
-                <div className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-brand-navy">
-                  Notificaciones
-                </div>
-
-                <div className="max-h-80 overflow-y-auto"><DataState {...notificationState} empty={!notifications.length} emptyMessage="No hay notificaciones disponibles." />
-                  {notifications.map((notification) => (
-                    <button
-                      key={notification.id}
-                      type="button"
-                      onClick={() => setNotificationsOpen(false)}
-                      className="flex w-full flex-col items-start gap-1 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50"
-                    >
-                      <span className="text-xs font-semibold text-brand-navy">
-                        {notification.title}
-                      </span>
-
-                      <span className="text-xs text-brand-gray">
-                        {notification.description}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          <ThemeToggle />
+          <NotificationBell />
 
           <button type="button" onClick={handleProfileEdit} aria-label="Editar perfil" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand-red/20 bg-red-50 text-xs font-bold text-brand-red">
@@ -244,11 +199,7 @@ export default function Header({
   return (
   <>
     <header
-      className={
-        isAuthenticated
-          ? "sticky top-0 z-50 border-b border-slate-200 bg-white text-brand-navy "
-          : "sticky top-0 z-50 border-b border-slate-200 bg-white text-brand-navy"
-      }
+      className="sticky top-0 z-50 border-b border-slate-200 bg-white text-brand-navy dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
@@ -257,18 +208,18 @@ export default function Header({
           <Link
             to={brandLink}
             onClick={closeMenus}
-            className="flex items-center gap-3 rounded-full px-2 py-1 transition hover:bg-slate-50"
+            className="flex items-center gap-3 rounded-full px-2 py-1 transition hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-red shadow-md ">
               <Briefcase className="h-5 w-5 text-white" />
             </div>
 
             <div>
-              <span className="text-base font-bold tracking-tight text-brand-navy">
+              <span className="text-base font-bold tracking-tight text-brand-navy dark:text-white">
                 GTEL
               </span>
 
-              <span className="ml-1 text-base font-light text-brand-gray">
+              <span className="ml-1 text-base font-light text-brand-gray dark:text-slate-400">
                 Talento
               </span>
             </div>
@@ -317,49 +268,11 @@ export default function Header({
                 </Link>
               )}
 
+              {/* THEME TOGGLE */}
+              <ThemeToggle />
+
               {/* NOTIFICACIONES */}
-              <div className="relative">
-                <button
-                  type="button"
-                  aria-label="Abrir notificaciones"
-                  aria-expanded={notificationsOpen}
-                  onClick={() =>
-                    setNotificationsOpen((value) => !value)
-                  }
-                  className="relative rounded-lg p-2 text-brand-gray transition-colors hover:bg-slate-50 hover:text-brand-red"
-                >
-                  <Bell className="h-5 w-5" />
-
-                  {notifications.length > 0 && <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-brand-red" />}
-                </button>
-
-                {notificationsOpen && (
-                  <div className="absolute right-0 z-30 mt-2 w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
-                    <div className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-brand-navy">
-                      Notificaciones
-                    </div>
-
-                    <div className="max-h-80 overflow-y-auto"><DataState {...notificationState} empty={!notifications.length} emptyMessage="No hay notificaciones disponibles." />
-                      {notifications.map((notification) => (
-                        <button
-                          key={notification.id}
-                          type="button"
-                          onClick={() => setNotificationsOpen(false)}
-                          className="flex w-full flex-col items-start gap-1 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50"
-                        >
-                          <span className="text-xs font-semibold text-brand-navy">
-                            {notification.title}
-                          </span>
-
-                          <span className="text-xs text-brand-gray">
-                            {notification.description}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <NotificationBell />
 
               {/* PERFIL */}
               <div className="relative">
@@ -370,32 +283,32 @@ export default function Header({
                   onClick={() =>
                     setProfileMenuOpen((value) => !value)
                   }
-                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-2 text-brand-navy shadow-sm transition hover:border-slate-200 hover:bg-slate-50"
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-2 text-brand-navy shadow-sm transition hover:border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                 >
-                  <UserCircle2 className="h-5 w-5 text-brand-gray" />
+                  <UserCircle2 className="h-5 w-5 text-brand-gray dark:text-slate-400" />
 
-                  <span className="text-sm font-medium text-brand-navy">
+                  <span className="text-sm font-medium text-brand-navy dark:text-slate-200">
                     {displayName}
                   </span>
 
-                  <ChevronDown className="h-4 w-4 text-brand-gray" />
+                  <ChevronDown className="h-4 w-4 text-brand-gray dark:text-slate-400" />
                 </button>
 
                 {profileMenuOpen && (
-                  <div className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
+                  <div className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md dark:border-slate-800 dark:bg-slate-900">
                     <button
                       type="button"
                       onClick={handleProfileEdit}
-                      className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                      className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                     >
-                      <Settings className="h-4 w-4 text-brand-navy" />
+                      <Settings className="h-4 w-4 text-brand-navy dark:text-slate-200" />
                       Editar perfil
                     </button>
 
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50"
+                      className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950/30"
                     >
                       <LogOut className="h-4 w-4" />
                       Salir de la cuenta
@@ -407,10 +320,12 @@ export default function Header({
           ) : (
             /* USUARIO NO AUTENTICADO */
             <div className="hidden items-center gap-3 lg:flex">
+              <ThemeToggle />
+
               <button
                 type="button"
                 onClick={onOpenAuth}
-                className="text-sm font-medium text-brand-gray transition-colors hover:text-brand-red"
+                className="text-sm font-medium text-brand-gray transition-colors hover:text-brand-red dark:text-slate-300 dark:hover:text-brand-red"
               >
                 Iniciar sesión
               </button>
@@ -418,7 +333,7 @@ export default function Header({
               <button
                 type="button"
                 onClick={handleRegister}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-brand-navy transition-colors hover:border-slate-300"
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-brand-navy transition-colors hover:border-slate-300 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Registrarse
               </button>
@@ -459,23 +374,23 @@ export default function Header({
       <div
         className={
           isAuthenticated
-            ? "border-b border-slate-200 bg-white px-4 py-3 md:hidden"
-            : "border-b border-slate-200 bg-white px-4 py-3 lg:hidden"
+            ? "border-b border-slate-200 bg-white px-4 py-3 md:hidden dark:border-slate-800 dark:bg-slate-900"
+            : "border-b border-slate-200 bg-white px-4 py-3 lg:hidden dark:border-slate-800 dark:bg-slate-900"
         }
       >
         <div className="space-y-2">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Tema</span>
+            <ThemeToggle />
+          </div>
 
           {navItems.map(({ label, href }) => (
             <Link
               key={href}
-                  aria-current={location.pathname === href ? "page" : undefined}
+              aria-current={location.pathname === href ? "page" : undefined}
               to={href}
               onClick={closeMenus}
-              className={
-                isAuthenticated
-                  ? "block py-2 text-sm text-brand-gray transition-colors hover:text-brand-red"
-                  : "block py-2 text-sm text-brand-gray transition-colors hover:text-brand-red"
-              }
+              className="block py-2 text-sm text-brand-gray transition-colors hover:text-brand-red dark:text-slate-300 dark:hover:text-brand-red"
             >
               {label}
             </Link>
@@ -498,7 +413,7 @@ export default function Header({
               <button
                 type="button"
                 onClick={handleProfileEdit}
-                className="block w-full py-2 text-left text-sm text-brand-gray transition-colors hover:text-brand-red"
+                className="block w-full py-2 text-left text-sm text-brand-gray transition-colors hover:text-brand-red dark:text-slate-300 dark:hover:text-brand-red"
               >
                 Editar perfil
               </button>
@@ -519,7 +434,7 @@ export default function Header({
                   closeMenus();
                   onOpenAuth?.();
                 }}
-                className="block w-full py-2 text-left text-sm text-brand-gray transition-colors hover:text-brand-red"
+                className="block w-full py-2 text-left text-sm text-brand-gray transition-colors hover:text-brand-red dark:text-slate-300 dark:hover:text-brand-red"
               >
                 Iniciar sesión
               </button>
@@ -527,7 +442,7 @@ export default function Header({
               <button
                 type="button"
                 onClick={handleRegister}
-                className="block w-full py-2 text-left text-sm text-brand-gray transition-colors hover:text-brand-red"
+                className="block w-full py-2 text-left text-sm text-brand-gray transition-colors hover:text-brand-red dark:text-slate-300 dark:hover:text-brand-red"
               >
                 Registrarse
               </button>
@@ -535,7 +450,7 @@ export default function Header({
               <Link
                 to="/ofertas"
                 onClick={closeMenus}
-                className="block py-2 text-sm text-brand-gray transition-colors hover:text-brand-red"
+                className="block py-2 text-sm text-brand-gray transition-colors hover:text-brand-red dark:text-slate-300 dark:hover:text-brand-red"
               >
                 Ver ofertas
               </Link>

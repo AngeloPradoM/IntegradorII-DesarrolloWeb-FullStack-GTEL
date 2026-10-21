@@ -1,12 +1,10 @@
-import { canTransition } from '../../utils/applicationStates';
-import { downloadCv } from '../../services/workflowService';
 import useRecruiterData from "../../hooks/useRecruiterData";
 import DataState from "../../components/ui/DataState";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getRecruiterCandidate, updateCandidateStatus } from "../../services/api";
+import { getRecruiterCandidate, updateCandidateStatus, getCandidateTimeline } from "../../services/api";
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Calendar, Download, CheckCircle, XCircle, MessageSquare, ArrowLeft, Briefcase, GraduationCap, Star, FileText, Globe, Clock } from "lucide-react";
+import { Phone, Mail, MapPin, Calendar, Download, CheckCircle, XCircle, MessageSquare, ArrowLeft, Briefcase, GraduationCap, Star, FileText, Globe, Clock, History } from "lucide-react";
 export default function CandidateProfile() {
   const {
     id
@@ -16,15 +14,63 @@ export default function CandidateProfile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [timeline, setTimeline] = useState([]);
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
+
+  const fetchTimeline = useCallback(async () => {
+    if (!id) return;
+    setLoadingTimeline(true);
+    try {
+      const data = await getCandidateTimeline(id);
+      if (Array.isArray(data)) {
+        setTimeline(data);
+      }
+    } catch (timelineError) {
+      console.warn("No se pudo cargar la línea de tiempo:", timelineError);
+    } finally {
+      setLoadingTimeline(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchTimeline();
+  }, [fetchTimeline]);
+
   const changeStatus = async status => {
     if (saving) return;
     setSaving(true); setError("");
     try {
       await updateCandidateStatus(id, status);
       retry();
+      await fetchTimeline();
       setNotice(status === "aprobada" ? "Candidato aprobado correctamente." : status === "entrevista" ? "Candidato movido a entrevista." : "Candidato descartado.");
     } catch (requestError) { setError(requestError.message); }
     finally { setSaving(false); }
+  };
+  const [downloadingCv, setDownloadingCv] = useState(false);
+  const downloadCv = async () => {
+    if (!candidate?.cvUrl) return;
+    setDownloadingCv(true); setError("");
+    try {
+      const token = JSON.parse(localStorage.getItem('gtel-user') || '{}')?.token;
+      const apiBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : 'http://localhost:8080').replace(/\/$/, '');
+      const url = candidate.cvUrl.startsWith('http') ? candidate.cvUrl : apiBase + candidate.cvUrl;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error('No se pudo descargar el archivo.');
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${candidate.name.replace(/\s+/g, '_')}_CV.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setDownloadingCv(false);
+    }
   };
   if (loading || loadError || !candidate) return <div className="p-6"><Link to="/reclutador/postulantes" className="text-sm text-brand-red">Volver al directorio</Link><DataState loading={loading} error={loadError} retry={retry} empty={!candidate} emptyMessage="No se encontró el candidato solicitado." /></div>;
   return <div className="p-6">
@@ -51,15 +97,15 @@ export default function CandidateProfile() {
                   <p className="text-sm text-[#475569]">{candidate.job}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button disabled={saving || !canTransition(candidate.status,"aprobada")} onClick={() => changeStatus("aprobada")} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving} onClick={() => changeStatus("aprobada")} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <CheckCircle className="w-3.5 h-3.5" />
                     Aprobar
                   </button>
-                  <button disabled={saving || !canTransition(candidate.status,"entrevista")} onClick={() => changeStatus("entrevista")} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving} onClick={() => changeStatus("entrevista")} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <MessageSquare className="w-3.5 h-3.5" />
                     Entrevista
                   </button>
-                  <button disabled={saving || !canTransition(candidate.status,"rechazada")} onClick={() => changeStatus("rechazada")} className="flex items-center gap-1.5 px-4 py-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                  <button disabled={saving} onClick={() => changeStatus("rechazada")} className="flex items-center gap-1.5 px-4 py-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                     <XCircle className="w-3.5 h-3.5" />
                     Descartar
                   </button>
@@ -165,6 +211,86 @@ export default function CandidateProfile() {
                 </li>)}
             </ul>
           </div>
+
+          {/* Historial del Proceso y Auditoría (Timeline) */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-[#D32F2F]" />
+                <h2 className="font-bold text-[#1E293B]">Historial del Proceso y Auditoría</h2>
+              </div>
+              <span className="text-xs text-[#475569] bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+                {timeline.length} {timeline.length === 1 ? "hito" : "hitos"}
+              </span>
+            </div>
+
+            {loadingTimeline && (
+              <p className="text-xs text-[#64748B] py-3">Cargando historial del proceso...</p>
+            )}
+
+            {!loadingTimeline && !timeline.length && (
+              <p className="text-xs text-[#64748B] py-3">Sin historial de cambios registrado para este postulante.</p>
+            )}
+
+            {!loadingTimeline && timeline.length > 0 && (
+              <div className="relative pl-6 space-y-5 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                {timeline.map((item, idx) => {
+                  const stageBadge = {
+                    recibida: "bg-slate-100 text-slate-700 border-slate-200",
+                    en_revision: "bg-amber-100 text-amber-800 border-amber-200",
+                    entrevista: "bg-blue-100 text-blue-800 border-blue-200",
+                    aprobada: "bg-green-100 text-green-800 border-green-200",
+                    rechazada: "bg-red-100 text-red-800 border-red-200"
+                  }[item.newStatus] || "bg-gray-100 text-gray-700 border-gray-200";
+
+                  const stageLabel = {
+                    recibida: "Recibida",
+                    en_revision: "En Revisión",
+                    entrevista: "Entrevista",
+                    aprobada: "Aprobado",
+                    rechazada: "Descartado"
+                  }[item.newStatus] || item.newStatus;
+
+                  return (
+                    <div key={item.id || idx} className="relative">
+                      {/* Timeline dot */}
+                      <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-white border-2 border-[#D32F2F] flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#D32F2F]" />
+                      </div>
+
+                      <div className="bg-[#F8FAFC] border border-gray-200/70 rounded-xl p-3.5 space-y-1.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${stageBadge}`}>
+                              {stageLabel}
+                            </span>
+                            {item.previousStatus && (
+                              <span className="text-[10px] text-gray-400">
+                                (desde: {item.previousStatus})
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-[#64748B] font-medium">
+                            {item.date}
+                          </span>
+                        </div>
+
+                        {item.comment && (
+                          <p className="text-xs text-[#334155] leading-relaxed">
+                            {item.comment}
+                          </p>
+                        )}
+
+                        <div className="text-[10px] text-gray-400">
+                          Registrado por: <span className="text-gray-600 font-medium">{item.userEmail || "Sistema"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Sidebar — contact & actions */}
@@ -192,30 +318,24 @@ export default function CandidateProfile() {
             <h3 className="text-xs font-bold text-[#1E293B] uppercase tracking-wide mb-3">Datos de contacto</h3>
             <div className="space-y-3">
               {[{
-              key: 'email',
               icon: Mail,
               value: candidate.email
             }, {
-              key: 'phone',
               icon: Phone,
               value: candidate.phone
             }, {
-              key: 'location',
               icon: MapPin,
               value: candidate.location
             }, {
-              key: 'application-date',
               icon: Calendar,
               value: `Postulado: ${candidate.appliedDate}`
             }, {
-              key: 'document',
               icon: FileText,
               value: `DNI: ${candidate.dni}`
             }].map(({
-              key,
               icon: Icon,
               value
-            }) => <div key={key} className="flex items-start gap-2.5">
+            }) => <div key={value} className="flex items-start gap-2.5">
                   <div className="w-7 h-7 bg-[#F8FAFC] rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon className="w-3.5 h-3.5 text-[#D32F2F]" />
                   </div>
@@ -227,19 +347,27 @@ export default function CandidateProfile() {
           {/* Actions */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
             <h3 className="text-xs font-bold text-[#1E293B] uppercase tracking-wide mb-1">Acciones</h3>
-            <button disabled={saving || !canTransition(candidate.status,"aprobada")} onClick={() => changeStatus("aprobada")} className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button disabled={saving} onClick={() => changeStatus("aprobada")} className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <CheckCircle className="w-3.5 h-3.5" />
               Aprobar candidato
             </button>
-            <Link to="/reclutador/seleccion" className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button disabled={saving} onClick={() => changeStatus("entrevista")} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <MessageSquare className="w-3.5 h-3.5" />
               Programar entrevista
-            </Link>
-            <button onClick={()=>downloadCv(id).catch(e=>setError(e.message))} className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 text-[#475569] py-2.5 rounded-lg text-xs font-medium transition-colors">
-              <Download className="w-3.5 h-3.5" />
-              Descargar CV PDF
             </button>
-            <button disabled={saving || !canTransition(candidate.status,"rechazada")} onClick={() => changeStatus("rechazada")} className="w-full flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
+            <button
+              type="button"
+              disabled={!candidate.cvUrl || downloadingCv}
+              onClick={downloadCv}
+              title={candidate.cvUrl ? "Descargar currículum vitae del candidato" : "El candidato no tiene CV adjunto"}
+              className={`w-full flex items-center justify-center gap-2 border border-gray-200 py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                candidate.cvUrl ? "text-[#1E293B] hover:bg-gray-50 cursor-pointer" : "text-gray-400 bg-gray-50 cursor-not-allowed"
+              }`}
+            >
+              <Download className="w-3.5 h-3.5" />
+              {downloadingCv ? "Descargando CV..." : candidate.cvUrl ? "Descargar CV Adjunto" : "Sin CV adjunto"}
+            </button>
+            <button disabled={saving} onClick={() => changeStatus("rechazada")} className="w-full flex items-center justify-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-2.5 rounded-lg text-xs font-bold transition-colors">
               <XCircle className="w-3.5 h-3.5" />
               Descartar candidato
             </button>

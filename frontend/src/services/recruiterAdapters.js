@@ -17,12 +17,14 @@ export function normalizeCandidate(value) {
   const row = record(value);
   const name = text(row.name) || [text(row.nombres), text(row.apellidos)].filter(Boolean).join(' ');
   return {
-    id:identifier(row.id), name:name || 'No disponible', avatar:initials(name),
+    id:identifier(row.id), candidateId:row.candidateId != null ? identifier(row.candidateId) : identifier(row.id),
+    name:name || 'No disponible', avatar:initials(name),
     job:text(row.job) || 'No disponible', email:text(row.email) || 'No disponible',
     phone:text(row.phone) || 'No disponible', location:text(row.location) || 'No disponible', dni:text(row.dni) || 'No disponible',
     date:text(row.date) || 'No disponible', appliedDate:text(row.date) || 'No disponible', department:text(row.department),
+    cvUrl:text(row.cvUrl || row.cv_url),
     status:candidateStatuses[row.status] || (['new','reviewing','interview','approved','rejected'].includes(row.status) ? row.status : 'unknown'),
-    score:score(row.score), experience:row.experienceText ? [{role:'Experiencia',company:'',period:'',desc:text(row.experienceText)}] : objects(row.experience,['role','company','period','desc']), education:row.educationText ? [{degree:text(row.educationText),institution:'',period:'',status:''}] : objects(row.education,['degree','institution','period','status']),
+    score:score(row.score), experience:objects(row.experience,['role','company','period','desc']), education:objects(row.education,['degree','institution','period','status']),
     skills:strings(row.skills), certifications:strings(row.certifications), languages:objects(row.languages,['lang','level','score']),
   };
 }
@@ -51,6 +53,84 @@ export function normalizeCollection(value, normalize) {
   return result;
 }
 export function normalizeNotification(value) {
-  const row=record(value);
-  return {id:identifier(row.id), title:text(row.title) || 'Notificación', description:text(row.description)};
+  const row = record(value);
+  return {
+    id: identifier(row.id),
+    title: text(row.title || row.titulo) || 'Notificación',
+    description: text(row.description || row.mensaje || row.descripcion),
+    type: text(row.type || row.tipo) || 'SISTEMA',
+    link: text(row.link || row.enlace),
+    read: Boolean(row.read ?? row.leida),
+    createdAt: text(row.createdAt || row.created_at || row.fecha),
+  };
 }
+
+export function normalizeRequirement(value) {
+  const row = record(value);
+  return {
+    id: identifier(row.id),
+    title: text(row.titulo || row.title) || 'Sin título',
+    departmentId: row.departamentoId != null ? identifier(row.departamentoId) : null,
+    department: text(row.departamentoNombre || row.department) || 'General',
+    solicitanteId: row.solicitanteId != null ? identifier(row.solicitanteId) : null,
+    solicitanteEmail: text(row.solicitanteEmail || row.solicitante) || 'N/D',
+    vacancies: typeof row.cantidad === 'number' ? row.cantidad : Number(row.cantidad) || Number(row.vacancies) || 1,
+    status: text(row.estado || row.status) || 'pendiente',
+    date: text(row.fechaSolicitud || row.date) || 'No disponible',
+    approvalDate: text(row.fechaAprobacion || row.approvalDate),
+    description: text(row.descripcion || row.description),
+    observations: text(row.observaciones || row.observations),
+  };
+}
+
+export function normalizeDashboard(value) {
+  const row = record(value);
+  const recent = list(row.recentApplications).map(normalizeCandidate);
+  const top = list(row.topCandidates).map(normalizeCandidate);
+  const areas = list(row.applicationsByArea).map(item => {
+    record(item);
+    return { name: text(item.name) || 'General', value: typeof item.value === 'number' ? item.value : Number(item.value) || 0 };
+  });
+  const funnel = row.funnel && typeof row.funnel === 'object' ? {
+    total: typeof row.funnel.total === 'number' ? row.funnel.total : Number(row.funnel.total) || 0,
+    conversionRate: typeof row.funnel.conversionRate === 'number' ? row.funnel.conversionRate : Number(row.funnel.conversionRate) || 0,
+    interviewRate: typeof row.funnel.interviewRate === 'number' ? row.funnel.interviewRate : Number(row.funnel.interviewRate) || 0,
+    stages: list(row.funnel.stages).map(st => {
+      record(st);
+      return {
+        key: text(st.key),
+        name: text(st.name),
+        count: typeof st.count === 'number' ? st.count : Number(st.count) || 0,
+        percentage: typeof st.percentage === 'number' ? st.percentage : Number(st.percentage) || 0
+      };
+    })
+  } : null;
+
+  const quick = row.quickActions && typeof row.quickActions === 'object' ? {
+    pendingReviews: Number(row.quickActions.pendingReviews) || 0,
+    todayInterviews: Number(row.quickActions.todayInterviews) || 0,
+    pendingEvaluations: Number(row.quickActions.pendingEvaluations) || 0
+  } : { pendingReviews: 0, todayInterviews: 0, pendingEvaluations: 0 };
+
+  const monthlyTrends = list(row.monthlyTrends).map(m => {
+    record(m);
+    return { monthLabel: text(m.monthLabel), count: Number(m.count) || 0 };
+  });
+
+  return {
+    newApplicants: Number(row.newApplicants) || 0,
+    totalApplications: Number(row.totalApplications) || Number(row.newApplicants) || 0,
+    scheduledInterviews: Number(row.scheduledInterviews) || 0,
+    activeJobs: Number(row.activeJobs) || 0,
+    evaluations: Number(row.evaluations) || 0,
+    averageAtsScore: Number(row.averageAtsScore) || 0,
+    timeToHireDays: Number(row.timeToHireDays) || 12,
+    funnel,
+    quickActions: quick,
+    topCandidates: top,
+    recentApplications: recent,
+    applicationsByArea: areas,
+    monthlyTrends
+  };
+}
+

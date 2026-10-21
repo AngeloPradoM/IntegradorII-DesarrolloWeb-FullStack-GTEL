@@ -5,35 +5,27 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import pe.com.gtel.talento.auth.dto.*;
+import pe.com.gtel.talento.security.JwtService;
 import pe.com.gtel.talento.auth.service.CandidatoService;
 import pe.com.gtel.talento.auth.service.EmailOtpService;
-import pe.com.gtel.talento.security.JwtService;
-import pe.com.gtel.talento.shared.api.MessageResponse;
 
 /** Password plus email OTP, with explicitly enabled development account exceptions. */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final CandidatoService candidatoService;
-    private final pe.com.gtel.talento.profile.service.ProfileService profiles;
     private final JwtService jwtService;
     private final EmailOtpService otp;
     private final pe.com.gtel.talento.security.AccountAccessService access;
 
-    public AuthController(CandidatoService candidatoService, JwtService jwtService, EmailOtpService otp, pe.com.gtel.talento.security.AccountAccessService access, pe.com.gtel.talento.profile.service.ProfileService profiles) {
+    public AuthController(CandidatoService candidatoService, JwtService jwtService, EmailOtpService otp, pe.com.gtel.talento.security.AccountAccessService access) {
         this.candidatoService = candidatoService;
         this.jwtService = jwtService;
         this.otp = otp;
         this.access = access;
-        this.profiles=profiles;
     }
 
     @PostMapping("/register")
@@ -84,10 +76,8 @@ public class AuthController {
             access.validate(token,jwtService);
             email = jwtService.getEmail(token);
             role = jwtService.getRole(token);
-        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException ex) {
+        } catch (RuntimeException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido o vencido");
-        } catch (org.springframework.dao.DataAccessException ex) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "No se pudo comprobar la sesión. Inténtalo nuevamente.");
         }
         AuthResponse user = candidatoService.obtenerPerfil(email);
         if (!user.rol().equals(role)) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El rol de la cuenta cambió; inicia sesión nuevamente");
@@ -97,11 +87,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public MessageResponse logout(@RequestHeader(value="Authorization",required=false) String authorization) {
-        if(authorization==null||!authorization.startsWith("Bearer "))throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"No autenticado");
-        try { access.revoke(authorization.substring(7).trim(),jwtService); }
-        catch(io.jsonwebtoken.JwtException|IllegalArgumentException ex){throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Sesión inválida");}
-        return new MessageResponse("Sesiones cerradas en todos tus dispositivos.");
+    public Map<String,Object> logout() {
+        // JWT remains valid until expiry; revocation policy is a separate pending task.
+        return Map.of("message", "Elimina el token del cliente para cerrar sesión");
     }
 
     private Map<String,Object> profile(AuthResponse user) {
@@ -113,11 +101,6 @@ public class AuthController {
         response.put("telefono", user.telefono());
         response.put("rol", user.rol());
         response.put("role", user.rol());
-        var saved=profiles.get(user.email());
-        for(String key:java.util.List.of("nombres","apellidos","telefono","ubicacion","localidad","correoContacto","foto")) {
-            Object value=saved.get(key);
-            if(value!=null&&(!key.equals("nombres")||!value.toString().isBlank()))response.put(key,value);
-        }
         return response;
     }
 }

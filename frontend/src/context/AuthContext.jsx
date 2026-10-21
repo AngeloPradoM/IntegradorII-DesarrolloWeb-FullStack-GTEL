@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useRef } from "react";
 import { AUTH_STORAGE_KEY, clearStoredUser, getStoredUser, setStoredUser } from "../utils/auth";
 
-import { getCurrentUser, logoutSession } from "../services/api";
+import { getCurrentUser } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -31,8 +31,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [initialUser] = useState(() => normalizeUser(getStoredUser()));
   const [restoring, setRestoring] = useState(Boolean(initialUser));
-  const [restoreError,setRestoreError] = useState('');
-  const [logoutNotice,setLogoutNotice]=useState('');
   const revision = useRef(0);
 
   useEffect(() => {
@@ -45,8 +43,8 @@ export function AuthProvider({ children }) {
     }
     getCurrentUser(stored.token).then(profile => {
       if (!cancelled && current === revision.current) setUser(normalizeUser({ ...profile, token: stored.token }));
-    }).catch(error => {
-      if (!cancelled && current === revision.current) { if(error.status===401 || error.status===403) clearStoredUser(); else setRestoreError(error.message); }
+    }).catch(() => {
+      if (!cancelled && current === revision.current) clearStoredUser();
     }).finally(() => {
       if (!cancelled) setRestoring(false);
     });
@@ -54,18 +52,17 @@ export function AuthProvider({ children }) {
   }, [initialUser]);
 
   useEffect(() => {
-    if (restoring || restoreError) return;
+    if (restoring) return;
     if (user) {
       setStoredUser(user);
       return;
     }
 
     clearStoredUser();
-  }, [user, restoring, restoreError]);
+  }, [user, restoring]);
 
   const login = (result = {}) => {
     if (!result.token || result.demo || !result.authenticated || !(result.verified === true || (result.authMethod === "TEST_PASSWORD" && result.otpSkipped === true))) throw new Error("No se pudo autenticar la cuenta.");
-    setLogoutNotice('');
     revision.current += 1;
     const nextUser = normalizeUser({ ...result, token: result.token, email: result.email, rol: result.rol,
       nombres: result.nombres, isVerified: true, verificationPending: false, demo: result.demo });
@@ -74,13 +71,11 @@ export function AuthProvider({ children }) {
     return nextUser;
   };
 
-  const logout = useCallback(() => {
-    const token=user?.token;
-    if(token)logoutSession(token).catch(error=>{if(error.status!==401)setLogoutNotice('Sesión cerrada en este navegador. No se pudo confirmar el cierre en el servidor.');});
+  const logout = () => {
     revision.current += 1;
     setUser(null);
     clearStoredUser();
-  }, [user?.token]);
+  };
 
   const value = useMemo(
     () => ({
@@ -95,13 +90,12 @@ export function AuthProvider({ children }) {
         setUser(next);
       },
     }),
-    [user, logout]
+    [user]
   );
 
-  if (restoreError) return <div role="alert" className="p-6 text-center"><p>{restoreError}</p><button onClick={()=>window.location.reload()} className="mt-3 underline">Reintentar comprobación de sesión</button></div>;
   if (restoring) return <p role="status" className="p-6 text-center">Comprobando sesión...</p>;
 
-  return <AuthContext.Provider value={value}>{logoutNotice&&<p role="alert" className="p-3 text-amber-800">{logoutNotice}</p>}{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

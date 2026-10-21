@@ -1,32 +1,20 @@
--- Instalacion inicial: solo para una base nueva sin tablas. No ejecutar sobre la BD existente.
-CREATE DATABASE IF NOT EXISTS gtel_talento
-  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- Esquema DDL Unificado GTEL Talento ATS
+-- Compatible con MySQL 8.4, MariaDB y H2 (Modo MySQL)
 
-USE gtel_talento;
-
--- ============================
--- 1. ROLES
--- ============================
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(50) NOT NULL UNIQUE,      -- 'CANDIDATO', 'RECLUTADOR'
+  nombre VARCHAR(50) NOT NULL UNIQUE,
   descripcion VARCHAR(150)
 );
 
--- ============================
--- 2. DEPARTAMENTOS
--- ============================
-CREATE TABLE departamentos (
+CREATE TABLE IF NOT EXISTS departamentos (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(80) NOT NULL UNIQUE,      -- 'Ventas', 'Soporte Técnico', etc.
+  nombre VARCHAR(80) NOT NULL UNIQUE,
   descripcion VARCHAR(200),
   estado ENUM('activo','inactivo') DEFAULT 'activo'
 );
 
--- ============================
--- 3. USUARIOS (acceso al sistema)
--- ============================
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(150) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
@@ -38,10 +26,7 @@ CREATE TABLE usuarios (
   FOREIGN KEY (rol_id) REFERENCES roles(id)
 );
 
--- ============================
--- 4. POSTULANTES (perfil profesional, 1:1 con usuarios candidato)
--- ============================
-CREATE TABLE postulantes (
+CREATE TABLE IF NOT EXISTS postulantes (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   usuario_id BIGINT NOT NULL UNIQUE,
   nombres VARCHAR(100) NOT NULL,
@@ -57,13 +42,10 @@ CREATE TABLE postulantes (
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
--- ============================
--- 5. REQUERIMIENTOS DE PERSONAL
--- ============================
-CREATE TABLE requerimientos_personal (
+CREATE TABLE IF NOT EXISTS requerimientos_personal (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   departamento_id BIGINT NOT NULL,
-  solicitante_id BIGINT NOT NULL,            -- usuario que solicita (reclutador/gerente)
+  solicitante_id BIGINT NOT NULL,
   titulo VARCHAR(150) NOT NULL,
   descripcion TEXT,
   cantidad INT DEFAULT 1,
@@ -75,12 +57,9 @@ CREATE TABLE requerimientos_personal (
   FOREIGN KEY (solicitante_id) REFERENCES usuarios(id)
 );
 
--- ============================
--- 6. VACANTES
--- ============================
-CREATE TABLE vacantes (
+CREATE TABLE IF NOT EXISTS vacantes (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  requerimiento_id BIGINT NULL,              -- opcional
+  requerimiento_id BIGINT NULL,
   titulo VARCHAR(150) NOT NULL,
   departamento_id BIGINT NOT NULL,
   reclutador_id BIGINT NOT NULL,
@@ -91,7 +70,7 @@ CREATE TABLE vacantes (
   modalidad ENUM('presencial','remoto','hibrido') NOT NULL,
   sede VARCHAR(150),
   fecha_publicacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  fecha_limite_postulacion DATE,             -- Actualizado de fecha_limite
+  fecha_limite_postulacion DATE,
   fecha_cierre DATE NULL,
   descripcion TEXT,
   nivel_educativo VARCHAR(80),
@@ -103,12 +82,9 @@ CREATE TABLE vacantes (
   FOREIGN KEY (reclutador_id) REFERENCES usuarios(id)
 );
 
--- ============================
--- 7. POSTULACIONES
--- ============================
-CREATE TABLE postulaciones (
+CREATE TABLE IF NOT EXISTS postulaciones (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  codigo VARCHAR(30) UNIQUE,                 -- ej. GTEL-2026-0847
+  codigo VARCHAR(30) UNIQUE,
   postulante_id BIGINT NOT NULL,
   vacante_id BIGINT NOT NULL,
   puntaje_general INT,
@@ -118,25 +94,19 @@ CREATE TABLE postulaciones (
   FOREIGN KEY (vacante_id) REFERENCES vacantes(id)
 );
 
--- ============================
--- 8. TIMELINE DE POSTULACIÓN
--- ============================
-CREATE TABLE postulacion_timeline (
+CREATE TABLE IF NOT EXISTS postulacion_timeline (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   postulacion_id BIGINT NOT NULL,
   estado_anterior VARCHAR(50),
   estado_nuevo VARCHAR(50) NOT NULL,
   comentario VARCHAR(255),
-  fecha_cambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Actualizado de fecha
-  usuario_id BIGINT,                         -- quién generó el cambio (puede ser NULL si es automático)
+  fecha_cambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  usuario_id BIGINT,
   FOREIGN KEY (postulacion_id) REFERENCES postulaciones(id),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
--- ============================
--- 9. ENTREVISTAS
--- ============================
-CREATE TABLE entrevistas (
+CREATE TABLE IF NOT EXISTS entrevistas (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   postulacion_id BIGINT NOT NULL,
   fecha DATE NOT NULL,
@@ -148,39 +118,30 @@ CREATE TABLE entrevistas (
   FOREIGN KEY (postulacion_id) REFERENCES postulaciones(id)
 );
 
--- ============================
--- 10. EVALUACIONES
--- ============================
-CREATE TABLE evaluaciones (
+CREATE TABLE IF NOT EXISTS evaluaciones (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   postulacion_id BIGINT NOT NULL,
-  tipo_evaluacion VARCHAR(100) NOT NULL,    -- 'Prueba de Inglés', 'Evaluación de Ventas'
+  tipo_evaluacion VARCHAR(100) NOT NULL,
   puntaje_total INT NOT NULL,
   tiempo_min INT,
   resultado ENUM('aprobado','en_revision','no_aprobado') NOT NULL,
-  fecha_evaluacion DATE DEFAULT (CURRENT_DATE), -- Actualizado de fecha
-  usuario_id BIGINT,                         -- quién evaluó
+  fecha_evaluacion DATE,
+  usuario_id BIGINT,
   FOREIGN KEY (postulacion_id) REFERENCES postulaciones(id),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
--- ============================
--- 11. DETALLE DE EVALUACIÓN
--- ============================
-CREATE TABLE evaluacion_detalle (
+CREATE TABLE IF NOT EXISTS evaluacion_detalle (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   evaluacion_id BIGINT NOT NULL,
-  criterio VARCHAR(100) NOT NULL,            -- 'Comprensión oral', 'Técnicas de cierre'
+  criterio VARCHAR(100) NOT NULL,
   puntaje INT NOT NULL,
   porcentaje INT,
   observacion VARCHAR(255),
   FOREIGN KEY (evaluacion_id) REFERENCES evaluaciones(id)
 );
 
--- ============================
--- 12. AUDITORÍA
--- ============================
-CREATE TABLE auditoria (
+CREATE TABLE IF NOT EXISTS auditoria (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   tabla_afectada VARCHAR(50) NOT NULL,
   registro_id BIGINT NOT NULL,
@@ -188,13 +149,12 @@ CREATE TABLE auditoria (
   detalle VARCHAR(255),
   usuario_id BIGINT,
   fecha_accion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  actor_id_historico BIGINT NULL,
+  actor_email_historico VARCHAR(150) NULL,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
-INSERT INTO roles (nombre, descripcion) VALUES ('CANDIDATO', 'Postulante'), ('RECLUTADOR', 'Gestion de reclutamiento');
 
--- Aplicar una vez en gtel_talento antes de iniciar la version con OTP.
--- No modifica cuentas existentes. Tiempos UTC expresados en epoch milisegundos.
-CREATE TABLE auth_email_challenges (
+CREATE TABLE IF NOT EXISTS auth_email_challenges (
   usuario_id BIGINT NOT NULL PRIMARY KEY,
   session_id VARCHAR(36) NOT NULL UNIQUE,
   email VARCHAR(150) NOT NULL,
@@ -206,56 +166,80 @@ CREATE TABLE auth_email_challenges (
   attempts INT NOT NULL DEFAULT 0,
   sends INT NOT NULL DEFAULT 0,
   consumed BOOLEAN NOT NULL DEFAULT FALSE,
-  CONSTRAINT fk_auth_challenge_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
 
-INSERT INTO roles(nombre,descripcion) VALUES ('ADMIN','Administrador del sistema');
-
--- Aplicar manualmente despues de 003. No elimina ni modifica registros existentes.
-USE gtel_talento;
 CREATE TABLE IF NOT EXISTS perfiles_contacto (
- usuario_id BIGINT PRIMARY KEY,
- nombres VARCHAR(100) NOT NULL, apellidos VARCHAR(100) NOT NULL,
- telefono VARCHAR(16), ubicacion VARCHAR(100), localidad VARCHAR(100),
- correo_contacto VARCHAR(150), foto MEDIUMTEXT,
- educacion TEXT, experiencia TEXT,
- FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+  usuario_id BIGINT PRIMARY KEY,
+  nombres VARCHAR(100) NOT NULL,
+  apellidos VARCHAR(100) NOT NULL,
+  telefono VARCHAR(16),
+  ubicacion VARCHAR(100),
+  localidad VARCHAR(100),
+  correo_contacto VARCHAR(150),
+  foto MEDIUMTEXT,
+  educacion TEXT,
+  experiencia TEXT,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
 CREATE TABLE IF NOT EXISTS documentos_postulacion (
- postulacion_id BIGINT PRIMARY KEY,
- nombre VARCHAR(150) NOT NULL, contenido LONGBLOB NOT NULL,
- datos_personales JSON NOT NULL,
- FOREIGN KEY (postulacion_id) REFERENCES postulaciones(id)
-) ENGINE=InnoDB;
+  postulacion_id BIGINT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL,
+  contenido LONGBLOB NOT NULL,
+  datos_personales JSON NOT NULL,
+  FOREIGN KEY (postulacion_id) REFERENCES postulaciones(id)
+);
+
 CREATE TABLE IF NOT EXISTS recuperacion_acceso (
- usuario_id BIGINT PRIMARY KEY, token_hash VARCHAR(64) NOT NULL UNIQUE,
- expira BIGINT NOT NULL, solicitado BIGINT NOT NULL,
- FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+  usuario_id BIGINT PRIMARY KEY,
+  token_hash VARCHAR(64) NOT NULL UNIQUE,
+  expira BIGINT NOT NULL,
+  solicitado BIGINT NOT NULL,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
 CREATE TABLE IF NOT EXISTS notificaciones (
- id BIGINT AUTO_INCREMENT PRIMARY KEY,
- usuario_id BIGINT NOT NULL, titulo VARCHAR(150) NOT NULL, mensaje VARCHAR(1000) NOT NULL,
- fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP, leida BOOLEAN NOT NULL DEFAULT FALSE,
- enviada BOOLEAN NOT NULL DEFAULT FALSE, intentos INT NOT NULL DEFAULT 0,
- proximo_intento BIGINT NOT NULL DEFAULT 0,
- FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
--- Los duplicados se evitan en el servicio bloqueando la fila del postulante.
--- No se elimina informacion previa para imponer una restriccion UNIQUE retroactiva.
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id BIGINT NOT NULL,
+  titulo VARCHAR(150) NOT NULL,
+  mensaje VARCHAR(1000) NOT NULL,
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  leida BOOLEAN NOT NULL DEFAULT FALSE,
+  enviada BOOLEAN NOT NULL DEFAULT FALSE,
+  intentos INT NOT NULL DEFAULT 0,
+  proximo_intento BIGINT NOT NULL DEFAULT 0,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
 
--- Ejecutar después de 004. No elimina datos existentes.
-USE gtel_talento;
 CREATE TABLE IF NOT EXISTS vacantes_papelera (
- vacante_id BIGINT PRIMARY KEY,
- eliminada_en BIGINT NOT NULL,
- eliminar_despues BIGINT NOT NULL,
- usuario_id BIGINT NOT NULL,
- FOREIGN KEY (vacante_id) REFERENCES vacantes(id),
- FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
- INDEX idx_papelera_vencimiento (eliminar_despues)
-) ENGINE=InnoDB;
+  vacante_id BIGINT PRIMARY KEY,
+  eliminada_en BIGINT NOT NULL,
+  eliminar_despues BIGINT NOT NULL,
+  usuario_id BIGINT NOT NULL,
+  FOREIGN KEY (vacante_id) REFERENCES vacantes(id),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
 
--- Aplicar una sola vez después de 005, antes de reiniciar.
-USE gtel_talento;
-ALTER TABLE auditoria ADD COLUMN actor_id_historico BIGINT NULL;
-ALTER TABLE auditoria ADD COLUMN actor_email_historico VARCHAR(150) NULL;
+CREATE TABLE IF NOT EXISTS solicitudes_arco (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id BIGINT NOT NULL,
+  tipo_derecho ENUM('acceso','rectificacion','cancelacion','oposicion') NOT NULL,
+  motivo TEXT NOT NULL,
+  estado ENUM('pendiente','en_proceso','aprobada','rechazada') DEFAULT 'pendiente',
+  fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_respuesta TIMESTAMP NULL,
+  respuesta TEXT,
+  atendido_por BIGINT NULL,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+  FOREIGN KEY (atendido_por) REFERENCES usuarios(id)
+);
+
+INSERT INTO roles (id, nombre, descripcion) VALUES
+  (1, 'CANDIDATO', 'Postulante'),
+  (2, 'RECLUTADOR', 'Gestion de reclutamiento'),
+  (3, 'ADMIN', 'Administrador del sistema'),
+  (4, 'JEFATURA', 'Jefatura de area'),
+  (5, 'ANALISTA', 'Analista de seleccion'),
+  (6, 'ENTREVISTADOR', 'Entrevistador tecnico')
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);

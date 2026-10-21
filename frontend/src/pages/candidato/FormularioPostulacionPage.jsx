@@ -1,8 +1,9 @@
 import { useParams } from "react-router-dom";
-import useJobs from "../../hooks/useJobs";
-import { useRef, useState } from "react";
+import { getJobs } from "../../utils/jobsData";
+import { getPublicJob } from "../../services/jobService";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Upload, FileText, Shield, CheckCircle, Clock, DollarSign, MapPin, ChevronRight, X, User, Phone, CreditCard, Mail, CalendarDays, ArrowLeft } from "lucide-react";
+import { Upload, FileText, Shield, CheckCircle, Clock, DollarSign, MapPin, ChevronRight, X, User, Phone, CreditCard, Mail, CalendarDays, ArrowLeft, RefreshCw } from "lucide-react";
 import { createApplication } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { validateApplication, validateCv } from "../../utils/formValidation";
@@ -12,15 +13,54 @@ export default function ApplicationForm() {
     id
   } = useParams();
   const { user } = useAuth();
-  const {jobs,loading:jobsLoading,error:jobsError}=useJobs();
-  const job=jobs.find(item=>String(item.id)===id);
-  const [personalData, setPersonalData] = useState({ nombres:user.nombres || '', apellidos:user.apellidos || '', email:user.email || '', telefono:user.telefono || '', dni:'', fechaNacimiento:'', distrito:'', motivacion:'' });
+  const [job, setJob] = useState(() => getJobs().find(item => String(item.id) === id) || null);
+  const [jobLoading, setJobLoading] = useState(!job);
+
+  useEffect(() => {
+    let active = true;
+    if (!job || String(job.id) !== id) {
+      setJobLoading(true);
+      getPublicJob(id)
+        .then(data => {
+          if (active && data) setJob(data);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (active) setJobLoading(false);
+        });
+    }
+    return () => { active = false; };
+  }, [id, job]);
+
+  const [personalData, setPersonalData] = useState({
+    nombres: user?.nombres || '',
+    apellidos: user?.apellidos || '',
+    email: user?.email || '',
+    telefono: user?.telefono || '',
+    dni: '',
+    fechaNacimiento: '',
+    distrito: '',
+    motivacion: ''
+  });
+
+  useEffect(() => {
+    if (user) {
+      setPersonalData(prev => ({
+        ...prev,
+        nombres: prev.nombres || user.nombres || '',
+        apellidos: prev.apellidos || user.apellidos || '',
+        email: prev.email || user.email || '',
+        telefono: prev.telefono || user.telefono || ''
+      }));
+    }
+  }, [user]);
+
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState({});
   const [sending, setSending] = useState(false);
   const busy = useRef(false);
   const [receipt, setReceipt] = useState(null);
-  const updateField = event => setPersonalData(previous => ({ ...previous, [event.target.name]:event.target.value }));
+  const updateField = event => setPersonalData(previous => ({ ...previous, [event.target.name]: event.target.value }));
   const fieldError = name => errors[name] && <p id={name + '-error'} role="alert" className="mt-1 text-xs text-red-600">{errors[name]}</p>;
   const nextStep = () => {
     const next = validateApplication(personalData, uploadedFile, termsAccepted, currentStep);
@@ -36,14 +76,26 @@ export default function ApplicationForm() {
     if (busy.current || !job) return;
     const next = validateApplication(personalData, uploadedFile, termsAccepted);
     setErrors(next);
-    if (Object.keys(next).length) { setCurrentStep(Object.keys(next).some(key => !['cv', 'terms'].includes(key)) ? 1 : next.cv ? 2 : 3); return; }
-    busy.current = true; setSending(true); setSubmitError('');
+    if (Object.keys(next).length) {
+      setCurrentStep(Object.keys(next).some(key => !['cv', 'terms'].includes(key)) ? 1 : next.cv ? 2 : 3);
+      return;
+    }
+    busy.current = true;
+    setSending(true);
+    setSubmitError('');
     try {
-      const normalized = Object.fromEntries(Object.entries(personalData).map(([key,value]) => [key,value.trim()]));
-      const result = await createApplication(job, { personalData:normalized, cv:uploadedFile, termsAccepted }, user);
-      setReceipt(result); setSubmitted(true);
-    } catch (error) { setSubmitError(error.message); }
-    finally { busy.current = false; setSending(false); }
+      const normalized = Object.fromEntries(
+        Object.entries(personalData).map(([key, value]) => [key, typeof value === 'string' ? value.trim() : (value || '')])
+      );
+      const result = await createApplication(job, { personalData: normalized, cv: uploadedFile, termsAccepted }, user);
+      setReceipt(result);
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(error.message || 'Error al procesar la postulación. Por favor intenta de nuevo.');
+    } finally {
+      busy.current = false;
+      setSending(false);
+    }
   };
   const selectFile = file => {
     if (!file) return;
@@ -62,8 +114,7 @@ export default function ApplicationForm() {
     selectFile(file);
     e.target.value = '';
   };
-  if(jobsLoading)return <p role="status" className="p-6">Cargando oferta…</p>;
-  if(jobsError)return <p role="alert" className="p-6">{jobsError}</p>;
+  if (jobLoading) return <div className="mx-auto max-w-3xl px-4 py-20 text-center"><RefreshCw className="w-8 h-8 mx-auto text-[#D32F2F] animate-spin mb-3" /><p className="text-sm text-brand-gray">Cargando convocatoria...</p></div>;
   if (!job) return <div className="mx-auto max-w-3xl px-4 py-16 text-center"><h1 className="text-2xl font-bold text-brand-navy">Oferta no encontrada</h1><p className="my-4 text-brand-gray">La oferta solicitada no existe o ya no está disponible.</p><Link to="/ofertas" className="text-brand-red underline">Volver a Ofertas Laborales</Link></div>;
   if (submitted) {
     return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4">
@@ -71,13 +122,13 @@ export default function ApplicationForm() {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <h2 className="text-xl font-bold text-[#1E293B] mb-2">¡Postulación enviada!</h2>
+          <h2 className="text-xl font-bold text-[#1E293B] mb-2">¡Postulación enviada con éxito!</h2>
           <p className="text-sm text-[#475569] mb-6">
-            Tu postulación y tu CV se guardaron correctamente. Puedes consultar su avance en Mis postulaciones.
+            Tu postulación ha sido registrada en el sistema de selección de GTEL Telecomunicaciones. Hemos recibido tus datos y tu currículum de manera segura.
           </p>
           <div className="bg-[#F8FAFC] rounded-xl p-4 mb-6 text-left">
             <div className="text-xs font-semibold text-[#1E293B] mb-2">Código de seguimiento</div>
-            <div className="text-sm font-mono text-[#D32F2F] font-bold">{receipt?.code}</div>
+            <div className="text-sm font-mono text-[#D32F2F] font-bold">{receipt?.code || receipt?.codigo}</div>
           </div>
           <div className="flex gap-3">
             <Link to="/ofertas" className="flex-1 border border-gray-200 text-[#475569] py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors text-center">
@@ -187,7 +238,6 @@ export default function ApplicationForm() {
                         <option>La Molina</option>
                         <option>Barranco</option>
                       </select>
-                      {fieldError('distrito')}
                     </div>
                   </div>
                 </div>
@@ -197,13 +247,13 @@ export default function ApplicationForm() {
                 <h2 className="font-bold text-[#1E293B] mb-5">Sube tu CV</h2>
 
                 {fieldError('cv')}
-                <p className="mb-3 text-xs text-brand-gray">Adjunta tu CV en PDF (máximo 5 MB). Se enviará al confirmar la postulación.</p>
+                <p className="mb-3 text-xs text-brand-gray">Modo demo: se conservan solo los metadatos del CV. El archivo permanece en memoria mientras completas este formulario.</p>
                 {/* Drag & Drop */}
                 <label onDragOver={e => {
               e.preventDefault();
               setDragOver(true);
             }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop} className={`block border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all ${dragOver ? "border-[#D32F2F] bg-[#D32F2F]/5" : uploadedFile ? "border-green-400 bg-green-50" : "border-gray-200 hover:border-[#D32F2F]/50 hover:bg-[#F8FAFC]"}`}>
-                  <input type="file" className="hidden" accept=".pdf" onChange={handleFileInput} />
+                  <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileInput} />
                   {uploadedFile ? <div>
                       <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3">
                         <FileText className="w-6 h-6 text-green-600" />
@@ -222,7 +272,7 @@ export default function ApplicationForm() {
                       </div>
                       <p className="text-sm font-semibold text-[#1E293B]">Arrastra tu CV aquí</p>
                       <p className="text-xs text-[#475569] mt-1">o haz clic para seleccionar</p>
-                      <p className="text-[10px] text-gray-400 mt-2">PDF — máx. 5 MB</p>
+                      <p className="text-[10px] text-gray-400 mt-2">PDF, DOC, DOCX — máx. 5 MB</p>
                     </div>}
                 </label>
 

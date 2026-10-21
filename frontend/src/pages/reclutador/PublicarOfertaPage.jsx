@@ -1,19 +1,46 @@
-import { publishJob as saveJob } from "../../services/api";
+import { publishJob as saveJob, getRecruiterDepartments } from "../../services/api";
 import { validateJob } from "../../utils/formValidation";
-import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Bold, Italic, List, AlignLeft, Minus, Save, X, ChevronDown, FileText, DollarSign, MapPin, Clock, Users, Tag, AlertCircle } from "lucide-react";
 export default function PublishJob() {
-  const [title, setTitle] = useState("");
+  const [searchParams] = useSearchParams();
+  const [title, setTitle] = useState(searchParams.get("title") || "");
   const [type, setType] = useState("Full-Time");
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [published, setPublished] = useState(false);
-  const [details, setDetails] = useState({ department:'', vacancies:'', modality:'Presencial', deadline:'', education:'Secundaria completa', experience:'Sin experiencia', tags:'' });
+  const [departments, setDepartments] = useState([
+    { id: 1, name: "Ventas y Comercial" },
+    { id: 2, name: "Atención al Cliente" },
+    { id: 3, name: "Soporte Técnico e IT" },
+    { id: 4, name: "Recursos Humanos" },
+    { id: 5, name: "Operaciones Call Center" }
+  ]);
+  const [details, setDetails] = useState({
+    department: searchParams.get("department") || '',
+    vacancies: searchParams.get("vacancies") || '',
+    modality: 'Presencial',
+    deadline: '',
+    education: 'Secundaria completa',
+    experience: 'Sin experiencia',
+    tags: ''
+  });
   const [errors, setErrors] = useState({});
   const [saveError, setSaveError] = useState('');
+
+  useEffect(() => {
+    getRecruiterDepartments()
+      .then(list => {
+        if (Array.isArray(list) && list.length > 0) {
+          setDepartments(list);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const updateDetail = event => setDetails(previous => ({ ...previous, [event.target.name]:event.target.value }));
   const fieldError = name => errors[name] && <p role="alert" className="mt-1 text-xs text-red-600">{errors[name]}</p>;
   const [saving, setSaving] = useState(false);
@@ -88,12 +115,10 @@ export default function PublishJob() {
                 </label>
                 <div className="relative">
                   <select name="department" value={details.department} onChange={updateDetail} className="w-full appearance-none px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]">
-                    <option value="">Selecciona un área</option><option>Ventas</option>
-                    <option>Soporte Técnico</option>
-                    <option>Supervisión</option>
-                    <option>Recursos Humanos</option>
-                    <option>Calidad</option>
-                    <option>Operaciones</option>
+                    <option value="">Selecciona un área</option>
+                    {departments.map(d => (
+                      <option key={d.id || d.name} value={d.name}>{d.name}</option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>{fieldError('department')}
@@ -198,7 +223,7 @@ export default function PublishJob() {
           }].map(({
             icon: Icon,
             tip
-          }) => <button hidden disabled key={tip} title={`${tip}: formato pendiente de implementación`} className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors">
+          }) => <button disabled key={tip} title={`${tip}: formato pendiente de implementación`} className="p-1.5 text-[#475569] hover:text-[#1E293B] hover:bg-gray-100 rounded transition-colors">
                 <Icon className="w-4 h-4" />
               </button>)}
             <div className="w-px h-4 bg-gray-200 mx-1" />
@@ -260,7 +285,7 @@ export default function PublishJob() {
             <X className="w-4 h-4" />
             Cancelar
           </Link>
-          <button hidden disabled title="Borradores pendientes de integración" className="flex items-center gap-2 px-6 py-2.5 border border-[#D32F2F] text-[#D32F2F] rounded-lg text-sm font-medium hover:bg-[#D32F2F]/5 transition-colors">
+          <button disabled title="Borradores pendientes de integración" className="flex items-center gap-2 px-6 py-2.5 border border-[#D32F2F] text-[#D32F2F] rounded-lg text-sm font-medium hover:bg-[#D32F2F]/5 transition-colors">
             Guardar borrador
           </button>
           <button disabled={saving} onClick={publishJob} className="flex items-center gap-2 px-6 py-2.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white rounded-lg text-sm font-semibold transition-colors">

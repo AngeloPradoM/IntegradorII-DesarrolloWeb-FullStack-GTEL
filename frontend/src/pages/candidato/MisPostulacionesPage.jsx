@@ -5,6 +5,10 @@ import { Link } from "react-router-dom";
 import { CheckCircle, Clock, Eye, MessageSquare, XCircle, Briefcase, CalendarDays, ChevronRight, Plus } from "lucide-react";
 const statusMap = {
   recibida: { label:"Recibida", color:"bg-slate-100 text-slate-700", icon:Clock },
+  en_revision: { label: "En revisión", color: "bg-yellow-100 text-yellow-700", icon: Eye },
+  entrevista: { label: "Entrevista", color: "bg-blue-100 text-blue-700", icon: MessageSquare },
+  aprobada: { label: "Aprobado", color: "bg-green-100 text-green-700", icon: CheckCircle },
+  rechazada: { label: "No avanzó", color: "bg-red-100 text-[#D32F2F]", icon: XCircle },
   interview: {
     label: "Entrevista",
     color: "bg-blue-100 text-blue-700",
@@ -64,11 +68,11 @@ export default function MyApplications() {
           color: "text-[#1E293B]"
         }, {
           label: "En proceso",
-          value: applications.filter(item => !['rejected','approved'].includes(item.status)).length,
+          value: applications.filter(item => !['rejected','approved','rechazada','aprobada'].includes(item.status)).length,
           color: "text-blue-600"
         }, {
           label: "Entrevistas",
-          value: applications.filter(item => item.status === 'interview').length,
+          value: applications.filter(item => ['interview','entrevista'].includes(item.status)).length,
           color: "text-green-600"
         }].map(({
           label,
@@ -141,7 +145,7 @@ export default function MyApplications() {
                       </div>)}
                   </div>
 
-                  {app.status !== "rejected" && <div className="flex gap-2 pt-2 border-t border-gray-50">
+                  {app.status !== "rejected" && app.status !== "rechazada" && <div className="flex gap-2 pt-2 border-t border-gray-50">
                       <Link to={`/ofertas/${app.jobId}`} className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-[#475569] py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
                         <Eye className="w-3.5 h-3.5" />
                         Ver oferta
