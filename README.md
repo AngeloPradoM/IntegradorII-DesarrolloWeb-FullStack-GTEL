@@ -37,6 +37,7 @@ El sistema cuenta con todos los módulos de negocio implementados y conectados c
 
 ### Contenido
 
+- [Despliegue rápido con Docker](#despliegue-rápido-con-docker): ejecución multi-contenedor sin dependencias locales.
 - [Frontend](#frontend): instalación, configuración y ejecución de React.
 - [Backend](#backend): MySQL, configuración y ejecución de Spring Boot.
 - [Credenciales de prueba](#6-credenciales-de-prueba).
@@ -44,6 +45,25 @@ El sistema cuenta con todos los módulos de negocio implementados y conectados c
 - [Administración y permisos](#11-administración-y-permisos).
 - [Trabajo colaborativo](#12-trabajo-colaborativo).
 
+# Despliegue rápido con Docker
+
+Para ejecutar la arquitectura completa (Frontend React con Nginx, Backend Spring Boot y Base de Datos MySQL 8) sin necesidad de instalar Java, Maven, Node.js ni MySQL en el equipo:
+
+1. Asegurarse de tener **Docker Desktop** abierto y en ejecución.
+2. Abrir una terminal en el directorio del proyecto y ejecutar:
+   ```bash
+   docker compose up -d
+   ```
+3. Acceso a los servicios:
+   - **Frontend Web:** [http://localhost:3000](http://localhost:3000)
+   - **Swagger UI (Documentación API):** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+   - **MySQL 8:** Puerto 3307 (Usuario: `gtel_user`, Contraseña: `GtelSecure2026*`, Base de datos: `gtel_talento`)
+4. Para detener los contenedores:
+   ```bash
+   docker compose down
+   ```
+
+---
 # Frontend
 
 Interfaz web para consultar ofertas, registrar candidatos, iniciar sesión y acceder a las pantallas de postulaciones y reclutamiento.

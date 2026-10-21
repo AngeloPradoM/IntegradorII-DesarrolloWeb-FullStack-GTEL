@@ -21,7 +21,7 @@ services:
       MYSQL_USER: gtel_user
       MYSQL_PASSWORD: GtelSecure2026*
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/gtel_talento.sql:/docker-entrypoint-initdb.d/01_gtel_talento.sql:ro
@@ -52,7 +52,7 @@ services:
       DB_USERNAME: gtel_user
       DB_PASSWORD: GtelSecure2026*
       JPA_DDL_AUTO: none
-      FRONTEND_URL: http://localhost,http://localhost:80,http://localhost:5173,http://127.0.0.1
+      FRONTEND_URL: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:5173,http://127.0.0.1
       JWT_SECRET: 8038c15dee51ba3d4d72cf6387caff388dab09033fd5c21539fc79983e5e1a97b7253d2aa0ea5f455d13f3218158df20
       TEST_ACCESS_ENABLED: "true"
     ports:
@@ -76,7 +76,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "3000:80"
     networks:
       - gtel-network
 
