@@ -1,4 +1,36 @@
-# React + Vite
+# Frontend GTEL
+
+## Iniciar en Windows (PowerShell)
+
+Desde la raíz del repositorio:
+
+```powershell
+cd frontend
+npm.cmd install
+npm.cmd run dev
+```
+
+Abre la URL que muestra Vite en la terminal (normalmente http://localhost:5173).
+Mantén esa terminal abierta mientras usas la página. No abras `index.html`
+directamente ni mediante Live Server: el proyecto necesita Vite para procesar JSX.
+
+Si PowerShell indica que no puede cargar `npm.ps1` porque la ejecución de scripts
+está deshabilitada, usa `npm.cmd` como en los comandos anteriores. No hace falta
+cambiar la política de ejecución de Windows.
+
+Para comprobar la compilación: `npm.cmd run build`.
+
+Actualmente, sin `VITE_DATA_MODE=api`, la aplicación usa datos demo y puede
+iniciarse sin el backend. Para conectarla a la API, crea `frontend/.env` con:
+
+```dotenv
+VITE_DATA_MODE=api
+VITE_API_URL=http://localhost:8080
+```
+
+En ese modo, inicia también el backend y reinicia Vite después de cambiar `.env`.
+
+## Referencia de la plantilla React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

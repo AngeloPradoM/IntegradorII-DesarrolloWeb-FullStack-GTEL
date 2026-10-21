@@ -1,0 +1,62 @@
+name: GTEL quality
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: node --test tests/*.test.mjs
+      - run: npm run build
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: mvn -B clean test
+  mysql-contract:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: qa-root-only
+          MYSQL_DATABASE: gtel_qa_ci
+          MYSQL_USER: gtel_qa
+          MYSQL_PASSWORD: qa-disposable-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pqa-root-only"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: mvn -B -Dtest=ModuleWiringTest test
+        working-directory: backend
+        env:
+          QA_MYSQL_URL: jdbc:mysql://127.0.0.1:3306/gtel_qa_ci?allowPublicKeyRetrieval=true&useSSL=false
+          QA_MYSQL_USER: gtel_qa
+          QA_MYSQL_PASSWORD: qa-disposable-only

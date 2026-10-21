@@ -1,0 +1,39 @@
+
+.selection-workspace { max-width: 1440px; margin: 0 auto; color: #1e293b; }
+.selection-workspace [hidden] { display: none !important; }
+.selection-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.selection-heading h1 { font-size:clamp(1.4rem,3vw,1.85rem); font-weight:750; letter-spacing:-.035em; }
+.selection-heading p:not(.selection-eyebrow), .selection-help { color:#64748b; font-size:.875rem; margin:6px 0 16px; }
+.selection-eyebrow { color:#b91c1c; font-size:.7rem; font-weight:750; letter-spacing:.14em; margin-bottom:6px; }
+.selection-total { background:white; border:1px solid #e2e8f0; border-radius:24px; padding:8px 14px; font-size:.8rem; font-weight:600; }
+.selection-navigation { display:flex; gap:6px; padding:5px; border:1px solid #e2e8f0; background:#eef2f6; border-radius:14px; flex-wrap:wrap; }
+.selection-navigation button { flex:1; min-width:125px; padding:12px 16px; border-radius:10px; font-size:.875rem; font-weight:650; color:#475569; }
+.selection-navigation button[aria-pressed=true] { background:white; color:#b91c1c; box-shadow:0 2px 5px #0f172a10; }
+.selection-card { background:white; border:1px solid #e2e8f0; border-radius:16px; padding:24px; box-shadow:0 4px 16px #0f172a04; }
+.selection-card h2 { letter-spacing:-.025em; font-size:1.15rem; }
+.selection-card label { font-size:.875rem; font-weight:550; color:#334155; }
+.selection-card input,.selection-card select { border:1px solid #cbd5e1; border-radius:8px; background:#fff; padding:10px 12px; font-size:.875rem; color:#334155; min-height:44px; margin-top:6px; max-width:100%; }
+.selection-workspace :is(button,input,select,summary):focus-visible { outline:3px solid #e9a0a0; outline-offset:3px; }
+.selection-workspace button { cursor:pointer; transition:background .15s; }
+.selection-workspace button:disabled,.selection-workspace select:disabled { opacity:.55; cursor:not-allowed; }
+.selection-workspace button:hover:not(:disabled) { filter:brightness(.96); }
+.selection-card table { min-width:760px; font-size:.875rem; border-collapse:separate; border-spacing:0; }
+.selection-card th { background:#f8fafc; padding:12px; color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
+.selection-card td { padding:16px 12px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+.selection-card td:first-child { font-weight:600; min-width:210px; }
+.selection-card td small { font-weight:400; color:#64748b; overflow-wrap:anywhere; }
+.selection-card td select { min-width:140px; margin:0; }
+.selection-card td button { min-height:40px; text-align:left; font-size:.8rem; font-weight:650; }
+.selection-card details { font-weight:400; color:#64748b; }
+.selection-card details ol { border-left:2px solid #e2e8f0; margin-top:12px; padding-left:12px; display:grid; gap:8px; }
+.selection-row-selected { background:#fff5f5; }
+.selection-pagination { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:20px; font-size:.8rem; color:#64748b; }
+.selection-pagination div { display:flex; gap:8px; }
+.selection-pagination button,.selection-error button { border:1px solid #cbd5e1; padding:8px 12px; border-radius:8px; background:white; }
+.selection-empty { border:1px dashed #cbd5e1; border-radius:10px; padding:24px; text-align:center; color:#64748b; margin-top:16px; font-size:.875rem; }
+.selection-workspace [role=status] { background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:14px 18px; font-size:.875rem; color:#1e40af; }
+.selection-error { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#fff1f2; padding:14px; border:1px solid #fecdd3; border-radius:12px; color:#9f1239; }
+.selection-subtitle { font-size:.95rem; font-weight:700; padding-top:24px; margin:12px 0; border-top:1px solid #e2e8f0; }
+.selection-card fieldset { border:0; padding:0; min-width:0; }
+.selection-card label small { display:block; font-weight:400; }
+@media(max-width:640px) { .selection-card { padding:16px; } .selection-navigation button { padding:10px; min-width:90px; font-size:.8rem; } .selection-card h2 { font-size:1.05rem; } }
