@@ -1,5 +1,7 @@
 package pe.com.gtel.talento.recruitment.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.nio.charset.StandardCharsets;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -21,6 +23,7 @@ import pe.com.gtel.talento.recruitment.service.CvStorageService;
 
 @RestController
 @RequestMapping("/api/applications")
+@Tag(name = "3. Portal del Candidato", description = "Endpoints para registro de postulaciones con CV, consulta de estado personal y descarga de documentos.")
 public class ApplicationCvController {
 
     private final PostulacionRepository postulacionRepository;
@@ -38,6 +41,7 @@ public class ApplicationCvController {
 
     @GetMapping("/{id}/cv")
     @Transactional(readOnly = true)
+    @Operation(summary = "Descargar CV por identificador de postulación", description = "Descarga el archivo PDF de currículum asociado a la postulación especificada.")
     public ResponseEntity<Resource> downloadCv(@PathVariable Long id, Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Debes iniciar sesión para descargar documentos.");
