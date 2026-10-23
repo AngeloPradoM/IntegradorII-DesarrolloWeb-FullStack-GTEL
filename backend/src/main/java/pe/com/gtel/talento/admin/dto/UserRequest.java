@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 public record UserRequest(
     @NotBlank @Email @Size(max=150) String email,
     @Size(max=72) String password,
-    @NotNull @Pattern(regexp="CANDIDATO|RECLUTADOR|ADMIN") String rol,
+    @NotNull @Pattern(regexp="CANDIDATO|RECLUTADOR|TECNICO|ADMIN") String rol,
     @NotNull @Pattern(regexp="activo|inactivo") String estado,
     @Size(max=100) String nombres,
     @Size(max=100) String apellidos,

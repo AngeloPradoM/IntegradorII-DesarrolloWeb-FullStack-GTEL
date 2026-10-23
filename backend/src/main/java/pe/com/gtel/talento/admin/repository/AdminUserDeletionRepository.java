@@ -84,6 +84,17 @@ public class AdminUserDeletionRepository {
         jdbc.update("UPDATE postulacion_timeline SET usuario_id=NULL WHERE usuario_id=?",id);
     }
 
+    public void deleteSupportHistoryByActor(long id) {
+        jdbc.update("DELETE FROM ticket_soporte_historial WHERE actor_id=?",id);
+    }
+
+    public void deleteRequestedSupportTickets(long id) {
+        jdbc.update("DELETE FROM tickets_soporte WHERE solicitante_id=?",id);
+    }
+
+    public void detachSupportAssignments(long id) {
+        jdbc.update("UPDATE tickets_soporte SET tecnico_id=NULL,estado=CASE WHEN estado IN ('ASIGNADO','EN_ATENCION','EN_ESPERA') THEN 'NUEVO' ELSE estado END,updated_at=CURRENT_TIMESTAMP WHERE tecnico_id=?",id);
+    }
     public void deleteProfiles(long id) {
         jdbc.update("DELETE FROM postulantes WHERE usuario_id=?",id);
     }

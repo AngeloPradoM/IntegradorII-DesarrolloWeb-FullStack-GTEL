@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createServer } from 'vite';
 
 const storage = new Map();
 globalThis.localStorage = { getItem:key=>storage.get(key) || null, setItem:(key,value)=>storage.set(key,String(value)), removeItem:key=>storage.delete(key) };
-const server = await createServer({configFile:false,envDir:false,server:{middlewareMode:true},define:{'import.meta.env.VITE_DATA_MODE':'"mock"'}});
+const server = await createServer({cacheDir:join(tmpdir(),'gtel-vite-'+randomUUID()),optimizeDeps:{noDiscovery:true,include:[]},configFile:false,envDir:false,server:{middlewareMode:true},define:{'import.meta.env.VITE_DATA_MODE':'"mock"'}});
 try {
   const api = await server.ssrLoadModule('/src/services/api.js');
   const a={id:'candidate-a',rol:'CANDIDATO',token:crypto.randomUUID()};

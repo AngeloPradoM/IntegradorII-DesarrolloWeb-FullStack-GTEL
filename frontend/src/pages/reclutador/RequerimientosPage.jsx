@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   FileCheck2,
   Plus,
@@ -8,15 +8,11 @@ import {
   XCircle,
   Search,
   Building2,
-  Users,
-  Calendar,
   AlertCircle,
   X,
-  ChevronRight,
   Send,
   MessageSquare,
-  PlusSquare,
-  ArrowRight
+  PlusSquare
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import {

@@ -27,5 +27,6 @@ export function getDefaultRouteForRole(role) {
   if (role === "JEFATURA_SOLICITANTE") return "/reclutador/requerimientos";
   if (role === "ANALISTA_RRHH") return "/reclutador/dashboard";
   if (role === "ENTREVISTADOR") return "/reclutador/entrevistas";
+  if (role === "TECNICO") return "/tecnico/tickets";
   return "/mis-postulaciones";
 }

@@ -4,7 +4,7 @@ Registro, login, verificacion y reenvio usan Spring independientemente del modo 
 
 El panel `/admin` requiere ADMIN y usa la API real `/api/admin/users`. ADMIN puede abrir las vistas de candidato y reclutador. Las cuentas normales mantienen OTP; ocultar una ruta en React no reemplaza los permisos de Spring Security.
 
-Ver [README general](../../README.md) para configuracion, migracion SQL, limites y comandos de pruebas. Las cuentas nuevas requieren acceso a su buzon para iniciar sesion.
+Ver [README general](../../../README.md) para configuracion, migracion SQL, limites y comandos de pruebas. Las cuentas nuevas requieren acceso a su buzon para iniciar sesion.
 
 ## Prueba de navegador OTP
 

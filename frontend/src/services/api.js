@@ -95,7 +95,7 @@ function requireSession(body) {
 }
 
 function requireProfile(body) {
-  const validRoles = ['CANDIDATO', 'RECLUTADOR', 'ADMIN', 'JEFATURA_SOLICITANTE', 'ANALISTA_RRHH', 'ENTREVISTADOR'];
+  const validRoles = ['CANDIDATO', 'RECLUTADOR', 'ADMIN', 'JEFATURA_SOLICITANTE', 'ANALISTA_RRHH', 'ENTREVISTADOR', 'TECNICO'];
   if (body?.authenticated !== true || body.id == null || !body.email || !validRoles.includes(body.rol)) {
     throw new Error('Respuesta de autenticación inválida.');
   }
@@ -240,7 +240,9 @@ export async function getPrivacyPolicyInfo() {
       signal: AbortSignal.timeout(10000)
     });
     if (res.ok) return await res.json();
-  } catch (ignored) {}
+  } catch {
+    // La política pública local mantiene disponible esta información si la API no responde.
+  }
   return {
     ley: "Ley N° 29733 de Protección de Datos Personales (Perú)",
     reglamento: "Decreto Supremo N° 003-2013-JUS",

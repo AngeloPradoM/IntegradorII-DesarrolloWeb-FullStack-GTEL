@@ -8,3 +8,9 @@ otp.hash-secret=CLAVE_ALEATORIA_PRIVADA_DISTINTA_DE_JWT_MINIMO_32_BYTES
 
 # Solo desarrollo local; nunca habilitar con datos de produccion.
 app.security.test-access-enabled=false
+
+# Depuracion semanal de la Mesa de Ayuda (opcional; estos son los valores predeterminados).
+app.support.cleanup-enabled=true
+app.support.cleanup-retention-days=7
+app.support.cleanup-cron=0 0 2 * * MON
+app.support.cleanup-zone=America/Lima

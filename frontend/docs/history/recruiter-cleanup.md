@@ -1,5 +1,7 @@
 # Revisión del módulo reclutador y navegación
 
+> **Documento histórico.** Describe una etapa anterior; consulta `frontend/docs/README.md` y el código actual para conocer el estado vigente.
+
 ## Alcance
 
 Cambios limitados a frontend. Se conservan autenticación, OTP y funcionalidades demo del candidato. No se implementan endpoints ni se publican cambios en Git.

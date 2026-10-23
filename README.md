@@ -21,7 +21,7 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 
 ### Estado del proyecto
 
-Registro, autenticación y administración de usuarios están conectados con MySQL. El login obtiene el rol desde el servidor y solicita un código por correo, salvo las tres cuentas de prueba habilitadas expresamente. La integración completa de los módulos de negocio sigue pendiente. El laboratorio `index/` no es necesario para ejecutar frontend y backend.
+Registro, autenticación y administración de usuarios están conectados con MySQL. El login obtiene el rol desde el servidor y solicita un código por correo, salvo las cuentas de prueba habilitadas expresamente. La integración completa de los módulos de negocio sigue pendiente. El laboratorio `index/` no es necesario para ejecutar frontend y backend.
 
 ### Evolución Arquitectural — Rama `mejoras-agy` (Lote 0 Completado)
 - **Base de Datos Aislada:** Se configuró y habilitó la base de datos `gtel_talento_mejoras` para preservar intacta la base original `gtel_talento`.
@@ -220,7 +220,7 @@ Ejecutar la sentencia con `Ctrl + Enter` o la acción **Execute SQL Statement**.
 
 Abrir [backend/database/schema/gtel_talento.sql](backend/database/schema/gtel_talento.sql) mediante **SQL Editor → Open SQL Script**, asociarlo a la conexión y ejecutar el script completo con **Execute SQL Script**.
 
-El script incluye `CREATE DATABASE IF NOT EXISTS`, por lo que admite la base vacía creada en el paso anterior. Crea las tablas y los roles `CANDIDATO`, `RECLUTADOR` y `ADMIN`. Las cuentas de desarrollo se habilitan explícitamente como se indica abajo.
+El script incluye `CREATE DATABASE IF NOT EXISTS`, por lo que admite la base vacía creada en el paso anterior. Crea las tablas y los roles `CANDIDATO`, `RECLUTADOR`, `ADMIN` y `TECNICO`. Las cuentas de desarrollo se habilitan explícitamente como se indica abajo.
 
 **Aplicar solo en una base sin tablas.** No volver a ejecutar el script inicial sobre una BD con datos. La migración histórica `001_postulante_telefono.sql` tampoco se aplica si ya existe la columna `telefono`.
 
@@ -239,6 +239,9 @@ Conservar los datos y revisar qué cambios faltan antes de ejecutar SQL. Los scr
 | `001_postulante_telefono.sql` | Solo si falta `postulantes.telefono` |
 | [002_email_otp.sql](backend/database/migrations/002_email_otp.sql) | Solo si falta la tabla `auth_email_challenges` |
 | [003_admin_access.sql](backend/database/migrations/003_admin_access.sql) | Una vez, para incorporar ADMIN, `usuarios.auth_version` y `usuarios.otp_exempt` |
+| [007_support_tickets.sql](backend/database/migrations/007_support_tickets.sql) | Una vez, para incorporar el rol TECNICO, su cuenta local de prueba y las tablas de tickets en una BD existente |
+| [008_notification_schema_compatibility.sql](backend/database/migrations/008_notification_schema_compatibility.sql) | Después de la 007, para adaptar instalaciones existentes al esquema actual de notificaciones y evitar que el envío de avisos revierta un ticket |
+| [009_support_ticket_lifecycle.sql](backend/database/migrations/009_support_ticket_lifecycle.sql) | Después de la 008, normaliza los estados, relaciona la trazabilidad y crea el archivo resumido para la depuración semanal |
 
 El esquema inicial actualizado incluye estos cambios. No ejecutar las migraciones sobre una instalación nueva creada con ese esquema. Si una migración se aplicó parcialmente, revisar las columnas existentes antes de continuar.
 
@@ -351,10 +354,11 @@ Las pruebas unitarias no crean usuarios en MySQL y no sustituyen la comprobació
 | Administrador | `ADMIN` (3) | `Administrador@gmail.com` | `AdminSecure2026*` |
 | Candidato | `CANDIDATO` | `postulante1@gmail.com` | `Postulante2026!` |
 | Reclutador | `RECLUTADOR` | `reclutador1@gmail.com` | `Reclutador2026!` |
+| Técnico de sistemas | `TECNICO` | `tecnico1@gmail.com` | `Tecnico2026!` |
 
-Estas tres cuentas ingresan sin código de verificación cuando el acceso local de pruebas está habilitado. Las demás cuentas mantienen la verificación por correo.
+Estas cuatro cuentas ingresan sin código de verificación cuando el acceso local de pruebas está habilitado. Las demás cuentas mantienen la verificación por correo.
 
-Con `app.security.test-access-enabled=true` en `backend/config/local.properties`, el arranque crea las tres cuentas si faltan y almacena BCrypt. No reemplaza contraseñas ni eleva roles de cuentas existentes; solo habilita cuentas existentes si coinciden el rol y la contraseña de prueba. El registro público solo crea candidatos.
+Con `app.security.test-access-enabled=true` en `backend/config/local.properties`, `DevelopmentAccounts` crea o sincroniza las cuentas locales configuradas, incluidas las cuatro documentadas: actualiza su hash BCrypt, rol, estado y excepción OTP. Esta sincronización es exclusiva para desarrollo. El registro público solo crea candidatos.
 
 Los IDs de los roles se consultan en `roles`; no asumir que siempre serán 1 y 2. Son credenciales públicas de desarrollo, no de producción ni de Gmail. Antes de activar correos reales, utilizar direcciones controladas por el equipo.
 
@@ -368,6 +372,7 @@ backend/
 │   ├── admin/                      # Gestión de usuarios: controller, service, dto
 │   ├── identity/                   # Usuarios y perfiles: entity, repository
 │   ├── recruitment/                # Reclutamiento: controller, service, repository
+│   ├── support/                    # Mesa de ayuda: tickets, asignación y autorización
 │   ├── mail/                       # Envío SMTP de códigos
 │   ├── health/                     # Endpoint de salud
 │   ├── config/                     # Configuración Spring y CORS
@@ -407,6 +412,11 @@ Esquema: `gtel_talento`, codificación `utf8mb4`.
 | `evaluacion_detalle` | Criterios y puntajes | Evaluación |
 | `auditoria` | Registro de acciones | Usuario responsable |
 | `auth_email_challenges` | Desafío de acceso, hash del código y límites | Un desafío por usuario; FK con eliminación en cascada |
+| `tickets_soporte` | Solicitudes de ayuda, propuesta técnica, autorización y evidencia | Solicitante y técnico → usuarios |
+| `ticket_soporte_estados` | Catálogo ordenado de estados y marca de estados terminales | tickets_soporte e historial |
+| `ticket_soporte_historial` | Trazabilidad detallada de cada transición del ticket | Ticket, actor y catálogo de estados |
+| `tickets_soporte_archivo` | Evidencia resumida conservada después de la depuración semanal | Sin claves foráneas para preservar el registro histórico |
+| `ticket_soporte_historial` | Trazabilidad de cambios del ticket | Ticket y actor responsable |
 
 La existencia de estas tablas no significa que todos sus módulos estén integrados con el frontend.
 
@@ -439,8 +449,16 @@ ORDER BY u.id;
 | GET | `/api/admin/users` | Lista paginada de usuarios; solo ADMIN |
 | POST | `/api/admin/users` | Crea usuarios; solo ADMIN |
 | PUT | `/api/admin/users/{id}` | Edita cuentas y permisos; solo ADMIN |
+| GET | `/api/support/tickets` | Lista tickets según el rol autenticado |
+| POST | `/api/support/tickets` | Reclutador registra una solicitud de soporte |
+| GET | `/api/support/technicians` | Administrador consulta técnicos activos |
+| PATCH | `/api/support/tickets/{id}/assignment` | Administrador asigna el responsable técnico |
+| PUT | `/api/support/tickets/{id}/proposal` | Técnico remite diagnóstico y solución propuesta |
+| PATCH | `/api/support/tickets/{id}/decision` | Administrador autoriza o devuelve la propuesta |
+| PATCH | `/api/support/tickets/{id}/status` | Técnico actualiza la pasarela de estados autorizada |
+| PUT | `/api/support/tickets/{id}/execution` | Técnico registra la resolución y su evidencia |
 
-Las rutas de reclutamiento permiten RECLUTADOR y ADMIN; `/api/admin/**` permite únicamente ADMIN. Registro devuelve ID de postulante; login y `/me`, ID de usuario. La verificación por correo se realiza en cada nuevo inicio de sesión, salvo las tres cuentas de prueba expresamente habilitadas.
+Las rutas de reclutamiento permiten RECLUTADOR y ADMIN; `/api/admin/**` permite únicamente ADMIN. Registro devuelve ID de postulante; login y `/me`, ID de usuario. La verificación por correo se realiza en cada nuevo inicio de sesión, salvo las cuatro cuentas de prueba expresamente habilitadas.
 
 ## 10. Verificación de acceso por correo (Gmail SMTP)
 
@@ -495,7 +513,7 @@ Ejecutar mvn.cmd test en backend y los comandos de pruebas del frontend. Las pru
 
 ## 11. Administración y permisos
 
-El login tiene un solo formulario. Redirige a candidatos a `/mis-postulaciones`, reclutadores a `/reclutador/dashboard` y administradores a `/admin`. El panel permite crear y editar usuarios, cambiar roles y activar/desactivar cuentas. ADMIN puede abrir vistas de ambos roles; esto no suplanta a otros usuarios ni completa módulos aún pendientes de integrar.
+El login tiene un solo formulario. Redirige a candidatos a `/mis-postulaciones`, reclutadores a `/reclutador/dashboard`, técnicos a `/tecnico/tickets` y administradores a `/admin`. El panel permite crear y editar usuarios, cambiar roles y activar/desactivar cuentas. ADMIN puede abrir vistas de ambos roles; esto no suplanta a otros usuarios ni completa módulos aún pendientes de integrar.
 
 ### Habilitar las pruebas locales
 
@@ -509,6 +527,8 @@ Con el esquema actualizado según el apartado 2, configurar `app.security.test-a
 | POST | `/api/admin/users` | ADMIN; crear cuenta |
 | PUT | `/api/admin/users/{id}` | ADMIN; editar cuenta |
 
+La mesa de ayuda usa `/reclutador/tickets` para solicitar y consultar incidencias, `/tecnico/tickets` para evaluar y ejecutar el trabajo autorizado y `/admin/tickets` para asignar técnicos y decidir propuestas. Aprobar habilita la ejecución; no resuelve automáticamente el caso. `/reclutador/guia-uso` queda creado como página vacía para incorporar el contenido futuro.
+
 El cuerpo de creación/edición usa `email`, `password`, `rol`, `estado`, `nombres`, `apellidos` y `telefono`. La contraseña es obligatoria al crear (12 a 72 caracteres, máximo 72 bytes UTF-8), opcional al editar; nombres y apellidos son obligatorios para candidatos. No se devuelven hashes ni contraseñas. No se permite desactivar o degradar al propio administrador ni quitar el último administrador activo.
 
 Editar una cuenta incrementa `auth_version` y elimina sus desafíos OTP pendientes. Cada petición protegida comprueba rol, estado y versión en MySQL; las sesiones anteriores dejan de servir. El cierre de sesión del navegador sigue siendo local.
@@ -517,7 +537,7 @@ Editar una cuenta incrementa `auth_version` y elimina sus desafíos OTP pendient
 
 Ejecutar las pruebas del apartado **Frontend → 4** y **Backend → 5** desde sus respectivas carpetas.
 
-Prueba manual: comprobar el destino de las tres cuentas, abrir `/admin` como candidato (debe rechazar), crear/editar una cuenta desde el panel y comprobar MySQL, desactivarla e intentar ingresar. Las cuentas normales deben pedir OTP y conservar el reenvío de 30 segundos. Una contraseña incorrecta nunca omite la validación.
+Prueba manual: comprobar el destino de las cuatro cuentas, abrir `/admin` como candidato (debe rechazar), crear/editar una cuenta desde el panel y comprobar MySQL, desactivarla e intentar ingresar. Las cuentas normales deben pedir OTP y conservar el reenvío de 30 segundos. Una contraseña incorrecta nunca omite la validación.
 
 Los recorridos de navegador están en `frontend/tests/admin-browser.mjs` (backend real y cuentas locales) y `frontend/tests/email-otp-browser.mjs` (respuestas HTTP simuladas para OTP). Requieren Vite en 127.0.0.1:5173 y Chrome con perfil desechable y depuración local en el puerto 9238. No ejecutarlos en un perfil personal.
 

@@ -3,6 +3,8 @@ import { validateJob } from "../../utils/formValidation";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Bold, Italic, List, AlignLeft, Minus, Save, X, ChevronDown, FileText, DollarSign, MapPin, Clock, Users, Tag, AlertCircle } from "lucide-react";
+import { DatePicker } from "../../components/ui/DateTimePickers";
+const localISODate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 export default function PublishJob() {
   const [searchParams] = useSearchParams();
   const [title, setTitle] = useState(searchParams.get("title") || "");
@@ -192,8 +194,15 @@ export default function PublishJob() {
                 <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />{fieldError('location')}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">Fecha límite de postulación</label>
-                <input type="date" name="deadline" value={details.deadline} onChange={updateDetail} className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]" />
+                <DatePicker
+                  label="Fecha límite de postulación"
+                  name="deadline"
+                  value={details.deadline}
+                  min={localISODate(new Date())}
+                  disabled={saving}
+                  onChange={deadline => setDetails(previous => ({ ...previous, deadline }))}
+                />
+                {fieldError('deadline')}
               </div>
             </div>
           </div>

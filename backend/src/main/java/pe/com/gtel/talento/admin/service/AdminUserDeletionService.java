@@ -40,6 +40,9 @@ public class AdminUserDeletionService {
         repository.transferTrash(actor,id);
         repository.detachEvaluations(id);
         repository.detachTimeline(id);
+        repository.deleteSupportHistoryByActor(id);
+        repository.deleteRequestedSupportTickets(id);
+        repository.detachSupportAssignments(id);
         repository.deleteProfiles(id);
         repository.deleteContacts(id);
         repository.deleteOtp(id);

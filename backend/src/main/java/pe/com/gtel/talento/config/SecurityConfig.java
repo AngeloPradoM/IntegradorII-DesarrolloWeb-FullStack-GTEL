@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**", "/api/health", "/actuator/health", "/api/jobs/**", "/api/departments/**", "/api/candidate/privacy/policy").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/support/**").hasAnyRole("RECLUTADOR","TECNICO","ADMIN")
                         .requestMatchers("/api/recruiter/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")
                         .requestMatchers("/api/candidate/cv/**").hasAnyRole("CANDIDATO","RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")
                         .requestMatchers("/api/candidate/**").hasAnyRole("CANDIDATO","ADMIN")

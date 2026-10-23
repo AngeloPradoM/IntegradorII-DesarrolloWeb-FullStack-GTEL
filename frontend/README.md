@@ -1,48 +1,94 @@
-# Frontend GTEL
+# Frontend GTEL Talento
 
-## Iniciar en Windows (PowerShell)
+Aplicación React 19 + Vite para candidatos, reclutadores y administradores. Consume la API Spring Boot de GTEL Talento y no almacena credenciales privadas en el navegador.
 
-Desde la raíz del repositorio:
+## Estructura
 
-```powershell
-cd frontend
-npm.cmd install
-npm.cmd run dev
+```text
+frontend/
+├── public/                 Recursos públicos
+├── src/
+│   ├── assets/             Imágenes importadas por la aplicación
+│   ├── components/         Componentes reutilizables y elementos de interfaz
+│   ├── context/            Estado global de autenticación
+│   ├── hooks/              Lógica reutilizable
+│   ├── layouts/            Estructuras de páginas públicas y privadas
+│   ├── mocks/              Datos limitados para pruebas y compatibilidad
+│   ├── pages/              Vistas por actor: admin, candidato y reclutador
+│   ├── routes/             Rutas públicas y protegidas
+│   ├── services/           Comunicación y adaptación de la API
+│   └── utils/              Validaciones y funciones auxiliares
+├── docs/                   Diseño, integración e historial técnico
+├── scripts/                Herramientas de revisión visual
+├── tests/                  Pruebas de contratos y recorridos de navegador
+├── .env.example            Plantilla pública de configuración
+├── package.json            Dependencias y comandos
+└── vite.config.js          Configuración de Vite
 ```
 
-Abre la URL que muestra Vite en la terminal (normalmente http://localhost:5173).
-Mantén esa terminal abierta mientras usas la página. No abras `index.html`
-directamente ni mediante Live Server: el proyecto necesita Vite para procesar JSX.
+Consulta el [índice de documentación](docs/README.md) para distinguir guías vigentes de informes históricos.
 
-Si PowerShell indica que no puede cargar `npm.ps1` porque la ejecución de scripts
-está deshabilitada, usa `npm.cmd` como en los comandos anteriores. No hace falta
-cambiar la política de ejecución de Windows.
+## Requisitos
 
-Para comprobar la compilación: `npm.cmd run build`.
+- Node.js 24.x.
+- npm 11.x.
+- Backend disponible en `http://localhost:8080` para los recorridos integrados.
 
-Actualmente, sin `VITE_DATA_MODE=api`, la aplicación usa datos demo y puede
-iniciarse sin el backend. Para conectarla a la API, crea `frontend/.env` con:
+## Instalación
+
+Desde `frontend/`:
+
+```powershell
+npm.cmd ci
+```
+
+## Configuración local
+
+Crear el archivo privado a partir de la plantilla:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Valores principales:
 
 ```dotenv
 VITE_DATA_MODE=api
 VITE_API_URL=http://localhost:8080
+VITE_RECRUITER_EMAIL=talento@gtel.com.pe
 ```
 
-En ese modo, inicia también el backend y reinicia Vite después de cambiar `.env`.
+Las variables `VITE_*` son visibles en el navegador y nunca deben contener contraseñas, tokens o secretos. Reiniciar Vite después de cambiar el archivo.
 
-## Referencia de la plantilla React + Vite
+## Ejecución
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+```powershell
+npm.cmd run dev
+```
 
-Currently, two official plugins are available:
+Abrir la URL indicada por Vite, normalmente `http://localhost:5173`. No abrir `index.html` directamente ni utilizar Live Server porque Vite debe procesar JSX y las variables de entorno.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Validación
 
-## React Compiler
+```powershell
+npm.cmd run check
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+El comando ejecuta, en orden:
 
-## Expanding the ESLint configuration
+1. ESLint.
+2. Las pruebas `tests/*.test.mjs`.
+3. La compilación de producción con Vite.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+La salida de producción se genera en `dist/` y no se versiona. Los recorridos `*-browser.mjs` requieren un navegador de prueba y se documentan en `docs/`.
+
+## Comandos disponibles
+
+| Comando | Función |
+|---|---|
+| `npm.cmd run dev` | Servidor de desarrollo |
+| `npm.cmd run lint` | Análisis estático |
+| `npm.cmd run test` | Pruebas automatizadas de contratos |
+| `npm.cmd run build` | Compilación de producción |
+| `npm.cmd run check` | Validación completa |
+| `npm.cmd run preview` | Vista previa de `dist/` |

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Bell, CheckCheck, RefreshCw, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Bell, CheckCheck, Eye, Inbox, RefreshCw, Search } from 'lucide-react';
 import { request, jsonRequest } from '../../services/workflowService';
 import '../admin/admin-workspace.css';
 
@@ -22,8 +22,10 @@ export default function NotificationsPage(){
     window.dispatchEvent(new Event('gtel:notifications-changed'));setBusy(false);
   }
   const visible=(rows||[]).filter(r=>filter==='all'||(filter==='unread'?!r.leida:!!r.leida)).filter(r=>(r.title+' '+r.description).toLowerCase().includes(query.trim().toLowerCase()));
+  const metrics=useMemo(()=>({total:rows?.length||0,unread:unread.length,read:(rows?.length||0)-unread.length,visible:visible.length}),[rows,unread.length,visible.length]);
   return <main className="admin-workspace">
     <div className="page-heading"><div><p className="eyebrow">Centro de actividad</p><h1>Mis notificaciones</h1><p className="subtitle">Mantente al día y organiza los avisos que requieren tu atención.</p></div><div className="button-group"><button className="btn" disabled={busy} onClick={refresh}><RefreshCw size={15}/>Actualizar</button><button className="btn btn-primary" disabled={busy||!unread.length} onClick={()=>markRead(unread.map(r=>r.id))}><CheckCheck size={15}/>{busy?'Actualizando…':'Marcar todas como leídas'}</button></div></div>
+    <section className="metric-grid" aria-label="Resumen de notificaciones"><article className="metric-card"><span className="metric-icon"><Inbox/></span><div><span className="metric-label">Notificaciones</span><strong className="metric-value">{metrics.total}</strong><small>Total recibido</small></div></article><article className="metric-card"><span className="metric-icon violet"><Bell/></span><div><span className="metric-label">Pendientes</span><strong className="metric-value">{metrics.unread}</strong><small>Requieren revisión</small></div></article><article className="metric-card"><span className="metric-icon success"><CheckCheck/></span><div><span className="metric-label">Leídas</span><strong className="metric-value">{metrics.read}</strong><small>Ya revisadas</small></div></article><article className="metric-card"><span className="metric-icon blue"><Eye/></span><div><span className="metric-label">Resultados visibles</span><strong className="metric-value">{metrics.visible}</strong><small>Según filtros actuales</small></div></article></section>
     {error&&<div role="alert" className="alert">{error}<button disabled={busy} className="btn" onClick={refresh}>Actualizar lista</button></div>}
     <section className="surface" aria-label="Notificaciones">
       <div className="toolbar"><div className="filter-tabs" aria-label="Filtrar notificaciones">{[['all','Todas'],['unread','Sin leer'],['read','Leídas']].map(([id,label])=><button key={id} aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label}{id==='unread'&&rows?' ('+unread.length+')':''}</button>)}</div><span className="count-label">{rows?unread.length+' pendientes':'Cargando…'}</span></div>

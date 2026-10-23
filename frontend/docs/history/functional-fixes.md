@@ -1,5 +1,7 @@
 # Correcciones funcionales del frontend
 
+> **Documento histórico.** Describe una etapa anterior; consulta `frontend/docs/README.md` y el código actual para conocer el estado vigente.
+
 ## Archivos y cambios
 
 | Archivo en `src/` | Corrección |

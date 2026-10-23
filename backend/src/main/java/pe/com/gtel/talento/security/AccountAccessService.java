@@ -18,7 +18,8 @@ public class AccountAccessService {
         "reclutador1@gmail.com","RECLUTADOR",
         "jefatura1@gmail.com","JEFATURA_SOLICITANTE",
         "analista1@gmail.com","ANALISTA_RRHH",
-        "entrevistador1@gmail.com","ENTREVISTADOR");
+        "entrevistador1@gmail.com","ENTREVISTADOR",
+        "tecnico1@gmail.com","TECNICO");
     public AccountAccessService(JdbcTemplate jdbc, @Value("${app.security.test-access-enabled:false}") boolean testAccess) {
         this.jdbc=jdbc; this.testAccess=testAccess;
     }

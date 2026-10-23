@@ -13,3 +13,6 @@ docs/backups/
 *.zip
 backend/uploads/
 uploads/
+
+# Prototipo HTML local (fuera del producto React)
+/index/

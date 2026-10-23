@@ -35,5 +35,13 @@ export function validateJob(data) {
   }
   if (!errors.salaryMin && !errors.salaryMax && Number(data.salaryMin) > Number(data.salaryMax)) errors.salaryMax = 'El salario máximo no puede ser menor al mínimo.';
   if (!Number.isInteger(Number(data.vacancies)) || Number(data.vacancies) < 1) errors.vacancies = 'Ingresa al menos una vacante.';
+  if (data.deadline) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data.deadline);
+    const parsed = match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12) : null;
+    const valid = parsed && parsed.getFullYear() === Number(match[1]) && parsed.getMonth() === Number(match[2]) - 1 && parsed.getDate() === Number(match[3]);
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    if (!valid || data.deadline < todayKey) errors.deadline = 'Selecciona una fecha límite válida desde hoy en adelante.';
+  }
   return errors;
 }

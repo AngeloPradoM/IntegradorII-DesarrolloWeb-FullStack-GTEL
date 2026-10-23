@@ -204,11 +204,10 @@ CREATE TABLE IF NOT EXISTS notificaciones (
   usuario_id BIGINT NOT NULL,
   titulo VARCHAR(150) NOT NULL,
   mensaje VARCHAR(1000) NOT NULL,
-  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  tipo VARCHAR(50) NOT NULL DEFAULT 'SISTEMA',
+  enlace VARCHAR(255) NULL,
   leida BOOLEAN NOT NULL DEFAULT FALSE,
-  enviada BOOLEAN NOT NULL DEFAULT FALSE,
-  intentos INT NOT NULL DEFAULT 0,
-  proximo_intento BIGINT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
@@ -235,11 +234,96 @@ CREATE TABLE IF NOT EXISTS solicitudes_arco (
   FOREIGN KEY (atendido_por) REFERENCES usuarios(id)
 );
 
+CREATE TABLE IF NOT EXISTS ticket_soporte_estados (
+  codigo VARCHAR(30) PRIMARY KEY,
+  nombre VARCHAR(60) NOT NULL,
+  orden SMALLINT NOT NULL UNIQUE,
+  terminal BOOLEAN NOT NULL DEFAULT FALSE,
+  descripcion VARCHAR(255) NOT NULL
+);
+
+INSERT INTO ticket_soporte_estados (codigo, nombre, orden, terminal, descripcion) VALUES
+  ('NUEVO', 'Nuevo', 10, FALSE, 'Solicitud registrada y pendiente de asignacion.'),
+  ('ASIGNADO', 'Asignado', 20, FALSE, 'Solicitud asignada a un tecnico responsable.'),
+  ('EN_ATENCION', 'En atencion', 30, FALSE, 'El tecnico esta ejecutando la atencion autorizada.'),
+  ('EN_ESPERA', 'En espera', 40, FALSE, 'El caso espera informacion o autorizacion administrativa.'),
+  ('RESUELTO', 'Resuelto', 50, TRUE, 'La solucion fue ejecutada y registrada con evidencia.'),
+  ('CERRADO', 'Cerrado', 60, TRUE, 'El caso fue cerrado definitivamente.')
+ON DUPLICATE KEY UPDATE
+  nombre = VALUES(nombre),
+  orden = VALUES(orden),
+  terminal = VALUES(terminal),
+  descripcion = VALUES(descripcion);
+
+CREATE TABLE IF NOT EXISTS tickets_soporte (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  codigo VARCHAR(20) NULL UNIQUE,
+  solicitante_id BIGINT NOT NULL,
+  tecnico_id BIGINT NULL,
+  area VARCHAR(80) NOT NULL DEFAULT 'Reclutamiento',
+  titulo VARCHAR(120) NOT NULL,
+  categoria VARCHAR(80) NOT NULL,
+  subcategoria VARCHAR(100) NOT NULL,
+  prioridad ENUM('BAJA','MEDIA','ALTA') NOT NULL DEFAULT 'MEDIA',
+  justificacion_prioridad VARCHAR(1000) NOT NULL,
+  descripcion VARCHAR(2000) NOT NULL,
+  estado VARCHAR(30) NOT NULL DEFAULT 'NUEVO',
+  diagnostico VARCHAR(2000),
+  solucion_propuesta VARCHAR(3000),
+  estado_propuesta ENUM('SIN_PROPUESTA','PENDIENTE','APROBADA','RECHAZADA') NOT NULL DEFAULT 'SIN_PROPUESTA',
+  comentario_admin VARCHAR(1000),
+  evidencia_ejecucion VARCHAR(3000),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  resolved_at TIMESTAMP NULL,
+  FOREIGN KEY (solicitante_id) REFERENCES usuarios(id),
+  FOREIGN KEY (tecnico_id) REFERENCES usuarios(id),
+  CONSTRAINT fk_ticket_estado_catalogo FOREIGN KEY (estado) REFERENCES ticket_soporte_estados(codigo),
+  INDEX idx_ticket_solicitante (solicitante_id, created_at),
+  INDEX idx_ticket_tecnico (tecnico_id, estado),
+  INDEX idx_ticket_estado (estado, prioridad)
+);
+
+CREATE TABLE IF NOT EXISTS ticket_soporte_historial (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  ticket_id BIGINT NOT NULL,
+  actor_id BIGINT NOT NULL,
+  estado_anterior VARCHAR(30),
+  estado_nuevo VARCHAR(30) NOT NULL,
+  detalle VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (ticket_id) REFERENCES tickets_soporte(id) ON DELETE CASCADE,
+  FOREIGN KEY (actor_id) REFERENCES usuarios(id),
+  CONSTRAINT fk_ticket_historial_estado_anterior FOREIGN KEY (estado_anterior) REFERENCES ticket_soporte_estados(codigo),
+  CONSTRAINT fk_ticket_historial_estado_nuevo FOREIGN KEY (estado_nuevo) REFERENCES ticket_soporte_estados(codigo),
+  INDEX idx_ticket_historial (ticket_id, created_at)
+);
+
+CREATE TABLE IF NOT EXISTS tickets_soporte_archivo (
+  ticket_id BIGINT PRIMARY KEY,
+  codigo VARCHAR(20) NOT NULL UNIQUE,
+  solicitante_email VARCHAR(150) NOT NULL,
+  tecnico_email VARCHAR(150) NULL,
+  area VARCHAR(80) NOT NULL,
+  titulo VARCHAR(120) NOT NULL,
+  categoria VARCHAR(80) NOT NULL,
+  prioridad VARCHAR(10) NOT NULL,
+  estado_final VARCHAR(30) NOT NULL,
+  resumen_resolucion VARCHAR(3000) NULL,
+  cantidad_eventos INT NOT NULL DEFAULT 0,
+  ultimo_evento VARCHAR(255) NULL,
+  created_at TIMESTAMP NOT NULL,
+  resolved_at TIMESTAMP NOT NULL,
+  archived_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_ticket_archivo_resuelto (resolved_at),
+  INDEX idx_ticket_archivo_solicitante (solicitante_email)
+);
 INSERT INTO roles (id, nombre, descripcion) VALUES
   (1, 'CANDIDATO', 'Postulante'),
   (2, 'RECLUTADOR', 'Gestion de reclutamiento'),
   (3, 'ADMIN', 'Administrador del sistema'),
   (4, 'JEFATURA', 'Jefatura de area'),
   (5, 'ANALISTA', 'Analista de seleccion'),
-  (6, 'ENTREVISTADOR', 'Entrevistador tecnico')
+  (6, 'ENTREVISTADOR', 'Entrevistador tecnico'),
+  (7, 'TECNICO', 'Tecnico de sistemas y soporte')
 ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
