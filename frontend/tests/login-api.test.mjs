@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createServer } from 'vite';
-const server = await createServer({configFile:false,envDir:false,server:{middlewareMode:true,hmr:false},define:{'import.meta.env.VITE_DATA_MODE':'"demo"'}});
+const server = await createServer({cacheDir:join(tmpdir(),'gtel-vite-'+randomUUID()),optimizeDeps:{noDiscovery:true,include:[]},configFile:false,envDir:false,server:{middlewareMode:true,hmr:false},define:{'import.meta.env.VITE_DATA_MODE':'"demo"'}});
 const originalFetch=globalThis.fetch;
 globalThis.localStorage={getItem(){throw Error('Login must not read demo storage');}};
 try {

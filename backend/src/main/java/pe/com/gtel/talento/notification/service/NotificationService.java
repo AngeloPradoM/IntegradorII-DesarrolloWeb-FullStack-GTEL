@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import pe.com.gtel.talento.identity.entity.Usuario;
@@ -66,6 +67,7 @@ public class NotificationService {
         return sseService.createEmitter(usuario.getId());
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public NotificacionResponse notifyUser(Long userId, String titulo, String mensaje, String tipo, String enlace) {
         if (userId == null) {
             return null;
@@ -77,10 +79,12 @@ public class NotificationService {
         return response;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifyStaff(String titulo, String mensaje, String tipo, String enlace) {
         notifyUsersWithRoles(List.of("RECLUTADOR", "ADMIN", "ANALISTA_RRHH"), titulo, mensaje, tipo, enlace);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifyUsersWithRoles(Collection<String> roles, String titulo, String mensaje, String tipo, String enlace) {
         List<Usuario> targetUsers = usuarioRepository.findActiveByRoleNames(roles);
         for (Usuario u : targetUsers) {

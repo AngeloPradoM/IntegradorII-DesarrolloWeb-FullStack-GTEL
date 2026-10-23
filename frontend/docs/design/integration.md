@@ -1,9 +1,12 @@
 # Diseño GTEL Talento
 
+> **Referencia histórica de diseño.** Las limitaciones descritas corresponden a la integración inicial; la situación vigente está en el README y los servicios actuales.
+
+
 Referencia: `Diseño UI para ATS GTEL Talento.zip`, entregado por el usuario.
 Se reutilizaron el JSX, las clases Tailwind, las imágenes, la tipografía y los
 layouts del diseño. No se ejecutaron scripts del ZIP ni se instalaron sus
-dependencias. Las atribuciones se conservan en `DESIGN_ATTRIBUTIONS.md`.
+dependencias. Las atribuciones se conservan en [atribuciones](attributions.md).
 
 ## Pantallas
 

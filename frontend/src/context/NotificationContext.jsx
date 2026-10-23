@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef } f
 import { useAuth } from "./AuthContext";
 import {
   getRecruiterNotifications,
-  getNotificationUnreadCount,
   markRecruiterNotificationRead,
   markAllRecruiterNotificationsRead,
 } from "../services/api";
@@ -74,10 +73,11 @@ export function NotificationProvider({ children }) {
       }
     } catch {
       // Fallback tolerante si falla la conexión HTTP
-      if (notifications.length === 0) {
-        setNotifications(DEMO_FALLBACK_NOTIFICATIONS);
+      setNotifications((current) => {
+        if (current.length > 0) return current;
         setUnreadCount(DEMO_FALLBACK_NOTIFICATIONS.filter((n) => !n.read).length);
-      }
+        return DEMO_FALLBACK_NOTIFICATIONS;
+      });
     } finally {
       setLoading(false);
     }

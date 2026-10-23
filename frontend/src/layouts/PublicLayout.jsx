@@ -8,6 +8,7 @@ import RegistrationModal from "../components/ui/RegistrationModal";
 import { registerCandidate } from "../services/api";
 import { getDefaultRouteForRole, getSafeAuthRedirect } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import AdminHeader from "../components/layout/AdminHeader";
 export default function PublicLayout() {
   const {
     login,
@@ -31,6 +32,7 @@ export default function PublicLayout() {
   };
   const [registrationNotice, setRegistrationNotice] = useState("");
   const navigate = useNavigate();
+  const isAdmin = isAuthenticated && user?.rol === "ADMIN";
   const openLogin = (redirect) => { setMenuOpen(false); setModal("login", redirect); };
   const handleApplicationsClick = event => {
     setMenuOpen(false);
@@ -57,8 +59,7 @@ export default function PublicLayout() {
         Saltar al contenido principal
       </a>
 
-      {/* Header */}
-      <header className="bg-[#1E293B] dark:bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-transparent dark:border-slate-800">
+      {isAdmin ? <AdminHeader /> : <header className="bg-[#1E293B] dark:bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-transparent dark:border-slate-800">
         <div className="max-w-[1488px] mx-auto px-4 sm:px-6">
           <div className="flex min-h-18 flex-nowrap items-center justify-between gap-4">
             <Link to="/" className="flex shrink-0 items-center gap-3">
@@ -120,9 +121,9 @@ export default function PublicLayout() {
               <button type="button" onClick={openRegister} className="block w-full py-2 text-left text-sm font-semibold text-white hover:text-red-300">Registrarse</button>
             </>}
           </div>}
-      </header>
+      </header>}
 
-      <main id="contenido"><Outlet context={{ openLogin, openRegister }} /></main>
+      <div id="contenido"><Outlet context={{ openLogin, openRegister }} /></div>
       {modal === "login" && <AuthModal isOpen onClose={() => setModal(null)} onSubmit={handleAuthenticated} onRegisterClick={openRegister} notice={registrationNotice} />}
       <RegistrationModal isOpen={modal === "register"} onClose={() => setModal(null)} onSubmit={handleRegister} onLoginClick={openLogin} closeOnSubmit={false} />
     </div>

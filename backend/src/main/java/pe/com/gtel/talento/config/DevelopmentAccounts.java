@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Cuentas de prueba preconfiguradas para entorno local / desarrollo.
- * Garantiza que las 6 credenciales de prueba tengan su clave oficial y otp_exempt=TRUE
+ * Garantiza que las 7 credenciales de prueba tengan su clave oficial y otp_exempt=TRUE
  * para ingresar directamente sin requerir código OTP.
  */
 @Component
@@ -32,6 +32,7 @@ public class DevelopmentAccounts implements CommandLineRunner {
         seed("jefatura1@gmail.com", "Password123!", "JEFATURA_SOLICITANTE");
         seed("analista1@gmail.com", "Password123!", "ANALISTA_RRHH");
         seed("entrevistador1@gmail.com", "Password123!", "ENTREVISTADOR");
+        seed("tecnico1@gmail.com", "Tecnico2026!", "TECNICO");
     }
 
     private void seed(String email, String password, String role) {

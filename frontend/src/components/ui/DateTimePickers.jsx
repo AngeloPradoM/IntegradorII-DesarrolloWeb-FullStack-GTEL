@@ -2,10 +2,13 @@ import { useLayoutEffect, useRef } from 'react';
 import './pickerElements';
 
 // Controlled React bridge: readable text in the field, ISO value in React state.
-function Picker({kind, label, name, value, onChange, disabled=false}) {
+function Picker({kind, label, name, value, onChange, disabled=false, min}) {
   const ref=useRef(null);
   useLayoutEffect(()=>{
     const element=ref.current;
+    if(kind==='date'){
+      if(min)element.setAttribute('min',min);else element.removeAttribute('min');
+    }
     if(element.isoValue!==(value||''))element.setISOValue(value||'');
     element.trigger.disabled=disabled;
     element.trigger.setAttribute('aria-required','true');
@@ -13,7 +16,7 @@ function Picker({kind, label, name, value, onChange, disabled=false}) {
     const listener=event=>onChange(event.detail.iso);
     element.addEventListener(kind+'change',listener);
     return ()=>element.removeEventListener(kind+'change',listener);
-  },[kind,value,onChange,disabled]);
+  },[kind,value,onChange,disabled,min]);
   const Tag=kind==='date'?'gtel-date-picker':'gtel-time-picker';
   return <Tag ref={ref} label={label} name={name} />;
 }

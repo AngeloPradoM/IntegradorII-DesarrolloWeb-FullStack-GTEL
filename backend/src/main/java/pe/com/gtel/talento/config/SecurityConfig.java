@@ -72,6 +72,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/support/**").hasAnyRole("RECLUTADOR","TECNICO","ADMIN")
                         .requestMatchers("/api/recruiter/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")
                         .requestMatchers("/api/applications/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR","CANDIDATO")
                         .requestMatchers("/api/candidate/cv/**").hasAnyRole("CANDIDATO","RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")

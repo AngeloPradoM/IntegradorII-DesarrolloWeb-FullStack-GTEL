@@ -88,6 +88,12 @@ Aplicar database/migrations/002_email_otp.sql una sola vez en bases existentes; 
 
 POST /api/auth/login normalmente no entrega JWT (las tres cuentas de prueba habilitadas son la excepción); POST /api/auth/verify-otp recibe sessionId y otp y entrega el JWT. POST /api/auth/resend-otp recibe sessionId. Los tokens previos sin OTP se rechazan.
 
+## Retención de tickets de soporte
+
+En bases existentes, aplicar `database/migrations/009_support_ticket_lifecycle.sql` después de las migraciones 007 y 008. La tarea programada se ejecuta los lunes a las 02:00 en `America/Lima` y procesa solamente tickets `RESUELTO` o `CERRADO` cuya `resolved_at` tenga al menos siete días. Primero conserva un resumen en `tickets_soporte_archivo` y una entrada en `auditoria`; después elimina el ticket operativo y su historial detallado.
+
+La programación se configura con `SUPPORT_CLEANUP_ENABLED`, `SUPPORT_CLEANUP_RETENTION_DAYS`, `SUPPORT_CLEANUP_CRON` y `SUPPORT_CLEANUP_ZONE`. El backend fuerza una retención mínima de siete días aunque se indique un valor menor.
+
 
 ## Administración
 

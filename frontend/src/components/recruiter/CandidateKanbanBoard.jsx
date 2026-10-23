@@ -9,11 +9,7 @@ import {
   Briefcase,
   Calendar,
   Download,
-  ChevronDown,
-  ArrowRight,
-  User,
-  Phone,
-  FileText
+  ArrowRight
 } from "lucide-react";
 
 export const KANBAN_COLUMNS = [

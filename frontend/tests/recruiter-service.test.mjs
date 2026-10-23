@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createServer } from 'vite';
 
-const server = await createServer({configFile:false, envDir:false, server:{middlewareMode:true, hmr:false}});
+const server = await createServer({cacheDir:join(tmpdir(),'gtel-vite-'+randomUUID()),optimizeDeps:{noDiscovery:true,include:[]},configFile:false, envDir:false, server:{middlewareMode:true, hmr:false}});
 globalThis.localStorage = {getItem(){throw Error('Unexpected storage read');},setItem(){throw Error('Unexpected storage write');}};
 try {
   const api = await server.ssrLoadModule('/src/services/recruiterService.js');

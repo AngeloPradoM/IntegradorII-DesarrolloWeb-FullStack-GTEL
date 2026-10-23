@@ -37,6 +37,9 @@ test('Job title, salary boundaries, vacancies and whitespace', () => {
   for(const title of ['', '   ']) assert.ok(validateJob({...job,title}).title);
   for(const salaryMin of [-100,'',Infinity,'abc',5000]) assert.ok(Object.keys(validateJob({...job,salaryMin})).length);
   assert.ok(validateJob({...job,vacancies:0}).vacancies);
+  assert.ok(validateJob({...job,deadline:'2000-01-01'}).deadline);
+  assert.ok(validateJob({...job,deadline:'2026-02-30'}).deadline);
+  assert.deepEqual(validateJob({...job,deadline:'2999-12-31'}),{});
 });
 test('Future multipart payload retains the file without serializing it', () => {
   const file = new File(['cv'], 'cv.pdf', {type:'application/pdf'});

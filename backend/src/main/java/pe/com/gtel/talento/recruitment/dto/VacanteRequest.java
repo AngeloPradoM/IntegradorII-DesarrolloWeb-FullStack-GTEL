@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Size;
 
 public class VacanteRequest {
@@ -39,6 +40,7 @@ public class VacanteRequest {
     private String sede;
 
     @JsonAlias({"deadline"})
+    @FutureOrPresent(message = "La fecha límite de postulación debe ser actual o futura.")
     private LocalDate fechaLimitePostulacion;
 
     @NotBlank(message = "La descripción del puesto es obligatoria.")

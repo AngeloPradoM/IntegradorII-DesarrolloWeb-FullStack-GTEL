@@ -19,8 +19,7 @@ import {
   X,
   Sparkles,
   ArrowRight,
-  UserCheck,
-  AlertCircle
+  UserCheck
 } from "lucide-react";
 import {
   PieChart,

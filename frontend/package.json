@@ -4,9 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --configLoader runner",
+    "build": "vite build --configLoader runner",
     "lint": "eslint .",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "check": "npm run lint && npm run test && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createServer } from 'vite';
 
-const server = await createServer({ configFile:false, envDir:false, server:{middlewareMode:true}, define:{'import.meta.env.VITE_DATA_MODE':'"api"'} });
+const server = await createServer({ cacheDir:join(tmpdir(),'gtel-vite-'+randomUUID()), optimizeDeps:{noDiscovery:true,include:[]}, configFile:false, envDir:false, server:{middlewareMode:true}, define:{'import.meta.env.VITE_DATA_MODE':'"api"'} });
 let mutations = 0;
 globalThis.localStorage = { getItem:()=>null, setItem:()=>{mutations++;}, removeItem:()=>{mutations++;} };
 try {
