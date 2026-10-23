@@ -1,5 +1,7 @@
 package pe.com.gtel.talento.privacy.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -15,6 +17,7 @@ import pe.com.gtel.talento.privacy.service.PrivacyArcoService;
 
 @RestController
 @RequestMapping("/api/candidate/privacy")
+@Tag(name = "9. Privacidad y Derechos ARCO (Ley 29733)", description = "Gestión de derechos de Acceso, Rectificación, Cancelación y Oposición de datos personales según la normativa peruana.")
 public class PrivacyController {
 
     private final PrivacyArcoService privacyArcoService;
@@ -24,6 +27,7 @@ public class PrivacyController {
     }
 
     @GetMapping("/policy")
+    @Operation(summary = "Consultar política de privacidad", description = "Devuelve los términos de tratamiento de datos personales, finalidades y plazos de retención.")
     public ResponseEntity<Map<String, Object>> getPrivacyPolicyInfo() {
         return ResponseEntity.ok(Map.of(
                 "ley", "Ley N° 29733 de Protección de Datos Personales (Perú)",
@@ -37,6 +41,7 @@ public class PrivacyController {
     }
 
     @GetMapping("/export")
+    @Operation(summary = "Exportar datos personales (Derecho de Acceso y Portabilidad)", description = "Genera un volcado completo de toda la información personal y postulaciones del titular.")
     public ResponseEntity<DataExportResponse> exportMyData(Authentication authentication, HttpServletRequest request) {
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Debes iniciar sesión para acceder a tus datos.");
@@ -50,6 +55,7 @@ public class PrivacyController {
     }
 
     @PostMapping("/anonymize")
+    @Operation(summary = "Solicitar anonimización / baja (Derecho de Cancelación)", description = "Elimina de forma irreversible los datos identificables y el archivo de CV, manteniendo únicamente auditoría disociada.")
     public ResponseEntity<AnonymizeResponse> anonymizeMyAccount(
             @Valid @RequestBody AnonymizeRequest body,
             Authentication authentication,

@@ -21,18 +21,10 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 
 ### Estado del proyecto
 
-Registro, autenticación y administración de usuarios están conectados con MySQL. El login obtiene el rol desde el servidor y solicita un código por correo, salvo las cuentas de prueba habilitadas expresamente. La integración completa de los módulos de negocio sigue pendiente. El laboratorio `index/` no es necesario para ejecutar frontend y backend.
-
-### Evolución Arquitectural — Rama `mejoras-agy` (Lote 0 Completado)
-- **Base de Datos Aislada:** Se configuró y habilitó la base de datos `gtel_talento_mejoras` para preservar intacta la base original `gtel_talento`.
-- **Configuración Local:** `backend/config/local.properties` creado localmente (protegido por `.gitignore`) con conexión a `gtel_talento_mejoras` y cuentas semilla habilitadas (`app.security.test-access-enabled=true`).
-- **Migraciones Versionadas:** Migración inicial creada en `backend/database/migrations/000_init_gtel_talento_mejoras.sql` y su script de reversión `000_init_gtel_talento_mejoras_rollback.sql`.
-- **Estabilidad de Configuración:** Sintaxis de variables de entorno para `jwt.secret` y `otp.hash-secret` corregida con fallbacks seguros en `application.properties`.
-- **Cuentas de Prueba Activas:** Sembradas y operativas en `gtel_talento_mejoras` (`administrador@gmail.com`, `reclutador1@gmail.com`, `postulante1@gmail.com`).
-
 
 ### Contenido
 
+- [Despliegue rápido con Docker](#despliegue-rápido-con-docker): ejecución multi-contenedor sin dependencias locales.
 - [Frontend](#frontend): instalación, configuración y ejecución de React.
 - [Backend](#backend): MySQL, configuración y ejecución de Spring Boot.
 - [Credenciales de prueba](#6-credenciales-de-prueba).
@@ -40,6 +32,25 @@ Registro, autenticación y administración de usuarios están conectados con MyS
 - [Administración y permisos](#11-administración-y-permisos).
 - [Trabajo colaborativo](#12-trabajo-colaborativo).
 
+# Despliegue rápido con Docker
+
+Para ejecutar la arquitectura completa (Frontend React con Nginx, Backend Spring Boot y Base de Datos MySQL 8) sin necesidad de instalar Java, Maven, Node.js ni MySQL en el equipo:
+
+1. Asegurarse de tener **Docker Desktop** abierto y en ejecución.
+2. Abrir una terminal en el directorio del proyecto y ejecutar:
+   ```bash
+   docker compose up -d
+   ```
+3. Acceso a los servicios:
+   - **Frontend Web:** [http://localhost:3000](http://localhost:3000)
+   - **Swagger UI (Documentación API):** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+   - **MySQL 8:** Puerto 3307 (Usuario: `gtel_user`, Contraseña: `GtelSecure2026*`, Base de datos: `gtel_talento`)
+4. Para detener los contenedores:
+   ```bash
+   docker compose down
+   ```
+
+---
 # Frontend
 
 Interfaz web para consultar ofertas, registrar candidatos, iniciar sesión y acceder a las pantallas de postulaciones y reclutamiento.

@@ -218,7 +218,7 @@ CREATE TABLE `evaluaciones` (
   `puntaje_total` int(11) NOT NULL,
   `tiempo_min` int(11) DEFAULT NULL,
   `resultado` enum('aprobado','en_revision','no_aprobado') NOT NULL,
-  `fecha_evaluacion` date DEFAULT curdate(),
+  `fecha_evaluacion` date DEFAULT (curdate()),
   `usuario_id` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_evaluaciones_postulaciones` (`postulacion_id`),

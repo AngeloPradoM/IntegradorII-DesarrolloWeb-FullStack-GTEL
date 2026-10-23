@@ -1,5 +1,7 @@
 package pe.com.gtel.talento.auth.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,6 +17,7 @@ import pe.com.gtel.talento.auth.service.EmailOtpService;
 /** Password plus email OTP, with explicitly enabled development account exceptions. */
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "1. Autenticación y Seguridad", description = "Endpoints para registro de postulantes, inicio de sesión, verificación OTP de 6 dígitos y consulta de sesión activa.")
 public class AuthController {
     private final CandidatoService candidatoService;
     private final JwtService jwtService;
@@ -29,12 +32,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Registrar nuevo candidato", description = "Crea una cuenta de postulante con validación de datos personales y consentimiento de privacidad Ley 29733.")
     public ResponseEntity<Map<String,Object>> register(@Valid @RequestBody RegistroCandidatoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "message", "Cuenta creada correctamente", "user", candidatoService.registrar(request)));
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Iniciar sesión", description = "Valida credenciales. Si es una de las 6 cuentas de prueba, emite el token JWT directamente; si es usuario regular, inicia desafío OTP por correo.")
     public ResponseEntity<Map<String,Object>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse user = candidatoService.autenticar(request);
         if(access.bypass(access.find(user.email()))) return ResponseEntity.ok(session(user,"TEST_PASSWORD"));
@@ -42,11 +47,13 @@ public class AuthController {
     }
 
     @PostMapping("/resend-otp")
+    @Operation(summary = "Reenviar código OTP", description = "Genera y envía un nuevo código de verificación por correo electrónico a la sesión activa.")
     public ResponseEntity<Map<String,Object>> resend(@Valid @RequestBody ResendOtpRequest request) {
         return ResponseEntity.ok(otp.resend(request.sessionId().toString()));
     }
 
     @PostMapping("/verify-otp")
+    @Operation(summary = "Verificar código OTP", description = "Verifica el código de 6 dígitos ingresado por el usuario y emite el token Bearer JWT.")
     public ResponseEntity<Map<String,Object>> verify(@Valid @RequestBody OtpRequest request) {
         AuthResponse user = otp.verify(request.sessionId().toString(), request.otp());
         return ResponseEntity.ok(session(user,"EMAIL_OTP"));
@@ -66,6 +73,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
+    @Operation(summary = "Consultar sesión actual", description = "Devuelve los datos del perfil y roles del usuario autenticado a partir de su Bearer token.")
     public ResponseEntity<Map<String,Object>> me(@RequestHeader(value="Authorization",required=false) String authorization) {
         if (authorization == null || !authorization.startsWith("Bearer "))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No autenticado");
@@ -87,8 +95,8 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "Cerrar sesión", description = "Indica al cliente la finalización de sesión para descartar el token en almacenamiento local.")
     public Map<String,Object> logout() {
-        // JWT remains valid until expiry; revocation policy is a separate pending task.
         return Map.of("message", "Elimina el token del cliente para cerrar sesión");
     }
 

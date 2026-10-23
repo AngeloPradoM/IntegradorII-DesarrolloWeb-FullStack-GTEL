@@ -1,0 +1,95 @@
+# ==============================================================
+# GTEL Talento ATS - Orquestador Docker Compose
+# Arquitectura Multi-Contenedor: MySQL 8 + Spring Boot + Nginx/React
+# ==============================================================
+
+services:
+  # ------------------------------------------------------------
+  # Servicio 1: Base de Datos Relacional MySQL 8
+  # ------------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: gtel-mysql
+    restart: unless-stopped
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: RootSecure2026*
+      MYSQL_DATABASE: gtel_talento
+      MYSQL_USER: gtel_user
+      MYSQL_PASSWORD: GtelSecure2026*
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/gtel_talento.sql:/docker-entrypoint-initdb.d/01_gtel_talento.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -pRootSecure2026* || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - gtel-network
+
+  # ------------------------------------------------------------
+  # Servicio 2: Backend Spring Boot (Java 21)
+  # ------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gtel-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      DB_URL: jdbc:mysql://mysql:3306/gtel_talento?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: gtel_user
+      DB_PASSWORD: GtelSecure2026*
+      JPA_DDL_AUTO: none
+      FRONTEND_URL: http://localhost,http://localhost:80,http://localhost:3000,http://localhost:5173,http://127.0.0.1
+      JWT_SECRET: 8038c15dee51ba3d4d72cf6387caff388dab09033fd5c21539fc79983e5e1a97b7253d2aa0ea5f455d13f3218158df20
+      TEST_ACCESS_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads_cv:/app/uploads/cv
+    networks:
+      - gtel-network
+
+  # ------------------------------------------------------------
+  # Servicio 3: Frontend React + Nginx (Proxy Inverso)
+  # ------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+    container_name: gtel-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - gtel-network
+
+# --------------------------------------------------------------
+# Volúmenes Persistentes y Redes Aisladas
+# --------------------------------------------------------------
+volumes:
+  mysql_data:
+    name: gtel_mysql_data
+  uploads_cv:
+    name: gtel_uploads_cv
+
+networks:
+  gtel-network:
+    name: gtel_network
+    driver: bridge
