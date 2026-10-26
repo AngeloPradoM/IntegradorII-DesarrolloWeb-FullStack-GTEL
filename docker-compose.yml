@@ -55,6 +55,8 @@ services:
       FRONTEND_URL: https://gtel-talento.northcentralus.cloudapp.azure.com,http://localhost,http://localhost:80,http://localhost:3000,http://localhost:5173,http://127.0.0.1
       JWT_SECRET: 8038c15dee51ba3d4d72cf6387caff388dab09033fd5c21539fc79983e5e1a97b7253d2aa0ea5f455d13f3218158df20
       TEST_ACCESS_ENABLED: "true"
+      MAIL_USERNAME: soporte.gtel.talento@gmail.com
+      MAIL_PASSWORD: uafeikafcuxfupao
     ports:
       - "8080:8080"
     volumes:
