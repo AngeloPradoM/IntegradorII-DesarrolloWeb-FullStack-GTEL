@@ -31,6 +31,7 @@ import SystemGuidePage from "../pages/reclutador/SystemGuidePage";
 import TechnicianLayout from "../layouts/TechnicianLayout";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import NotFoundPage from "../pages/NotFoundPage";
+import SupportDashboardPage from "../pages/reclutador/SupportDashboardPage";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -71,6 +72,7 @@ const router = createBrowserRouter(
         <Route path="seleccion" element={<SelectionWorkspace />} />
         <Route path="tickets" element={<RecruiterTicketsPage />} />
         <Route path="guia-uso" element={<SystemGuidePage />} />
+        <Route path="tablero-sla" element={<SupportDashboardPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
@@ -79,6 +81,10 @@ const router = createBrowserRouter(
         <Route path="tickets" element={<TechnicianTicketsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </>));
-    
-export default function AppRoutes() {return <RouterProvider router={router} />; }
+    </>
+  )
+);
+
+export default function AppRoutes() { 
+  return <RouterProvider router={router} />; 
+}
