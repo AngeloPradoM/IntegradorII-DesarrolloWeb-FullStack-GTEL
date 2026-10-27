@@ -2,10 +2,28 @@ package pe.com.gtel.talento.support.controller;
 
 import java.security.Principal;
 import java.util.List;
-import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import pe.com.gtel.talento.support.dto.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
+import pe.com.gtel.talento.support.dto.SupportTicketDashboardDTO;
+import pe.com.gtel.talento.support.dto.SupportTicketResponse;
+import pe.com.gtel.talento.support.dto.TechnicianOption;
+import pe.com.gtel.talento.support.dto.TicketAssignmentRequest;
+import pe.com.gtel.talento.support.dto.TicketCreateRequest;
+import pe.com.gtel.talento.support.dto.TicketDecisionRequest;
+import pe.com.gtel.talento.support.dto.TicketExecutionRequest;
+import pe.com.gtel.talento.support.dto.TicketProposalRequest;
+import pe.com.gtel.talento.support.dto.TicketStatusRequest;
 import pe.com.gtel.talento.support.service.SupportTicketService;
 
 @RestController
@@ -17,6 +35,10 @@ public class SupportTicketController {
     @GetMapping("/tickets")
     public List<SupportTicketResponse> list(Principal principal) {
         return service.list(principal.getName());
+    }
+    @GetMapping("/tickets/dashboard")
+    public List<SupportTicketDashboardDTO> getDashboard(Principal principal) {
+        return service.getDashboard(principal.getName());
     }
 
     @GetMapping("/technicians")
