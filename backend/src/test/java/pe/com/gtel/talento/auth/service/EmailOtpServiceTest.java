@@ -34,7 +34,7 @@ class EmailOtpServiceTest {
         jdbc=new JdbcTemplate(ds);
         jdbc.execute("CREATE TABLE usuarios (id BIGINT PRIMARY KEY)");
         jdbc.update("INSERT INTO usuarios VALUES(1)");
-        String sql=java.nio.file.Files.readString(java.nio.file.Path.of("database/migrations/002_email_otp.sql"));
+        String sql=java.nio.file.Files.readString(java.nio.file.Path.of("../database/migrations/002_email_otp.sql"));
         jdbc.execute(sql.substring(sql.indexOf("CREATE TABLE")).replace(" ENGINE=InnoDB", ""));
         repository=new OtpRepository(jdbc);
         when(clock.millis()).thenAnswer(i->now);

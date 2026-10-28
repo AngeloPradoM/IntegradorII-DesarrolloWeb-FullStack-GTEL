@@ -47,7 +47,7 @@ Se registra quién eliminó la cuenta y cuál fue la cuenta afectada. La pantall
 
 1. Conservar un respaldo de la BD.
 2. Tener aplicadas las migraciones 004 y 005.
-3. Ejecutar **una sola vez** `backend/database/migrations/006_audit_deleted_users.sql`. Agrega `actor_id_historico` y `actor_email_historico` a auditoría.
+3. Ejecutar **una sola vez** `database/migrations/007_audit_deleted_users.sql`. Agrega `actor_id_historico` y `actor_email_historico` a auditoría.
 4. Reiniciar backend y frontend.
 5. Crear una cuenta desechable, generar una postulación y eliminarla desde ADMIN.
 6. Comprobar que la cuenta y su postulación desaparecieron, mientras la auditoría continúa visible.
