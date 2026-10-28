@@ -2,14 +2,24 @@ package pe.com.gtel.talento.support.service;
 
 import java.util.List;
 import java.util.Set;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
 import pe.com.gtel.talento.identity.dto.WorkflowActor;
 import pe.com.gtel.talento.identity.service.WorkflowIdentity;
 import pe.com.gtel.talento.notification.service.NotificationService;
-import pe.com.gtel.talento.support.dto.*;
+import pe.com.gtel.talento.support.dto.SupportTicketDashboardDTO;
+import pe.com.gtel.talento.support.dto.SupportTicketResponse;
+import pe.com.gtel.talento.support.dto.TechnicianOption;
+import pe.com.gtel.talento.support.dto.TicketAssignmentRequest;
+import pe.com.gtel.talento.support.dto.TicketCreateRequest;
+import pe.com.gtel.talento.support.dto.TicketDecisionRequest;
+import pe.com.gtel.talento.support.dto.TicketExecutionRequest;
+import pe.com.gtel.talento.support.dto.TicketProposalRequest;
+import pe.com.gtel.talento.support.dto.TicketStatusRequest;
 import pe.com.gtel.talento.support.repository.SupportTicketRepository;
 
 @Service
@@ -35,6 +45,12 @@ public class SupportTicketService {
             case "TECNICO" -> repository.listForTechnician(actor.id());
             default -> throw forbidden();
         };
+    }
+    @Transactional(readOnly = true)
+    public List<SupportTicketDashboardDTO> getDashboard(String email) {
+        WorkflowActor actor = identity.actor(email);
+        requireRole(actor, "ADMIN"); 
+        return repository.getDashboardBoard();
     }
 
     @Transactional(readOnly = true)

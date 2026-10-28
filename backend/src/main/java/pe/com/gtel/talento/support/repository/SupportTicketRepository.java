@@ -4,11 +4,14 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+
+import pe.com.gtel.talento.support.dto.SupportTicketDashboardDTO;
 import pe.com.gtel.talento.support.dto.SupportTicketResponse;
 import pe.com.gtel.talento.support.dto.TechnicianOption;
 import pe.com.gtel.talento.support.dto.TicketCreateRequest;
@@ -189,5 +192,42 @@ public class SupportTicketRepository {
             JOIN ticket_soporte_estados e ON e.codigo=t.estado AND e.terminal=TRUE
             WHERE t.resolved_at IS NOT NULL AND t.resolved_at<=?
             """, cutoff);
+    }
+    public List<SupportTicketDashboardDTO> getDashboardBoard() {
+        String sql = """
+            SELECT t.id, t.codigo, t.titulo, t.categoria, t.prioridad, 
+                   COALESCE(tec.email, 'Sin asignar') AS asignado_a, estado.codigo AS estado, t.created_at,
+                   CASE t.prioridad
+                       WHEN 'ALTA' THEN DATE_ADD(t.created_at, INTERVAL 4 HOUR)
+                       WHEN 'MEDIA' THEN DATE_ADD(t.created_at, INTERVAL 24 HOUR)
+                       WHEN 'BAJA' THEN DATE_ADD(t.created_at, INTERVAL 48 HOUR)
+                       ELSE DATE_ADD(t.created_at, INTERVAL 24 HOUR)
+                   END AS sla_deadline,
+                   CASE 
+                       WHEN estado.terminal = TRUE THEN 'CUMPLIDO'
+                       WHEN CURRENT_TIMESTAMP > (
+                           CASE t.prioridad
+                               WHEN 'ALTA' THEN DATE_ADD(t.created_at, INTERVAL 4 HOUR)
+                               WHEN 'MEDIA' THEN DATE_ADD(t.created_at, INTERVAL 24 HOUR)
+                               WHEN 'BAJA' THEN DATE_ADD(t.created_at, INTERVAL 48 HOUR)
+                               ELSE DATE_ADD(t.created_at, INTERVAL 24 HOUR)
+                           END
+                       ) THEN 'VENCIDO'
+                       ELSE 'A TIEMPO'
+                   END AS sla_status
+            FROM tickets_soporte t
+            JOIN ticket_soporte_estados estado ON estado.codigo = t.estado
+            LEFT JOIN usuarios tec ON tec.id = t.tecnico_id
+            ORDER BY 
+                CASE WHEN estado.terminal = FALSE THEN 1 ELSE 2 END,
+                sla_deadline ASC
+            """;
+
+        return jdbc.query(sql, (rs, row) -> new SupportTicketDashboardDTO(
+            rs.getLong("id"), rs.getString("codigo"), rs.getString("titulo"),
+            rs.getString("categoria"), rs.getString("prioridad"), rs.getString("asignado_a"),
+            rs.getString("estado"), rs.getTimestamp("created_at").toLocalDateTime(),
+            rs.getTimestamp("sla_deadline").toLocalDateTime(), rs.getString("sla_status")
+        ));
     }
 }
