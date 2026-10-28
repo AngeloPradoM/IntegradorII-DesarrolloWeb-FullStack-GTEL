@@ -20,7 +20,7 @@ public class Postulante {
     @Column(nullable = false, length = 100)
     private String apellidos;
 
-    @Column(name = "numero_documento", length = 30)
+    @Column(name = "dni", length = 30)
     private String dni;
 
     @Column(length = 16)

@@ -91,8 +91,8 @@ CREATE TABLE IF NOT EXISTS tickets_soporte_archivo (
   resumen_resolucion VARCHAR(3000) NULL,
   cantidad_eventos INT NOT NULL DEFAULT 0,
   ultimo_evento VARCHAR(255) NULL,
-  created_at TIMESTAMP NOT NULL,
-  resolved_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   archived_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_ticket_archivo_resuelto (resolved_at),
   INDEX idx_ticket_archivo_solicitante (solicitante_email)
