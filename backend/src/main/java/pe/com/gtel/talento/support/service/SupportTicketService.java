@@ -54,6 +54,13 @@ public class SupportTicketService {
     }
 
     @Transactional(readOnly = true)
+    public List<SupportTicketDashboardDTO> getTechnicianDashboard(String email) {
+        WorkflowActor actor = identity.actor(email);
+        requireRole(actor, "TECNICO");
+        return repository.getDashboardBoard(actor.id());
+    }
+
+    @Transactional(readOnly = true)
     public List<TechnicianOption> technicians(String email) {
         requireRole(identity.actor(email), "ADMIN");
         return repository.technicians();

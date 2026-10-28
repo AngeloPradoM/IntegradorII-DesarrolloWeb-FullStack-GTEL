@@ -38,7 +38,7 @@ class SupportTicketServiceTest {
 
     @Test
     void migrationStoresAValidBcryptHashForTechnicianAccount() throws Exception {
-        String sql = Files.readString(Path.of("database/migrations/007_support_tickets.sql"));
+        String sql = Files.readString(Path.of("../database/migrations/008_support_tickets.sql"));
         var matcher = Pattern.compile("\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}").matcher(sql);
         assertTrue(matcher.find());
         assertTrue(new BCryptPasswordEncoder().matches("Tecnico2026!", matcher.group()));
@@ -55,6 +55,16 @@ class SupportTicketServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
         verifyNoInteractions(notifications);
+    }
+
+    @Test
+    void technicianCanConsultItsSlaDashboard() {
+        WorkflowActor technician = new WorkflowActor(22L, "TECNICO");
+        when(identity.actor("tecnico1@gmail.com")).thenReturn(technician);
+        when(repository.getDashboardBoard(22L)).thenReturn(java.util.List.of());
+
+        assertTrue(service.getTechnicianDashboard("tecnico1@gmail.com").isEmpty());
+        verify(repository).getDashboardBoard(22L);
     }
 
     @Test

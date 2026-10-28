@@ -1,6 +1,8 @@
 ﻿import { jsonRequest, request } from './workflowService';
 
 export const listSupportTickets = signal => request('/api/support/tickets', { signal });
+export const getAdminSupportSlaDashboard = signal => request('/api/support/tickets/dashboard', { signal });
+export const getTechnicianSupportSlaDashboard = signal => request('/api/support/tickets/sla', { signal });
 export const listTechnicians = signal => request('/api/support/technicians', { signal });
 export const createSupportTicket = data => jsonRequest('/api/support/tickets', 'POST', data);
 export const assignSupportTicket = (id, technicianId) => jsonRequest(`/api/support/tickets/${encodeURIComponent(id)}/assignment`, 'PATCH', { technicianId });

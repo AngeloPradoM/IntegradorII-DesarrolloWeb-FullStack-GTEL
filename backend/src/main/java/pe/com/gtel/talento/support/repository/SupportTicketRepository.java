@@ -194,39 +194,36 @@ public class SupportTicketRepository {
             """, cutoff);
     }
     public List<SupportTicketDashboardDTO> getDashboardBoard() {
+        return getDashboardBoard(null);
+    }
+
+    public List<SupportTicketDashboardDTO> getDashboardBoard(Long technicianId) {
         String sql = """
             SELECT t.id, t.codigo, t.titulo, t.categoria, t.prioridad, 
-                   COALESCE(tec.email, 'Sin asignar') AS asignado_a, t.estado, t.created_at,
-                   CASE t.prioridad
-                       WHEN 'ALTA' THEN DATE_ADD(t.created_at, INTERVAL 4 HOUR)
-                       WHEN 'MEDIA' THEN DATE_ADD(t.created_at, INTERVAL 24 HOUR)
-                       WHEN 'BAJA' THEN DATE_ADD(t.created_at, INTERVAL 48 HOUR)
-                       ELSE DATE_ADD(t.created_at, INTERVAL 24 HOUR)
-                   END AS sla_deadline,
+                   COALESCE(tec.email, 'Sin asignar') AS asignado_a, estado.codigo AS estado, t.created_at,
+                   DATE_ADD(t.created_at, INTERVAL sla.horas_respuesta HOUR) AS sla_deadline,
                    CASE 
-                       WHEN t.estado IN ('RESUELTO', 'CERRADO') THEN 'CUMPLIDO'
-                       WHEN CURRENT_TIMESTAMP > (
-                           CASE t.prioridad
-                               WHEN 'ALTA' THEN DATE_ADD(t.created_at, INTERVAL 4 HOUR)
-                               WHEN 'MEDIA' THEN DATE_ADD(t.created_at, INTERVAL 24 HOUR)
-                               WHEN 'BAJA' THEN DATE_ADD(t.created_at, INTERVAL 48 HOUR)
-                               ELSE DATE_ADD(t.created_at, INTERVAL 24 HOUR)
-                           END
-                       ) THEN 'VENCIDO'
+                       WHEN estado.terminal = TRUE THEN 'CUMPLIDO'
+                       WHEN CURRENT_TIMESTAMP > DATE_ADD(t.created_at, INTERVAL sla.horas_respuesta HOUR) THEN 'VENCIDO'
+                       WHEN CURRENT_TIMESTAMP >= DATE_SUB(DATE_ADD(t.created_at, INTERVAL sla.horas_respuesta HOUR), INTERVAL 2 HOUR) THEN 'POR VENCER'
                        ELSE 'A TIEMPO'
                    END AS sla_status
             FROM tickets_soporte t
+            JOIN ticket_soporte_estados estado ON estado.codigo = t.estado
+            JOIN ticket_sla_politicas sla ON sla.prioridad = t.prioridad AND sla.activo = TRUE
             LEFT JOIN usuarios tec ON tec.id = t.tecnico_id
+            %s
             ORDER BY 
-                CASE WHEN t.estado NOT IN ('RESUELTO', 'CERRADO') THEN 1 ELSE 2 END,
+                CASE WHEN estado.terminal = FALSE THEN 1 ELSE 2 END,
                 sla_deadline ASC
-            """;
+            """.formatted(technicianId == null ? "" : "WHERE t.tecnico_id IS NULL OR t.tecnico_id = ?");
 
-        return jdbc.query(sql, (rs, row) -> new SupportTicketDashboardDTO(
+        RowMapper<SupportTicketDashboardDTO> mapper = (rs, row) -> new SupportTicketDashboardDTO(
             rs.getLong("id"), rs.getString("codigo"), rs.getString("titulo"),
             rs.getString("categoria"), rs.getString("prioridad"), rs.getString("asignado_a"),
             rs.getString("estado"), rs.getTimestamp("created_at").toLocalDateTime(),
             rs.getTimestamp("sla_deadline").toLocalDateTime(), rs.getString("sla_status")
-        ));
+        );
+        return technicianId == null ? jdbc.query(sql, mapper) : jdbc.query(sql, mapper, technicianId);
     }
 }

@@ -27,7 +27,7 @@
 mvn.cmd test
 ```
 
-Consulta la [arquitectura del backend](backend/docs/architecture/arquitectura-src.md).
+Consulta la [arquitectura del backend](docs/architecture/arquitectura-src.md).
 
 ## Frontend
 

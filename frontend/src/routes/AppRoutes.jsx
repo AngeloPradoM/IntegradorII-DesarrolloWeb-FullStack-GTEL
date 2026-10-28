@@ -31,6 +31,7 @@ import SystemGuidePage from "../pages/reclutador/SystemGuidePage";
 import TechnicianLayout from "../layouts/TechnicianLayout";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import NotFoundPage from "../pages/NotFoundPage";
+import SupportDashboardPage from "../pages/reclutador/SupportDashboardPage";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -44,6 +45,7 @@ const router = createBrowserRouter(
         <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
         <Route path="/admin/auditoria" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AuditPage /></ProtectedRoute>} />
         <Route path="/admin/tickets" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminTicketsPage /></ProtectedRoute>} />
+        <Route path="/admin/tablero-sla" element={<ProtectedRoute allowedRoles={["ADMIN"]}><SupportDashboardPage /></ProtectedRoute>} />
         <Route path="/notificaciones" element={<ProtectedRoute allowedRoles={["CANDIDATO", "RECLUTADOR", "ADMIN", "JEFATURA_SOLICITANTE", "ANALISTA_RRHH", "ENTREVISTADOR", "TECNICO"]}><NotificationsPage /></ProtectedRoute>} />
         <Route path="/ofertas" element={<OfertasLaboralesPage />} />
         <Route path="/ofertas/:id" element={<OfertaDetallePage />} />
@@ -71,6 +73,7 @@ const router = createBrowserRouter(
         <Route path="seleccion" element={<SelectionWorkspace />} />
         <Route path="tickets" element={<RecruiterTicketsPage />} />
         <Route path="guia-uso" element={<SystemGuidePage />} />
+        <Route path="tablero-sla" element={<Navigate to="/admin/tablero-sla" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
@@ -79,6 +82,10 @@ const router = createBrowserRouter(
         <Route path="tickets" element={<TechnicianTicketsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </>));
-    
-export default function AppRoutes() {return <RouterProvider router={router} />; }
+    </>
+  )
+);
+
+export default function AppRoutes() { 
+  return <RouterProvider router={router} />; 
+}

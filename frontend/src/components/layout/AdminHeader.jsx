@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   BriefcaseBusiness,
+  Clock,
   ChevronDown,
   ExternalLink,
   HelpCircle,
@@ -26,6 +27,7 @@ const primaryNavigation = [
   { to: '/notificaciones', label: 'Notificaciones', icon: Bell, notifications: true },
   { to: '/ofertas', label: 'Ofertas', icon: BriefcaseBusiness },
   { to: '/admin/tickets', label: 'Mesa de ayuda', icon: HelpCircle },
+  { to: '/admin/tablero-sla', label: 'Tablero SLA', icon: Clock },
 ];
 
 const perspectiveNavigation = [

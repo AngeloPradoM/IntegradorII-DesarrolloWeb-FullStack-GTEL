@@ -26,7 +26,7 @@ Para aceptar la entrega en el entorno local faltan los pasos 1–3 de esta guía
 
 ### Papelera de ofertas (migración 005)
 
-Para esta versión, aplicar también `backend/database/migrations/005_job_trash.sql` después de la 004 y **antes de reiniciar el backend**. Crea `vacantes_papelera`; el esquema de instalación nueva ya la incluye. No se ejecutó en el MySQL local durante el desarrollo.
+Para esta versión, aplicar también `database/migrations/006_job_trash.sql` después de la 005 y **antes de reiniciar el backend**. Crea `vacantes_papelera`; el esquema de instalación nueva ya la incluye. No se ejecutó automáticamente en la base real.
 
 - En Ofertas, **Eliminar oferta** solicita confirmación y la mueve a **Papelera (30 días)**. Deja de publicarse y no acepta postulaciones.
 - Dentro de los 30 días puede restaurarse. Vuelve como **pausada**, conservando sus postulaciones y documentos; el reclutador debe editarla para publicarla.
@@ -42,8 +42,8 @@ Validación de esta ampliación: 42 pruebas backend aprobadas, incluyendo multip
 
 La migración no se ejecuta automáticamente al iniciar Spring.
 
-- **Base existente:** realizar un respaldo, comprobar que se aplicaron las migraciones 001–003 y ejecutar íntegramente `backend/database/migrations/004_recruitment_workflow.sql` en DBeaver contra `gtel_talento`.
-- **Base nueva:** importar `backend/database/schema/gtel_talento.sql`; ya incluye las tablas de esta entrega. No volver a importar el esquema sobre una base con datos.
+- **Base existente:** realizar un respaldo, comprobar que se aplicaron las migraciones anteriores y ejecutar `database/migrations/005_recruitment_workflow.sql` en DBeaver contra `gtel_talento`.
+- **Base nueva:** importar `database/schema/gtel_talento.sql`; ya incluye las tablas de esta entrega. No volver a importar el esquema sobre una base con datos.
 
 La migración 004 crea `perfiles_contacto`, `documentos_postulacion`, `recuperacion_acceso` y `notificaciones`. Conserva los datos existentes y utiliza las tablas de vacantes, postulaciones, entrevistas, evaluaciones, historial y auditoría del esquema original. No rellena CV de postulaciones antiguas.
 
