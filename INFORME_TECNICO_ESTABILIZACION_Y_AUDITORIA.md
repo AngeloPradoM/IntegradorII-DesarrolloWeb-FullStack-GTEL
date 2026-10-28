@@ -150,16 +150,17 @@ Para que cualquier compañero de equipo (Angelo, Leo, Oscar, Mayco, Adrihan) pon
    git fetch partner
    git checkout fix/estabilizacion-base-datos-auth-soporte
    ```
-2. **Poner al día la Base de Datos MySQL local:**
-   Abrir una terminal en la raíz del proyecto y ejecutar:
-   ```cmd
-   "C:\xampp\mysql\bin\mysql.exe" -u root --default-character-set=utf8mb4 gtel_talento < database\scripts\actualizar_db_desarrollo.sql
-   "C:\xampp\mysql\bin\mysql.exe" -u root --default-character-set=utf8mb4 gtel_talento < database\scripts\corregir_ortografia_caracteres_bd.sql
-   ```
-   *(Esto aplica las migraciones faltantes 008–013 y restaura todas las tildes sin borrar un solo registro).*
 
-3. **Iniciar Backend y Frontend:**
-   * Backend: `cd backend && mvn spring-boot:run`
+2. **Auto-reparación automática de Base de Datos (¡Sin ejecutar scripts manuales!):**
+   * Se incorporó el componente `DatabaseSchemaInitializer.java` en Spring Boot.
+   * Con solo iniciar el backend:
+     ```bash
+     cd backend && mvn spring-boot:run
+     ```
+   * **El backend detecta automáticamente qué tablas o columnas faltan en el MySQL local del desarrollador y las crea en 0.2 segundos de forma transparente.**
+   * También se mantienen disponibles los scripts manuales `database/scripts/actualizar_db_desarrollo.sql` y `database/scripts/corregir_ortografia_caracteres_bd.sql` en caso deseen ejecutarlos directamente en su cliente SQL.
+
+3. **Iniciar Frontend:**
    * Frontend: `cd frontend && npm run dev`
 
 ---
