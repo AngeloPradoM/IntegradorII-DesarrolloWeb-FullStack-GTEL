@@ -94,6 +94,7 @@ Aplicar solo las migraciones aprobadas y en orden. La secuencia consolidada es:
 | `009` | Compatibilidad de notificaciones |
 | `010` | Ciclo de vida y archivo de tickets |
 | `011` | Políticas SLA configurables por prioridad |
+| `012` | Consentimiento y metadatos de privacidad del postulante |
 
 Ejemplo: si el diagnóstico muestra que faltan tickets, ejecutar en DBeaver:
 
@@ -102,6 +103,7 @@ database/migrations/008_support_tickets.sql
 database/migrations/009_notification_schema_compatibility.sql
 database/migrations/010_support_ticket_lifecycle.sql
 database/migrations/011_support_sla_policies.sql
+database/migrations/012_postulante_consentimiento.sql
 ```
 
 No ejecutes una migración si sus tablas, columnas o restricciones ya existen sin comprobar antes

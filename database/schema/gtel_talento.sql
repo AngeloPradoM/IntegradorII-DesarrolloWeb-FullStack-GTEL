@@ -39,6 +39,9 @@ CREATE TABLE IF NOT EXISTS postulantes (
   experiencia TEXT,
   educacion TEXT,
   estado ENUM('activo','inactivo') DEFAULT 'activo',
+  consentimiento_datos BOOLEAN NOT NULL DEFAULT TRUE,
+  fecha_consentimiento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  consentimiento_version VARCHAR(30) NOT NULL DEFAULT 'v1.0-ley29733',
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
