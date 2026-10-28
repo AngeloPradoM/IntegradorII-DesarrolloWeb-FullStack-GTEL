@@ -72,7 +72,7 @@ const router = createBrowserRouter(
         <Route path="seleccion" element={<SelectionWorkspace />} />
         <Route path="tickets" element={<RecruiterTicketsPage />} />
         <Route path="guia-uso" element={<SystemGuidePage />} />
-        <Route path="tablero-sla" element={<SupportDashboardPage />} />
+        <Route path="tablero-sla" element={<ProtectedRoute allowedRoles={["ADMIN"]}><SupportDashboardPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 

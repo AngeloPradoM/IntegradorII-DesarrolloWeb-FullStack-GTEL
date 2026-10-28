@@ -47,7 +47,7 @@ const allNavItems = [
   { icon: CalendarDays, label: "Entrevistas", path: "/reclutador/entrevistas", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH", "ENTREVISTADOR"] },
   { icon: ClipboardList, label: "Evaluaciones", path: "/reclutador/evaluaciones", roles: ["RECLUTADOR", "ADMIN", "ENTREVISTADOR"] },
   { icon: TicketCheck, label: "Solicitar ticket", path: "/reclutador/tickets", roles: ["RECLUTADOR", "ADMIN"] },
-  { icon: Clock, label: "Tablero SLA", path: "/reclutador/tablero-sla", roles: ["RECLUTADOR", "ADMIN"] },
+  { icon: Clock, label: "Tablero SLA", path: "/reclutador/tablero-sla", roles: ["ADMIN"] },
   { icon: BookOpen, label: "Guía de uso", path: "/reclutador/guia-uso", roles: ["RECLUTADOR", "ADMIN"] },
 ];
 
