@@ -58,6 +58,16 @@ class SupportTicketServiceTest {
     }
 
     @Test
+    void technicianCanConsultItsSlaDashboard() {
+        WorkflowActor technician = new WorkflowActor(22L, "TECNICO");
+        when(identity.actor("tecnico1@gmail.com")).thenReturn(technician);
+        when(repository.getDashboardBoard(22L)).thenReturn(java.util.List.of());
+
+        assertTrue(service.getTechnicianDashboard("tecnico1@gmail.com").isEmpty());
+        verify(repository).getDashboardBoard(22L);
+    }
+
+    @Test
     void adminCannotApproveProposalWithoutAssignedTechnician() {
         when(identity.actor("Administrador@gmail.com")).thenReturn(new WorkflowActor(1L, "ADMIN"));
         when(repository.find(8L)).thenReturn(ticket(null, "PENDIENTE", "EN_ESPERA"));

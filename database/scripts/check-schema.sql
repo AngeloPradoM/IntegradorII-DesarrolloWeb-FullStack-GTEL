@@ -10,5 +10,6 @@ UNION ALL SELECT '007 support tickets',COUNT(*) FROM information_schema.tables W
 UNION ALL SELECT '008 notification compatibility',COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='notificaciones' AND column_name='tipo'
 UNION ALL SELECT '009 support states',COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='ticket_soporte_estados'
 UNION ALL SELECT '009 support archive',COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='tickets_soporte_archivo'
+UNION ALL SELECT '011 SLA policies',COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='ticket_sla_politicas'
 UNION ALL SELECT '000 migration history',COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='db_migration_history';
 -- This checks representative schema objects, not the full successful execution of each migration.

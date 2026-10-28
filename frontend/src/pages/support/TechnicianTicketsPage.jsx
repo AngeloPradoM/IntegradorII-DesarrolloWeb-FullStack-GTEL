@@ -1,16 +1,17 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, CheckCircle2, ClipboardCheck, RefreshCw, Send, ShieldCheck, Wrench } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { listSupportTickets, registerSupportExecution, submitSupportProposal, updateSupportTicketStatus } from '../../services/supportService';
+import { getTechnicianSupportSlaDashboard, listSupportTickets, registerSupportExecution, submitSupportProposal, updateSupportTicketStatus } from '../../services/supportService';
 
 const states=['NUEVO','ASIGNADO','EN_ATENCION','EN_ESPERA','RESUELTO','CERRADO'];
 const labels={NUEVO:'Nuevo',ASIGNADO:'Asignado',EN_ATENCION:'En atención',EN_ESPERA:'En espera',RESUELTO:'Resuelto',CERRADO:'Cerrado'};
 export default function TechnicianTicketsPage(){
  const {user}=useAuth();
- const [tickets,setTickets]=useState([]),[selectedId,setSelectedId]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [tickets,setTickets]=useState([]),[sla,setSla]=useState([]),[selectedId,setSelectedId]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [diagnosis,setDiagnosis]=useState(''),[solution,setSolution]=useState(''),[evidence,setEvidence]=useState(''),[status,setStatus]=useState('NUEVO');
  const selected=useMemo(()=>tickets.find(ticket=>ticket.id===selectedId)||null,[tickets,selectedId]);
- const load=async signal=>{setLoading(true);try{const rows=await listSupportTickets(signal);setTickets(Array.isArray(rows)?rows:[]);setSelectedId(current=>current&&rows.some(row=>row.id===current)?current:(rows[0]?.id||null));setError('');}catch(e){if(e.name!=='AbortError')setError(e.message);}finally{setLoading(false);}};
+ const slaById=useMemo(()=>new Map(sla.map(row=>[row.id,row])),[sla]);
+ const load=async signal=>{setLoading(true);try{const [rows,slaRows]=await Promise.all([listSupportTickets(signal),getTechnicianSupportSlaDashboard(signal)]);setTickets(Array.isArray(rows)?rows:[]);setSla(Array.isArray(slaRows)?slaRows:[]);setSelectedId(current=>current&&rows.some(row=>row.id===current)?current:(rows[0]?.id||null));setError('');}catch(e){if(e.name!=='AbortError')setError(e.message);}finally{setLoading(false);}};
  useEffect(()=>{const controller=new AbortController();load(controller.signal);return()=>controller.abort();},[]);
  useEffect(()=>{if(!selected)return;setDiagnosis(selected.diagnosis||'');setSolution(selected.proposedSolution||'');setEvidence(selected.executionEvidence||'');setStatus(selected.status);},[selected]);
  const replace=updated=>setTickets(rows=>rows.map(row=>row.id===updated.id?updated:row));
@@ -28,7 +29,7 @@ export default function TechnicianTicketsPage(){
    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">{!selected?<div className="grid min-h-[520px] place-items-center p-8 text-center text-slate-500"><div><Wrench className="mx-auto mb-3 h-8 w-8"/>Selecciona una solicitud.</div></div>:<div>
     <header className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 p-6 dark:border-slate-800"><div><p className="text-xs font-black text-brand-red">{selected.code}</p><h2 className="mt-1 text-2xl font-bold text-brand-navy dark:text-white">{selected.title}</h2><p className="mt-1 text-sm text-slate-500">{selected.category} · {selected.subcategory}</p></div><span className={`rounded-full px-3 py-1.5 text-xs font-black ${approved?'bg-emerald-50 text-emerald-700':selected.proposalStatus==='PENDIENTE'?'bg-amber-50 text-amber-700':'bg-slate-100 text-slate-700'}`}>{approved?'Ejecución autorizada':selected.proposalStatus==='PENDIENTE'?'Esperando autorización':'Evaluación técnica'}</span></header>
     <div className="space-y-5 p-6">
-     <div className="grid gap-3 md:grid-cols-4">{[['Solicitante',selected.requesterEmail],['Área',selected.area],['Técnico',selected.technicianEmail||'Sin asignar'],['Estado',labels[selected.status]]].map(([label,value])=><div key={label} className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800"><span className="text-[10px] font-bold uppercase text-slate-500">{label}</span><strong className="mt-1 block break-words text-xs">{value}</strong></div>)}</div>
+     <div className="grid gap-3 md:grid-cols-5">{[['Solicitante',selected.requesterEmail],['Área',selected.area],['Técnico',selected.technicianEmail||'Sin asignar'],['Estado',labels[selected.status]],['SLA',slaById.get(selected.id)?.slaStatus||'Sin datos']].map(([label,value])=><div key={label} className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800"><span className="text-[10px] font-bold uppercase text-slate-500">{label}</span><strong className="mt-1 block break-words text-xs">{value}</strong>{label==='SLA'&&slaById.get(selected.id)&&<small className="mt-1 block text-[10px] text-slate-500">Límite: {new Date(slaById.get(selected.id).slaDeadline).toLocaleString()}</small>}</div>)}</div>
      <div className="rounded-xl border-l-4 border-brand-red bg-red-50/60 p-4 dark:bg-red-950/20"><strong className="text-xs uppercase">Solicitud formal</strong><p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">{selected.description}</p></div>
      <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900"><strong>Justificación de prioridad</strong><p className="mt-1">{selected.priorityJustification}</p></div>
      {!assigned&&<p className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">Administración debe asignarte este ticket antes de que puedas intervenir.</p>}

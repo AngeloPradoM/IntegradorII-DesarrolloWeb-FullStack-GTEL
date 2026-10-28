@@ -41,6 +41,11 @@ public class SupportTicketController {
         return service.getDashboard(principal.getName());
     }
 
+    @GetMapping("/tickets/sla")
+    public List<SupportTicketDashboardDTO> getTechnicianDashboard(Principal principal) {
+        return service.getTechnicianDashboard(principal.getName());
+    }
+
     @GetMapping("/technicians")
     public List<TechnicianOption> technicians(Principal principal) {
         return service.technicians(principal.getName());
