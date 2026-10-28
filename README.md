@@ -8,7 +8,7 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 | Docente | Marisbel Toledo |
 | Arquitectura | React → API REST Spring Boot → MySQL |
 
-### Integrantes
+## Integrantes
 
 | Integrante |
 |---|
@@ -19,20 +19,27 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 | Mendoza Malca, Mayco Joel Carlos |
 | Mendoza Núñez Adrihan Daniel |
 
-### Estado del proyecto
+## Estado del proyecto
 
+| Área | Estado |
+|---|---|
+| Backend | Spring Boot operativo; 90 pruebas automatizadas aprobadas |
+| Frontend | React/Vite con rutas de candidato, reclutador, técnico y administrador |
+| Base de datos | `database/` es la única fuente oficial |
+| Documentación | Centralizada en `docs/` |
+| Docker | `docker-compose.yml` conservado sin cambios |
 
-### Contenido
+## Contenido
 
 - [Despliegue rápido con Docker](#despliegue-rápido-con-docker): ejecución multi-contenedor sin dependencias locales.
 - [Frontend](#frontend): instalación, configuración y ejecución de React.
 - [Backend](#backend): MySQL, configuración y ejecución de Spring Boot.
-- [Credenciales de prueba](#6-credenciales-de-prueba).
-- [Verificación por correo](#10-verificación-de-acceso-por-correo-gmail-smtp).
-- [Administración y permisos](#11-administración-y-permisos).
-- [Trabajo colaborativo](#12-trabajo-colaborativo).
+- [Base de datos para una instalación local](#base-de-datos-para-una-instalación-local).
+- [Credenciales de prueba](#credenciales-de-prueba).
+- [Verificación por correo](#verificación-de-acceso-por-correo-gmail-smtp).
+- [Administración y permisos](#administración-y-permisos).
 
-# Despliegue rápido con Docker
+## Despliegue rápido con Docker
 
 Para ejecutar la arquitectura completa (Frontend React con Nginx, Backend Spring Boot y Base de Datos MySQL 8) sin necesidad de instalar Java, Maven, Node.js ni MySQL en el equipo:
 
@@ -51,11 +58,10 @@ Para ejecutar la arquitectura completa (Frontend React con Nginx, Backend Spring
    ```
 
 ---
-# Frontend
 
-Interfaz web para consultar ofertas, registrar candidatos, iniciar sesión y acceder a las pantallas de postulaciones y reclutamiento.
+## Frontend
 
-## Stack técnico
+### Stack técnico
 
 Versiones declaradas en `frontend/package.json`; `package-lock.json` fija las dependencias instaladas con `npm ci`.
 
@@ -69,18 +75,64 @@ Versiones declaradas en `frontend/package.json`; `package-lock.json` fija las de
 | Recharts | ^3.10.1 | Gráficos |
 | ESLint | ^10.9.0 | Revisión del código |
 
-## Prerrequisitos
+### Prerrequisitos
 
 | Herramienta | Versión de referencia | Descarga oficial |
 |---|---|---|
-| Node.js | 22.x, desde 22.12 | [Node.js](https://nodejs.org/en/download) |
-| npm | Incluido con Node.js | [Node.js](https://nodejs.org/en/download) |
-| Git | 2.x | [Git](https://git-scm.com/downloads) |
-| VS Code | Estable; el proyecto no fija versión | [VS Code](https://code.visualstudio.com/Download) |
+| Node.js | 24.18.0 verificada; 22+ compatible | [Node.js](https://nodejs.org/en/download) |
+| npm | 11.16.0 verificada | [Node.js](https://nodejs.org/en/download) |
+| Git | 2.54.0 verificada | [Git](https://git-scm.com/downloads) |
+| VS Code | 1.140.0 verificada | [VS Code](https://code.visualstudio.com/Download) |
 
 Los comandos de esta guía usan PowerShell en Windows. En Linux/macOS, usar `npm` y `mvn` sin `.cmd`.
 
-## 1. Obtener el proyecto e instalar dependencias
+
+## Backend
+
+API REST de GTEL Talento. Gestiona el registro, la autenticación por correo y contraseña, la emisión de tokens JWT y las consultas de reclutamiento. Utiliza MySQL para persistir los datos y organiza el código por funcionalidades.
+
+### Stack técnico
+
+| Tecnología | Versión | Función |
+|---|---|---|
+| Java | 21 | Lenguaje y runtime |
+| Spring Boot | 3.5.5 | Servidor y configuración |
+| Spring Web | Gestionada por Spring Boot | API REST |
+| Spring Data JPA / Hibernate | Gestionada por Spring Boot | Persistencia y validación del esquema |
+| Spring Security / BCrypt | Gestionada por Spring Boot | Autorización y hash de contraseñas |
+| JJWT | 0.12.6 | Firma y validación de JWT |
+| Spring Mail | Gestionada por Spring Boot | Envío de códigos por SMTP |
+| MySQL Connector/J | Gestionada por Spring Boot | Conexión JDBC |
+| JUnit / Mockito | Gestionada por Spring Boot | Pruebas |
+| H2 | Gestionada por Spring Boot | Base en memoria para pruebas |
+
+Las dependencias Java se descargan mediante Maven según `backend/pom.xml`; no se instalan manualmente.
+
+
+### Prerrequisitos
+
+| Herramienta | Versión requerida o de referencia | Descarga oficial |
+|---|---|---|
+| JDK | 21; seleccionar JDK 21 en la página | [Oracle JDK](https://www.oracle.com/java/technologies/downloads/#java21) |
+| Apache Maven | 3.9.16 verificada | [Maven](https://maven.apache.org/download.cgi) |
+| MySQL Server | 8.x para la instalación de referencia; SQL requiere al menos 8.0.13 | [MySQL Community](https://dev.mysql.com/downloads/) |
+| DBeaver Community | Versión compatible con MySQL 8; no fijada por el proyecto | [DBeaver](https://dbeaver.io/download/) |
+| VS Code | Versión estable; no fijada por el proyecto | [VS Code](https://code.visualstudio.com/Download) |
+| Extension Pack for Java | Versión compatible con tu VS Code | [Extensión Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack) |
+| Spring Boot Extension Pack | Versión compatible con tu VS Code | [Extensiones Spring](https://marketplace.visualstudio.com/items?itemName=vmware.vscode-boot-dev-pack) |
+| Git | 2.x | [Git](https://git-scm.com/downloads) |
+
+Las versiones de herramientas auxiliares son referencias, no una declaración de que todas se hayan probado juntas. DBeaver es un cliente: no reemplaza a MySQL Server. Cada integrante configura su propia instalación local.
+
+Comprobar que Java y Maven estén disponibles en `PATH` y que Maven utilice Java 21:
+
+```powershell
+java -version
+mvn.cmd -version
+git --version
+```
+
+### 1. Obtener el proyecto e instalar dependencias
 
 Si todavía no lo clonaste, utiliza el comando del apartado **Backend → 1. Clonar el repositorio**. No necesitas clonarlo dos veces.
 
@@ -91,7 +143,7 @@ cd frontend
 npm.cmd ci
 ```
 
-## 2. Configurar la API
+### 2. Configurar la API
 
 Crear opcionalmente `frontend/.env.local`:
 
@@ -102,7 +154,7 @@ VITE_DATA_MODE=demo
 
 Son los valores predeterminados. Registro y login utilizan el backend incluso con los demás módulos en modo `demo`. Cambiar a `api` no implementa los endpoints pendientes. No guardar secretos en variables `VITE_*`, porque son públicas.
 
-## 3. Levantar el frontend
+### 3. Levantar el frontend
 
 Desde `frontend/`:
 
@@ -112,7 +164,7 @@ npm.cmd run dev
 
 Abrir http://localhost:5173 o la dirección indicada por Vite. El backend debe estar iniciado para registrarse e ingresar. Si cambia el puerto del frontend, ajustar también los orígenes CORS del backend.
 
-## 4. Pruebas y compilación
+### 4. Pruebas y compilación
 
 ```powershell
 npm.cmd run lint
@@ -122,7 +174,7 @@ npm.cmd run build
 
 La compilación genera `dist/`. Los recorridos actuales están en `tests/admin-browser.mjs` y `tests/email-otp-browser.mjs`; sus requisitos se indican en el apartado de administración. `tests/browser-flows.mjs` conserva escenarios demo anteriores y requiere adaptación antes de reutilizarlo.
 
-## 5. Estructura del frontend
+### 5. Estructura del frontend
 
 ```text
 frontend/
@@ -142,51 +194,11 @@ frontend/
 └── vite.config.js       # Configuración de Vite
 ```
 
-# Backend
 
-API REST de GTEL Talento. Gestiona el registro, la autenticación por correo y contraseña, la emisión de tokens JWT y las consultas de reclutamiento. Utiliza MySQL para persistir los datos y organiza el código por funcionalidades.
 
-## Stack técnico
+## Base de datos
 
-| Tecnología | Versión | Función |
-|---|---|---|
-| Java | 21 | Lenguaje y runtime |
-| Spring Boot | 3.5.5 | Servidor y configuración |
-| Spring Web | Gestionada por Spring Boot | API REST |
-| Spring Data JPA / Hibernate | Gestionada por Spring Boot | Persistencia y validación del esquema |
-| Spring Security / BCrypt | Gestionada por Spring Boot | Autorización y hash de contraseñas |
-| JJWT | 0.12.6 | Firma y validación de JWT |
-| Spring Mail | Gestionada por Spring Boot | Envío de códigos por SMTP |
-| MySQL Connector/J | Gestionada por Spring Boot | Conexión JDBC |
-| JUnit / Mockito | Gestionada por Spring Boot | Pruebas |
-| H2 | Gestionada por Spring Boot | Base en memoria para pruebas |
-
-Las dependencias Java se descargan mediante Maven según `backend/pom.xml`; no se instalan manualmente.
-
-## Prerrequisitos
-
-| Herramienta | Versión requerida o de referencia | Descarga oficial |
-|---|---|---|
-| JDK | 21; seleccionar JDK 21 en la página | [Oracle JDK](https://www.oracle.com/java/technologies/downloads/#java21) |
-| Apache Maven | 3.9.x como referencia | [Maven](https://maven.apache.org/download.cgi) |
-| MySQL Server | 8.x para la instalación de referencia; SQL requiere al menos 8.0.13 | [MySQL Community](https://dev.mysql.com/downloads/) |
-| DBeaver Community | Versión compatible con MySQL 8; no fijada por el proyecto | [DBeaver](https://dbeaver.io/download/) |
-| VS Code | Versión estable; no fijada por el proyecto | [VS Code](https://code.visualstudio.com/Download) |
-| Extension Pack for Java | Versión compatible con tu VS Code | [Extensión Java](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack) |
-| Spring Boot Extension Pack | Versión compatible con tu VS Code | [Extensiones Spring](https://marketplace.visualstudio.com/items?itemName=vmware.vscode-boot-dev-pack) |
-| Git | 2.x | [Git](https://git-scm.com/downloads) |
-
-Las versiones de herramientas auxiliares son referencias, no una declaración de que todas se hayan probado juntas. DBeaver es un cliente: no reemplaza a MySQL Server. Cada integrante configura su propia instalación local.
-
-Comprobar que Java y Maven estén disponibles en `PATH` y que Maven utilice Java 21:
-
-```powershell
-java -version
-mvn.cmd -version
-git --version
-```
-
-## 1. Clonar el repositorio
+### 1. Clonar el repositorio
 
 ```powershell
 git clone https://github.com/AngeloPradoM/IntegradorII-DesarrolloWeb-FullStack-GTEL.git
@@ -195,7 +207,7 @@ cd IntegradorII-DesarrolloWeb-FullStack-GTEL
 
 Repositorio: [IntegradorII-DesarrolloWeb-FullStack-GTEL](https://github.com/AngeloPradoM/IntegradorII-DesarrolloWeb-FullStack-GTEL).
 
-## 2. Crear la base de datos en DBeaver
+### 2. Crear la base de datos en DBeaver
 
 ### 2.1. Conectar MySQL
 
@@ -229,7 +241,7 @@ Ejecutar la sentencia con `Ctrl + Enter` o la acción **Execute SQL Statement**.
 
 ### 2.3. Crear las tablas y roles
 
-Abrir [backend/database/schema/gtel_talento.sql](backend/database/schema/gtel_talento.sql) mediante **SQL Editor → Open SQL Script**, asociarlo a la conexión y ejecutar el script completo con **Execute SQL Script**.
+Abrir [database/schema/gtel_talento.sql](database/schema/gtel_talento.sql) mediante **SQL Editor → Open SQL Script**, asociarlo a la conexión y ejecutar el script completo con **Execute SQL Script**.
 
 El script incluye `CREATE DATABASE IF NOT EXISTS`, por lo que admite la base vacía creada en el paso anterior. Crea las tablas y los roles `CANDIDATO`, `RECLUTADOR`, `ADMIN` y `TECNICO`. Las cuentas de desarrollo se habilitan explícitamente como se indica abajo.
 
@@ -248,15 +260,28 @@ Conservar los datos y revisar qué cambios faltan antes de ejecutar SQL. Los scr
 | Script | Cuándo aplicarlo |
 |---|---|
 | `001_postulante_telefono.sql` | Solo si falta `postulantes.telefono` |
-| [002_email_otp.sql](backend/database/migrations/002_email_otp.sql) | Solo si falta la tabla `auth_email_challenges` |
-| [003_admin_access.sql](backend/database/migrations/003_admin_access.sql) | Una vez, para incorporar ADMIN, `usuarios.auth_version` y `usuarios.otp_exempt` |
-| [007_support_tickets.sql](backend/database/migrations/007_support_tickets.sql) | Una vez, para incorporar el rol TECNICO, su cuenta local de prueba y las tablas de tickets en una BD existente |
-| [008_notification_schema_compatibility.sql](backend/database/migrations/008_notification_schema_compatibility.sql) | Después de la 007, para adaptar instalaciones existentes al esquema actual de notificaciones y evitar que el envío de avisos revierta un ticket |
-| [009_support_ticket_lifecycle.sql](backend/database/migrations/009_support_ticket_lifecycle.sql) | Después de la 008, normaliza los estados, relaciona la trazabilidad y crea el archivo resumido para la depuración semanal |
+| [002_email_otp.sql](database/migrations/002_email_otp.sql) | Solo si falta la tabla `auth_email_challenges` |
+| [004_admin_access.sql](database/migrations/004_admin_access.sql) | Una vez, para incorporar ADMIN, `usuarios.auth_version` y `usuarios.otp_exempt` |
+| [008_support_tickets.sql](database/migrations/008_support_tickets.sql) | Una vez, para incorporar el rol TECNICO, su cuenta local de prueba y las tablas de tickets en una BD existente |
+| [009_notification_schema_compatibility.sql](database/migrations/009_notification_schema_compatibility.sql) | Después de la 008, para adaptar instalaciones existentes al esquema actual de notificaciones y evitar que el envío de avisos revierta un ticket |
+| [010_support_ticket_lifecycle.sql](database/migrations/010_support_ticket_lifecycle.sql) | Después de la 009, normaliza los estados, relaciona la trazabilidad y crea el archivo resumido para la depuración semanal |
 
 El esquema inicial actualizado incluye estos cambios. No ejecutar las migraciones sobre una instalación nueva creada con ese esquema. Si una migración se aplicó parcialmente, revisar las columnas existentes antes de continuar.
 
-## 3. Configurar el proyecto
+Para el caso de una base local desactualizada, seguir la guía [Incorporación de una base local](database/LOCAL_SETUP.md). Incluye respaldo, diagnóstico, migraciones y validación sin perder datos.
+
+### Credenciales de prueba
+
+| Tipo de acceso | Rol | Correo | Contraseña de prueba |
+|---|---|---|---|
+| Administrador | `ADMIN` (3) | `Administrador@gmail.com` | `AdminSecure2026*` |
+| Candidato | `CANDIDATO` | `postulante1@gmail.com` | `Postulante2026!` |
+| Reclutador | `RECLUTADOR` | `reclutador1@gmail.com` | `Reclutador2026!` |
+| Técnico de sistemas | `TECNICO` | `tecnico1@gmail.com` | `Tecnico2026!` |
+
+Estas cuentas omiten OTP únicamente cuando `app.security.test-access-enabled=true` en `backend/config/local.properties`. Son credenciales de desarrollo y no deben utilizarse en producción.
+
+### 3. Configurar el proyecto
 
 `backend/src/main/resources/application.properties` define la configuración compartida: puerto, URL de MySQL, importación del archivo local y validación del esquema. Las credenciales privadas se configuran en `backend/config/local.properties`, que está excluido de Git.
 
@@ -297,7 +322,7 @@ JWT identifica las solicitudes autenticadas. Se emite tras validar el código de
 
 Spring no carga `.env` automáticamente. Usar variables del proceso/IDE o el archivo local anterior. Arrancar desde `backend/` para resolver `./config/local.properties`.
 
-## 4. Levantar el servidor
+### 4. Levantar el servidor
 
 ### Opción A — VS Code con Spring Boot Dashboard
 
@@ -332,7 +357,7 @@ mvn.cmd "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" spring-boot:run
 
 **Hibernate no crea tablas:** `ddl-auto=validate` comprueba el esquema creado mediante SQL. Por separado, `DevelopmentAccounts` crea las cuentas de prueba faltantes únicamente cuando `app.security.test-access-enabled=true`. Actualizar DBeaver para consultar los registros.
 
-## 5. Comprobar el funcionamiento
+### 5. Comprobar el funcionamiento
 
 1. Mantener MySQL, backend y frontend encendidos.
 2. Registrar un candidato o utilizar las cuentas de prueba previamente creadas.
@@ -358,22 +383,8 @@ Las pruebas unitarias no crean usuarios en MySQL y no sustituyen la comprobació
 | Puerto 8080 ocupado | Detener la instancia duplicada o configurar otro puerto |
 | Frontend no conecta | URL de API, puerto y orígenes CORS |
 
-## 6. Credenciales de prueba
 
-| Tipo de acceso | Rol | Correo | Contraseña de prueba |
-|---|---|---|---|
-| Administrador | `ADMIN` (3) | `Administrador@gmail.com` | `AdminSecure2026*` |
-| Candidato | `CANDIDATO` | `postulante1@gmail.com` | `Postulante2026!` |
-| Reclutador | `RECLUTADOR` | `reclutador1@gmail.com` | `Reclutador2026!` |
-| Técnico de sistemas | `TECNICO` | `tecnico1@gmail.com` | `Tecnico2026!` |
-
-Estas cuatro cuentas ingresan sin código de verificación cuando el acceso local de pruebas está habilitado. Las demás cuentas mantienen la verificación por correo.
-
-Con `app.security.test-access-enabled=true` en `backend/config/local.properties`, `DevelopmentAccounts` crea o sincroniza las cuentas locales configuradas, incluidas las cuatro documentadas: actualiza su hash BCrypt, rol, estado y excepción OTP. Esta sincronización es exclusiva para desarrollo. El registro público solo crea candidatos.
-
-Los IDs de los roles se consultan en `roles`; no asumir que siempre serán 1 y 2. Son credenciales públicas de desarrollo, no de producción ni de Gmail. Antes de activar correos reales, utilizar direcciones controladas por el equipo.
-
-## 7. Estructura del backend
+### 7. Estructura del backend
 
 ```text
 backend/
@@ -394,9 +405,6 @@ backend/
 ├── config/
 │   ├── local.properties            # Configuración privada; no versionar
 │   └── local.properties.example    # Plantilla para el equipo
-├── database/
-│   ├── schema/                     # Instalación inicial de la BD
-│   └── migrations/                 # Cambios manuales históricos
 ├── target/                         # Generado por Maven; no versionar
 ├── CONTRIBUTING.md                 # Convenciones de colaboración
 └── pom.xml                         # Dependencias y configuración Maven
@@ -404,45 +412,10 @@ backend/
 
 Las solicitudes recorren Controller → Service → Repository/JDBC → MySQL. La configuración local, las dependencias descargadas y los archivos compilados no deben subirse a GitHub.
 
-## 8. Tablas MySQL
+La base de datos oficial está en [`database/`](database/), con su esquema, migraciones, seeds, scripts y snapshots históricos. La documentación central está en [`docs/`](docs/).
 
-Esquema: `gtel_talento`, codificación `utf8mb4`.
 
-| Tabla | Función | Relaciones principales |
-|---|---|---|
-| `roles` | Tipos de acceso | Referenciada por `usuarios` |
-| `departamentos` | Áreas de trabajo | Referenciada por requerimientos y vacantes |
-| `usuarios` | Cuentas, hash, estado, versión de sesión y excepción OTP | `rol_id` → roles |
-| `postulantes` | Perfil profesional del candidato | `usuario_id` → usuarios (único) |
-| `requerimientos_personal` | Solicitudes de contratación | Departamento y usuario solicitante |
-| `vacantes` | Ofertas laborales | Requerimiento, departamento y reclutador |
-| `postulaciones` | Candidaturas a vacantes | Postulante y vacante |
-| `postulacion_timeline` | Historial de estados | Postulación y usuario |
-| `entrevistas` | Agenda de entrevistas | Postulación |
-| `evaluaciones` | Resultados de evaluación | Postulación y usuario evaluador |
-| `evaluacion_detalle` | Criterios y puntajes | Evaluación |
-| `auditoria` | Registro de acciones | Usuario responsable |
-| `auth_email_challenges` | Desafío de acceso, hash del código y límites | Un desafío por usuario; FK con eliminación en cascada |
-| `tickets_soporte` | Solicitudes de ayuda, propuesta técnica, autorización y evidencia | Solicitante y técnico → usuarios |
-| `ticket_soporte_estados` | Catálogo ordenado de estados y marca de estados terminales | tickets_soporte e historial |
-| `ticket_soporte_historial` | Trazabilidad detallada de cada transición del ticket | Ticket, actor y catálogo de estados |
-| `tickets_soporte_archivo` | Evidencia resumida conservada después de la depuración semanal | Sin claves foráneas para preservar el registro histórico |
-| `ticket_soporte_historial` | Trazabilidad de cambios del ticket | Ticket y actor responsable |
-
-La existencia de estas tablas no significa que todos sus módulos estén integrados con el frontend.
-
-Consultar las cuentas sin exponer los hashes:
-
-```sql
-SELECT u.id, u.email, r.nombre AS rol,
-       p.nombres, p.apellidos
-FROM gtel_talento.usuarios u
-JOIN gtel_talento.roles r ON r.id = u.rol_id
-LEFT JOIN gtel_talento.postulantes p ON p.usuario_id = u.id
-ORDER BY u.id;
-```
-
-## 9. Endpoints principales
+### 9. Endpoints principales
 
 | Método | Ruta | Función |
 |---|---|---|
@@ -471,11 +444,11 @@ ORDER BY u.id;
 
 Las rutas de reclutamiento permiten RECLUTADOR y ADMIN; `/api/admin/**` permite únicamente ADMIN. Registro devuelve ID de postulante; login y `/me`, ID de usuario. La verificación por correo se realiza en cada nuevo inicio de sesión, salvo las cuatro cuentas de prueba expresamente habilitadas.
 
-## 10. Verificación de acceso por correo (Gmail SMTP)
+## Verificación de acceso por correo (Gmail SMTP)
 
 ### Preparar una instalación existente
 
-Ejecutar una sola vez [002_email_otp.sql](backend/database/migrations/002_email_otp.sql) en DBeaver, sobre gtel_talento. El script agrega una tabla y no modifica las cuentas existentes. En una instalación nueva basta el script completo de schema, que ya incluye la tabla. No aplicar ambos sobre las mismas tablas.
+Ejecutar una sola vez [002_email_otp.sql](database/migrations/002_email_otp.sql) en DBeaver, sobre gtel_talento. El script agrega una tabla y no modifica las cuentas existentes. En una instalación nueva basta el script completo de schema, que ya incluye la tabla. No aplicar ambos sobre las mismas tablas.
 
 Si MySQL indica espera de bloqueo de metadatos, finalizar las transacciones pendientes en DBeaver: confirmar solamente los cambios que se quieran conservar o revertirlos. No desactivar claves foráneas ni cerrar transacciones ajenas.
 
@@ -522,7 +495,7 @@ Los destinatarios deben ser correos reales controlados por quien prueba. Las cue
 Ejecutar mvn.cmd test en backend y los comandos de pruebas del frontend. Las pruebas de OTP usan H2 en modo MySQL, transacciones reales y un remitente simulado: comprueban expiración, errores, límites, reenvíos, cambios de rol y consumo concurrente. No sustituyen una comprobación manual en MySQL y navegador. No incluyen bloqueo general de intentos de contraseña por IP; ese endurecimiento queda pendiente para un despliegue público.
 
 
-## 11. Administración y permisos
+## Administración y permisos
 
 El login tiene un solo formulario. Redirige a candidatos a `/mis-postulaciones`, reclutadores a `/reclutador/dashboard`, técnicos a `/tecnico/tickets` y administradores a `/admin`. El panel permite crear y editar usuarios, cambiar roles y activar/desactivar cuentas. ADMIN puede abrir vistas de ambos roles; esto no suplanta a otros usuarios ni completa módulos aún pendientes de integrar.
 
@@ -543,24 +516,3 @@ La mesa de ayuda usa `/reclutador/tickets` para solicitar y consultar incidencia
 El cuerpo de creación/edición usa `email`, `password`, `rol`, `estado`, `nombres`, `apellidos` y `telefono`. La contraseña es obligatoria al crear (12 a 72 caracteres, máximo 72 bytes UTF-8), opcional al editar; nombres y apellidos son obligatorios para candidatos. No se devuelven hashes ni contraseñas. No se permite desactivar o degradar al propio administrador ni quitar el último administrador activo.
 
 Editar una cuenta incrementa `auth_version` y elimina sus desafíos OTP pendientes. Cada petición protegida comprueba rol, estado y versión en MySQL; las sesiones anteriores dejan de servir. El cierre de sesión del navegador sigue siendo local.
-
-### Validación
-
-Ejecutar las pruebas del apartado **Frontend → 4** y **Backend → 5** desde sus respectivas carpetas.
-
-Prueba manual: comprobar el destino de las cuatro cuentas, abrir `/admin` como candidato (debe rechazar), crear/editar una cuenta desde el panel y comprobar MySQL, desactivarla e intentar ingresar. Las cuentas normales deben pedir OTP y conservar el reenvío de 30 segundos. Una contraseña incorrecta nunca omite la validación.
-
-Los recorridos de navegador están en `frontend/tests/admin-browser.mjs` (backend real y cuentas locales) y `frontend/tests/email-otp-browser.mjs` (respuestas HTTP simuladas para OTP). Requieren Vite en 127.0.0.1:5173 y Chrome con perfil desechable y depuración local en el puerto 9238. No ejecutarlos en un perfil personal.
-
-## 12. Trabajo colaborativo
-
-Convención propuesta para las ramas:
-
-| Rama | Uso |
-|---|---|
-| `main` | Versión estable |
-| `develop` | Integración del equipo |
-| `feature/<descripcion>` | Nuevas funcionalidades mediante pull request |
-| `fix/<descripcion>` | Correcciones mediante pull request |
-
-Compartir el esquema SQL y las plantillas de configuración. Mantener claves JWT, credenciales SMTP, configuración local, dependencias y archivos compilados fuera de Git. Cada integrante configura su propia base local. El laboratorio `index/` permanece separado de la aplicación principal.

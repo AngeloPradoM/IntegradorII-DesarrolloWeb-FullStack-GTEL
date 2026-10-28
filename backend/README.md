@@ -21,8 +21,7 @@ backend/
   database/
     schema/                  SQL de instalacion inicial
     migrations/              Cambios manuales historicos
-  docs/
-    history/                 Diagnosticos historicos
+  docs/                     Documentacion consolidada en la raiz del proyecto
   target/                    Generado; excluido de Git
 ```
 
@@ -31,7 +30,7 @@ Los paquetes se agrupan por funcionalidad y mantienen capas dentro de cada modul
 ## Configuracion local
 
 1. Instalar Java 21, Maven 3.9 y MySQL 8.x.
-2. En DBeaver, conectar a MySQL y ejecutar `database/schema/gtel_talento.sql` solamente en una base nueva. Incluye roles, no cuentas.
+2. En DBeaver, conectar a MySQL y ejecutar `../database/schema/gtel_talento.sql` solamente en una base nueva. Incluye roles, no cuentas.
 3. Copiar `config/local.properties.example` a `config/local.properties` y completar las credenciales locales. No sobrescribir un archivo local existente.
 4. Generar una clave JWT privada de al menos 32 bytes. No compartirla en Git.
 5. Ejecutar los comandos desde `backend/`, para que Spring encuentre la configuracion local.
@@ -80,24 +79,24 @@ Consultar [CONTRIBUTING.md](CONTRIBUTING.md). Cada integrante configura su propi
 - Login requiere codigo de correo. La confirmacion independiente al registrarse y la recuperacion de contrasena no estan implementadas.
 - Logout no revoca JWT y la autenticacion aun no aplica usuarios.estado.
 - Las consultas conservan respuestas Map para compatibilidad; DTO tipados pueden incorporarse en otro cambio con pruebas del contrato.
-- El diagnostico previo es historico; consultar [la revision estructural](docs/estructura-colaborativa.md) para este cambio.
+- El diagnostico previo es historico; consultar la documentacion consolidada en `../docs/`.
 
 ## Login por correo
 
-Aplicar database/migrations/002_email_otp.sql una sola vez en bases existentes; el SQL inicial ya incluye la tabla. Configurar spring.mail.username, spring.mail.password (password de aplicacion Gmail) y otp.hash-secret en config/local.properties. Ver la guia completa de verificacion de correo en [README general](../README.md#10-verificación-de-acceso-por-correo-gmail-smtp).
+Aplicar `../database/migrations/002_email_otp.sql` una sola vez en bases existentes; el SQL inicial ya incluye la tabla. Configurar spring.mail.username, spring.mail.password (password de aplicacion Gmail) y otp.hash-secret en config/local.properties. Ver la guia completa de verificacion de correo en [README general](../README.md#10-verificación-de-acceso-por-correo-gmail-smtp).
 
 POST /api/auth/login normalmente no entrega JWT (las tres cuentas de prueba habilitadas son la excepción); POST /api/auth/verify-otp recibe sessionId y otp y entrega el JWT. POST /api/auth/resend-otp recibe sessionId. Los tokens previos sin OTP se rechazan.
 
 ## Retención de tickets de soporte
 
-En bases existentes, aplicar `database/migrations/009_support_ticket_lifecycle.sql` después de las migraciones 007 y 008. La tarea programada se ejecuta los lunes a las 02:00 en `America/Lima` y procesa solamente tickets `RESUELTO` o `CERRADO` cuya `resolved_at` tenga al menos siete días. Primero conserva un resumen en `tickets_soporte_archivo` y una entrada en `auditoria`; después elimina el ticket operativo y su historial detallado.
+En bases existentes, aplicar `../database/migrations/010_support_ticket_lifecycle.sql` después de las migraciones 008 y 009. La tarea programada se ejecuta los lunes a las 02:00 en `America/Lima` y procesa solamente tickets `RESUELTO` o `CERRADO` cuya `resolved_at` tenga al menos siete días. Primero conserva un resumen en `tickets_soporte_archivo` y una entrada en `auditoria`; después elimina el ticket operativo y su historial detallado.
 
 La programación se configura con `SUPPORT_CLEANUP_ENABLED`, `SUPPORT_CLEANUP_RETENTION_DAYS`, `SUPPORT_CLEANUP_CRON` y `SUPPORT_CLEANUP_ZONE`. El backend fuerza una retención mínima de siete días aunque se indique un valor menor.
 
 
 ## Administración
 
-Aplicar una vez `database/migrations/003_admin_access.sql` en bases existentes, después de la 002. El esquema inicial actualizado ya incluye estas columnas. ADMIN usa ID 3 cuando está disponible; la autorización utiliza el nombre del rol.
+Aplicar una vez `../database/migrations/004_admin_access.sql` en bases existentes, después de la 002. El esquema inicial actualizado ya incluye estas columnas. ADMIN usa ID 3 cuando está disponible; la autorización utiliza el nombre del rol.
 
 El panel React `/admin` consume GET/POST `/api/admin/users` y PUT `/api/admin/users/{id}`. Las rutas requieren ADMIN. Spring Security permite también a ADMIN los módulos de candidato y reclutador. Los JWT comprueban estado, rol y versión en cada petición. Una edición revoca sesiones anteriores y desafíos OTP pendientes.
 

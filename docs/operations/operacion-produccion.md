@@ -17,17 +17,19 @@ Este perfil deshabilita el acceso especial de pruebas, habilita notificaciones p
 
 ## Migraciones
 
-En una base nueva usar database/schema/gtel_talento.sql. En una existente comparar sus objetos y aplicar únicamente las migraciones que faltan, en orden, con respaldo previo. No ejecutar indiscriminadamente todos los ALTER TABLE sobre una BD ya actualizada.
+En una base nueva usar `../../database/schema/gtel_talento.sql`. En una existente comparar sus objetos y aplicar únicamente las migraciones de `../../database/migrations/` que faltan, en orden, con respaldo previo. No ejecutar indiscriminadamente todos los ALTER TABLE sobre una BD ya actualizada.
 
-En DBeaver seleccionar gtel_talento y ejecutar database/check-schema.sql. Un cero señala ausencia del objeto comprobado; un uno no certifica todo el archivo de migración. Revisar columnas, restricciones e índices con SHOW CREATE TABLE para las tablas de cada migración.
+En DBeaver seleccionar gtel_talento y ejecutar `../../database/scripts/check-schema.sql`. Un cero señala ausencia del objeto comprobado; un uno no certifica todo el archivo de migración. Revisar columnas, restricciones e índices con SHOW CREATE TABLE para las tablas de cada migración.
 
 Mantener por entorno una bitácora con archivo, SHA-256, fecha, responsable, respaldo y resultado de validación. Obtener las huellas desde backend:
 
 ~~~powershell
-Get-ChildItem database/migrations/*.sql | Get-FileHash -Algorithm SHA256
+Get-ChildItem ../database/migrations/*.sql | Get-FileHash -Algorithm SHA256
 ~~~
 
-No se incorporó ejecución automática ni una tabla de historial. Ese control sigue siendo un procedimiento operativo del equipo.
+No se incorporó ejecución automática: la aplicación de migraciones sigue siendo un procedimiento
+operativo controlado. El esquema consolidado incluye `db_migration_history`, que debe actualizarse
+solo después de validar cada aplicación.
 
 ## Pruebas antes de integrar
 

@@ -82,9 +82,8 @@ class ModuleWiringTest {
     void schema() throws Exception {
         Path schemaPath = Files.exists(Path.of("database/schema/gtel_talento.sql"))
             ? Path.of("database/schema/gtel_talento.sql")
-            : (Files.exists(Path.of("../database/schema/gtel_talento.sql"))
-                ? Path.of("../database/schema/gtel_talento.sql")
-                : Path.of("../database/gtel_talento.sql"));
+            : Path.of("../database/schema/gtel_talento.sql");
+        assertTrue(Files.exists(schemaPath), "Consolidated database schema must be available");
 
         String schema = Files.readString(schemaPath)
             .replaceAll("(?m)--[^\\r\\n]*", "")
