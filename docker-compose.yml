@@ -77,8 +77,28 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+      - phpmyadmin
     ports:
       - "3000:80"
+    networks:
+      - gtel-network
+
+# ------------------------------------------------------------
+  # Servicio 4: Gestor Visual de Base de Datos (phpMyAdmin)
+  # ------------------------------------------------------------
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: gtel-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+      PMA_ABSOLUTE_URI: https://gtel-talento.northcentralus.cloudapp.azure.com/pma/
+      UPLOAD_LIMIT: 64M
     networks:
       - gtel-network
 
