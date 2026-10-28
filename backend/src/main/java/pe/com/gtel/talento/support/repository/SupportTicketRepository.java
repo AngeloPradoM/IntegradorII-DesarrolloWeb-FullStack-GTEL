@@ -196,7 +196,7 @@ public class SupportTicketRepository {
     public List<SupportTicketDashboardDTO> getDashboardBoard() {
         String sql = """
             SELECT t.id, t.codigo, t.titulo, t.categoria, t.prioridad, 
-                   COALESCE(tec.email, 'Sin asignar') AS asignado_a, t.estado, t.created_at,
+                   COALESCE(tec.email, 'Sin asignar') AS asignado_a, estado.codigo AS estado, t.created_at,
                    CASE t.prioridad
                        WHEN 'ALTA' THEN DATE_ADD(t.created_at, INTERVAL 4 HOUR)
                        WHEN 'MEDIA' THEN DATE_ADD(t.created_at, INTERVAL 24 HOUR)
@@ -204,7 +204,7 @@ public class SupportTicketRepository {
                        ELSE DATE_ADD(t.created_at, INTERVAL 24 HOUR)
                    END AS sla_deadline,
                    CASE 
-                       WHEN t.estado IN ('RESUELTO', 'CERRADO') THEN 'CUMPLIDO'
+                       WHEN estado.terminal = TRUE THEN 'CUMPLIDO'
                        WHEN CURRENT_TIMESTAMP > (
                            CASE t.prioridad
                                WHEN 'ALTA' THEN DATE_ADD(t.created_at, INTERVAL 4 HOUR)
@@ -216,9 +216,10 @@ public class SupportTicketRepository {
                        ELSE 'A TIEMPO'
                    END AS sla_status
             FROM tickets_soporte t
+            JOIN ticket_soporte_estados estado ON estado.codigo = t.estado
             LEFT JOIN usuarios tec ON tec.id = t.tecnico_id
             ORDER BY 
-                CASE WHEN t.estado NOT IN ('RESUELTO', 'CERRADO') THEN 1 ELSE 2 END,
+                CASE WHEN estado.terminal = FALSE THEN 1 ELSE 2 END,
                 sla_deadline ASC
             """;
 
