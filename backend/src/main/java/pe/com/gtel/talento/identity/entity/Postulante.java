@@ -1,7 +1,15 @@
 package pe.com.gtel.talento.identity.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDate;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "postulantes")
@@ -20,7 +28,7 @@ public class Postulante {
     @Column(nullable = false, length = 100)
     private String apellidos;
 
-    @Column(name = "numero_documento", length = 30)
+    @Column(name = "dni", length = 30)
     private String dni;
 
     @Column(length = 16)
