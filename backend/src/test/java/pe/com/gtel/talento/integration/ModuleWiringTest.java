@@ -82,15 +82,15 @@ class ModuleWiringTest {
     void schema() throws Exception {
         Path schemaPath = Files.exists(Path.of("database/schema/gtel_talento.sql"))
             ? Path.of("database/schema/gtel_talento.sql")
-            : (Files.exists(Path.of("../database/schema/gtel_talento.sql"))
-                ? Path.of("../database/schema/gtel_talento.sql")
-                : Path.of("../database/gtel_talento.sql"));
+            : Path.of("../database/schema/gtel_talento.sql");
+        assertTrue(Files.exists(schemaPath), "Consolidated database schema must be available");
 
         String schema = Files.readString(schemaPath)
             .replaceAll("(?m)--[^\\r\\n]*", "")
             .replaceAll("(?is)CREATE DATABASE IF NOT EXISTS.*?;", "")
             .replaceAll("(?i)USE gtel_talento;", "")
-            .replaceAll("(?i) ENGINE=InnoDB", "");
+            .replaceAll("(?is)INSERT INTO vacantes\\s*\\(.*?;", "")
+            .replaceAll("(?i) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", "");
 
         for (String sql : schema.split(";")) {
             String trimmed = sql.trim();

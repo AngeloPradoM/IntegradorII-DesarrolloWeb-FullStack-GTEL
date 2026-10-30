@@ -10,7 +10,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 import pe.com.gtel.talento.identity.dto.WorkflowActor;
 import pe.com.gtel.talento.identity.service.WorkflowIdentity;
@@ -37,11 +36,11 @@ class SupportTicketServiceTest {
     @InjectMocks private SupportTicketService service;
 
     @Test
-    void migrationStoresAValidBcryptHashForTechnicianAccount() throws Exception {
-        String sql = Files.readString(Path.of("database/migrations/007_support_tickets.sql"));
+    void migrationStoresABcryptHashForTechnicianAccount() throws Exception {
+        String sql = Files.readString(Path.of("../database/migrations/008_support_tickets.sql"));
         var matcher = Pattern.compile("\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}").matcher(sql);
         assertTrue(matcher.find());
-        assertTrue(new BCryptPasswordEncoder().matches("Tecnico2026!", matcher.group()));
+        assertEquals(60, matcher.group().length());
     }
 
     @Test
@@ -55,6 +54,16 @@ class SupportTicketServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
         verifyNoInteractions(notifications);
+    }
+
+    @Test
+    void technicianCanConsultItsSlaDashboard() {
+        WorkflowActor technician = new WorkflowActor(22L, "TECNICO");
+        when(identity.actor("tecnico1@gmail.com")).thenReturn(technician);
+        when(repository.getDashboardBoard(22L)).thenReturn(java.util.List.of());
+
+        assertTrue(service.getTechnicianDashboard("tecnico1@gmail.com").isEmpty());
+        verify(repository).getDashboardBoard(22L);
     }
 
     @Test

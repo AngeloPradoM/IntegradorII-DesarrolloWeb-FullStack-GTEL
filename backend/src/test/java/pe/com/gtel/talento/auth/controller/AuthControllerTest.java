@@ -20,7 +20,7 @@ class AuthControllerTest {
     final AuthController controller=new AuthController(candidates,jwt,otp,access);
 
     @Test void authorizedTestAccountSkipsEmailAfterPasswordValidation() {
-        var request=new LoginRequest("administrador@gmail.com","AdminSecure2026*");
+        var request=new LoginRequest("administrador@gmail.com","synthetic-test-password");
         var profile=new AuthResponse(1L,"Admin","",request.email(),"ADMIN",null);
         var account=new pe.com.gtel.talento.security.AccountAccessService.Account(1,request.email(),"ADMIN",0,true,"activo");
         when(candidates.autenticar(request)).thenReturn(profile);

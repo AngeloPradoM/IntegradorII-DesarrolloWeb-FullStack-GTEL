@@ -4,11 +4,14 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+
+import pe.com.gtel.talento.support.dto.SupportTicketDashboardDTO;
 import pe.com.gtel.talento.support.dto.SupportTicketResponse;
 import pe.com.gtel.talento.support.dto.TechnicianOption;
 import pe.com.gtel.talento.support.dto.TicketCreateRequest;
@@ -189,5 +192,38 @@ public class SupportTicketRepository {
             JOIN ticket_soporte_estados e ON e.codigo=t.estado AND e.terminal=TRUE
             WHERE t.resolved_at IS NOT NULL AND t.resolved_at<=?
             """, cutoff);
+    }
+    public List<SupportTicketDashboardDTO> getDashboardBoard() {
+        return getDashboardBoard(null);
+    }
+
+    public List<SupportTicketDashboardDTO> getDashboardBoard(Long technicianId) {
+        String sql = """
+            SELECT t.id, t.codigo, t.titulo, t.categoria, t.prioridad, 
+                   COALESCE(tec.email, 'Sin asignar') AS asignado_a, estado.codigo AS estado, t.created_at,
+                   DATE_ADD(t.created_at, INTERVAL sla.horas_respuesta HOUR) AS sla_deadline,
+                   CASE 
+                       WHEN estado.terminal = TRUE THEN 'CUMPLIDO'
+                       WHEN CURRENT_TIMESTAMP > DATE_ADD(t.created_at, INTERVAL sla.horas_respuesta HOUR) THEN 'VENCIDO'
+                       WHEN CURRENT_TIMESTAMP >= DATE_SUB(DATE_ADD(t.created_at, INTERVAL sla.horas_respuesta HOUR), INTERVAL 2 HOUR) THEN 'POR VENCER'
+                       ELSE 'A TIEMPO'
+                   END AS sla_status
+            FROM tickets_soporte t
+            JOIN ticket_soporte_estados estado ON estado.codigo = t.estado
+            JOIN ticket_sla_politicas sla ON sla.prioridad = t.prioridad AND sla.activo = TRUE
+            LEFT JOIN usuarios tec ON tec.id = t.tecnico_id
+            %s
+            ORDER BY 
+                CASE WHEN estado.terminal = FALSE THEN 1 ELSE 2 END,
+                sla_deadline ASC
+            """.formatted(technicianId == null ? "" : "WHERE t.tecnico_id IS NULL OR t.tecnico_id = ?");
+
+        RowMapper<SupportTicketDashboardDTO> mapper = (rs, row) -> new SupportTicketDashboardDTO(
+            rs.getLong("id"), rs.getString("codigo"), rs.getString("titulo"),
+            rs.getString("categoria"), rs.getString("prioridad"), rs.getString("asignado_a"),
+            rs.getString("estado"), rs.getTimestamp("created_at").toLocalDateTime(),
+            rs.getTimestamp("sla_deadline").toLocalDateTime(), rs.getString("sla_status")
+        );
+        return technicianId == null ? jdbc.query(sql, mapper) : jdbc.query(sql, mapper, technicianId);
     }
 }

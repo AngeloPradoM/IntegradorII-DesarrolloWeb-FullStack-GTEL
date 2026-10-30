@@ -23,7 +23,7 @@ public class RecruiterDataRepository {
                        COALESCE(v.titulo, 'Sin vacante') AS job,
                        COALESCE(u.email, '') AS email,
                        COALESCE(p.telefono, '') AS phone,
-                       COALESCE(p.dni, '') AS dni,
+                       COALESCE(p.numero_documento, '') AS dni,
                        COALESCE(v.sede, 'Lima, Perú') AS location,
                        COALESCE(d.nombre, '') AS department,
                        COALESCE(po.cv_url, p.cv_url, '') AS cvUrl,

@@ -19,4 +19,4 @@ Comprobar compatibilidad del frontend, acceso por rol, validaciones, transaccion
 
 ## Organizacion de paquetes
 
-Agregar cada funcionalidad en su modulo (auth, identity, recruitment o health). Dentro del modulo usar controller, service, repository y dto cuando sean necesarios. config y security contienen infraestructura compartida. Evitar carpetas vacias o capas sin responsabilidad. Las pruebas replican el paquete de produccion. No incorporar prototipos inactivos al backend; SQL inicial en database/schema y cambios incrementales en database/migrations.
+Agregar cada funcionalidad en su modulo (auth, identity, recruitment o health). Dentro del modulo usar controller, service, repository y dto cuando sean necesarios. config y security contienen infraestructura compartida. Evitar carpetas vacias o capas sin responsabilidad. Las pruebas replican el paquete de produccion. No incorporar prototipos inactivos al backend; el SQL consolidado vive en `../database/schema` y los cambios incrementales en `../database/migrations`.

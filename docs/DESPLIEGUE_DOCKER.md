@@ -45,20 +45,13 @@ docker compose up -d --build
 
 ---
 
-## 🔑 Credenciales de Acceso para Pruebas
+## Cuentas para desarrollo
 
-Todas las cuentas de prueba documentadas ingresan directamente (con bypass de OTP configurado):
-
-| Rol | Correo Electrónico | Contraseña |
-| :--- | :--- | :--- |
-| **Administrador** | `administrador@gmail.com` | `AdminSecure2026*` |
-| **Reclutador** | `reclutador1@gmail.com` | `Reclutador2026!` |
-| **Postulante** | `postulante1@gmail.com` | `Postulante2026!` |
-| **Jefatura Solicitante** | `jefatura1@gmail.com` | `Password123!` |
-| **Analista RRHH** | `analista1@gmail.com` | `Password123!` |
-| **Entrevistador** | `entrevistador1@gmail.com` | `Password123!` |
-
-> Las cuentas nuevas o de candidatos externos solicitan código OTP de 6 dígitos enviado por correo.
+El esquema contiene cuatro cuentas de demostración con hashes BCrypt. Sus contraseñas no se
+publican en el repositorio. No cargues esas semillas en producción. El bypass OTP efectivo está
+desactivado por defecto y requiere `TEST_ACCESS_ENABLED=true`; el `docker-compose.yml` local define
+esa variable explícitamente. No uses esa configuración de Compose en producción. Las demás cuentas
+usan OTP por correo.
 
 ---
 

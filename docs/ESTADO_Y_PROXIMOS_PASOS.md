@@ -63,14 +63,8 @@ docker compose up -d --build
 
 ---
 
-## 🔑 Credenciales de Acceso para Demostración
+## Cuentas de desarrollo
 
-| Rol | Correo | Contraseña | Comportamiento OTP |
-| :--- | :--- | :--- | :--- |
-| **Administrador** | `administrador@gmail.com` | `AdminSecure2026*` | Ingreso directo (bypass test) |
-| **Reclutador** | `reclutador1@gmail.com` | `Reclutador2026!` | Ingreso directo (bypass test) |
-| **Postulante** | `postulante1@gmail.com` | `Postulante2026!` | Ingreso directo (bypass test) |
-| **Jefatura Solicitante** | `jefatura1@gmail.com` | `Password123!` | Ingreso directo (bypass test) |
-| **Analista RRHH** | `analista1@gmail.com` | `Password123!` | Ingreso directo (bypass test) |
-| **Entrevistador** | `entrevistador1@gmail.com` | `Password123!` | Ingreso directo (bypass test) |
-| **Usuarios Nuevos / Externos** | Cualquiera | Según registro | Exige código OTP de 6 dígitos por email |
+La instalación limpia prepara cuatro cuentas de demostración y guarda solo hashes BCrypt. Sus
+contraseñas se distribuyen fuera del repositorio. No cargar estas cuentas en producción. OTP se
+omite solo cuando `TEST_ACCESS_ENABLED=true`; por defecto el bypass está deshabilitado.
