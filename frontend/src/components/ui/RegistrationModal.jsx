@@ -364,7 +364,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginCl
 
             <div>
               <label htmlFor="ubicacion" className="mb-1.5 block text-xs font-semibold text-slate-700">
-                Lugar de ubicación
+                Ubicación (Departamento)
               </label>
               <div className="relative">
                 <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -461,7 +461,7 @@ export default function RegistrationModal({ isOpen, onClose, onSubmit, onLoginCl
               <div className="flex items-start gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <p className="text-xs leading-5 text-amber-800">
-                  La verificación de dos pasos (2FA) por WhatsApp se configurará y validará al momento de iniciar sesión por primera vez tras el registro.
+                  La verificación de dos pasos (2FA) por correo electrónico se configurará y validará al momento de iniciar sesión por primera vez tras el registro.
                 </p>
               </div>
             </div>

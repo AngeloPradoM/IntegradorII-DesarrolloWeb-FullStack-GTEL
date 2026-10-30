@@ -16,7 +16,7 @@ export default function SupportDashboardPage() {
     })
       .then(res => res.json())
       .then(data => {
-        setTickets(data);
+        setTickets(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(err => {
