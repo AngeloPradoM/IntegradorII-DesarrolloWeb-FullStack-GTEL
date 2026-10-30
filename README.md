@@ -270,16 +270,14 @@ El esquema inicial actualizado incluye estos cambios. No ejecutar las migracione
 
 Para el caso de una base local desactualizada, seguir la guía [Incorporación de una base local](database/LOCAL_SETUP.md). Incluye respaldo, diagnóstico, migraciones y validación sin perder datos.
 
-### Credenciales de prueba
+### Cuentas de desarrollo
 
-| Tipo de acceso | Rol | Correo | Contraseña de prueba |
-|---|---|---|---|
-| Administrador | `ADMIN` (3) | `Administrador@gmail.com` | `AdminSecure2026*` |
-| Candidato | `CANDIDATO` | `postulante1@gmail.com` | `Postulante2026!` |
-| Reclutador | `RECLUTADOR` | `reclutador1@gmail.com` | `Reclutador2026!` |
-| Técnico de sistemas | `TECNICO` | `tecnico1@gmail.com` | `Tecnico2026!` |
-
-Estas cuentas omiten OTP únicamente cuando `app.security.test-access-enabled=true` en `backend/config/local.properties`. Son credenciales de desarrollo y no deben utilizarse en producción.
+La instalación limpia crea cuatro cuentas de desarrollo para los roles `ADMIN` (id 3),
+`CANDIDATO`, `RECLUTADOR` y `TECNICO`. La base almacena únicamente sus hashes BCrypt. Los correos
+y contraseñas de demostración se entregan fuera del repositorio; estas cuentas no deben existir
+en producción. El bypass OTP está desactivado por defecto; para omitirlo en desarrollo define
+únicamente `TEST_ACCESS_ENABLED=true`. La propiedad `app.security.test-access-enabled` por sí sola
+no lo habilita.
 
 ### 3. Configurar el proyecto
 
@@ -355,7 +353,7 @@ mvn.cmd "-Dmaven.repo.local=$env:USERPROFILE\.m2\repository" spring-boot:run
 - Servidor: http://localhost:8080
 - Salud básica: http://localhost:8080/api/health
 
-**Hibernate no crea tablas:** `ddl-auto=validate` comprueba el esquema creado mediante SQL. Por separado, `DevelopmentAccounts` crea las cuentas de prueba faltantes únicamente cuando `app.security.test-access-enabled=true`. Actualizar DBeaver para consultar los registros.
+**Hibernate no crea tablas:** `ddl-auto=none` deja que MySQL use el esquema creado mediante SQL. Las cuatro cuentas de prueba se siembran desde ese esquema; no hay un seeder de contraseñas al iniciar la aplicación.
 
 ### 5. Comprobar el funcionamiento
 
@@ -501,9 +499,9 @@ El login tiene un solo formulario. Redirige a candidatos a `/mis-postulaciones`,
 
 ### Habilitar las pruebas locales
 
-Con el esquema actualizado según el apartado 2, configurar `app.security.test-access-enabled=true` en `backend/config/local.properties`, reiniciar e ingresar con las credenciales del apartado 6. El valor predeterminado es `false`. Las excepciones nunca se deciden desde el navegador.
+Con el esquema actualizado según el apartado 2, define únicamente `TEST_ACCESS_ENABLED=true` en el entorno del backend y reinicia. El bypass está desactivado por defecto; `app.security.test-access-enabled` por sí sola no lo habilita. Las contraseñas de demostración se entregan fuera del repositorio; las excepciones nunca se deciden desde el navegador.
 
-**Despliegue:** dejar `app.security.test-access-enabled=false` y retirar o cambiar las credenciales públicas de prueba antes de exponer el sistema. Desactivar esta opción invalida también los JWT emitidos con el método de prueba.
+**Despliegue:** dejar `TEST_ACCESS_ENABLED=false` y no cargar las cuentas semilla de desarrollo antes de exponer el sistema. Desactivar esta opción invalida también los JWT emitidos con el método de prueba.
 
 | Método | Ruta | Permiso |
 |---|---|---|
