@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 
 $databaseName = 'gtel_talento'
 $confirmation = Read-Host "Esto ELIMINARÁ la base local '$databaseName'. Escribe exactamente '$databaseName' para continuar"
@@ -47,7 +47,7 @@ try {
     Get-Content -LiteralPath 'database/schema/gtel_talento.sql' -Raw -Encoding UTF8 | & $mysqlCommand.Source @mysqlArguments
     if ($LASTEXITCODE -ne 0) { throw "MySQL falló al cargar database/schema/gtel_talento.sql (código $LASTEXITCODE)." }
 
-    Get-Content -LiteralPath 'database/scripts/check-schema.sql' -Raw -Encoding UTF8 | & $mysqlCommand.Source @mysqlArguments
+    Get-Content -LiteralPath 'database/scripts/check-schema.sql' -Raw -Encoding UTF8 | & $mysqlCommand.Source @mysqlArguments 'gtel_talento'
     if ($LASTEXITCODE -ne 0) { throw "MySQL falló al ejecutar check-schema.sql (código $LASTEXITCODE)." }
 }
 finally {
