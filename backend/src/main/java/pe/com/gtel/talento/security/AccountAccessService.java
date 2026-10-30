@@ -16,11 +16,8 @@ public class AccountAccessService {
         "administrador@gmail.com","ADMIN",
         "postulante1@gmail.com","CANDIDATO",
         "reclutador1@gmail.com","RECLUTADOR",
-        "jefatura1@gmail.com","JEFATURA_SOLICITANTE",
-        "analista1@gmail.com","ANALISTA_RRHH",
-        "entrevistador1@gmail.com","ENTREVISTADOR",
         "tecnico1@gmail.com","TECNICO");
-    public AccountAccessService(JdbcTemplate jdbc, @Value("${app.security.test-access-enabled:false}") boolean testAccess) {
+    public AccountAccessService(JdbcTemplate jdbc, @Value("${TEST_ACCESS_ENABLED:false}") boolean testAccess) {
         this.jdbc=jdbc; this.testAccess=testAccess;
     }
     public record Account(long id,String email,String role,int version,boolean exempt,String status) {}

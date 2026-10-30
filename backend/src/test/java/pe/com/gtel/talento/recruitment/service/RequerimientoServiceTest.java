@@ -74,20 +74,20 @@ class RequerimientoServiceTest {
         dept.setId(2L);
         dept.setNombre("Ventas");
 
-        Usuario user = new Usuario("jefatura1@gmail.com", "hash", new Rol("JEFATURA_SOLICITANTE", ""));
+        Usuario user = new Usuario("solicitante@example.test", "hash", new Rol("JEFATURA_SOLICITANTE", ""));
         user.setId(4L);
 
         RequerimientoPersonal req = new RequerimientoPersonal(dept, user, "Asesor Outbound", "Ventas B2B", 3);
         req.setId(200L);
 
-        when(repository.findBySolicitanteEmailIgnoreCaseOrderByFechaSolicitudDesc("jefatura1@gmail.com")).thenReturn(List.of(req));
+        when(repository.findBySolicitanteEmailIgnoreCaseOrderByFechaSolicitudDesc("solicitante@example.test")).thenReturn(List.of(req));
 
-        List<RequerimientoResponse> result = service.listar("jefatura1@gmail.com", "JEFATURA_SOLICITANTE");
+        List<RequerimientoResponse> result = service.listar("solicitante@example.test", "JEFATURA_SOLICITANTE");
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Asesor Outbound", result.get(0).titulo());
-        verify(repository).findBySolicitanteEmailIgnoreCaseOrderByFechaSolicitudDesc("jefatura1@gmail.com");
+        verify(repository).findBySolicitanteEmailIgnoreCaseOrderByFechaSolicitudDesc("solicitante@example.test");
     }
 
     @Test

@@ -3,6 +3,29 @@
 Esta guía simula el caso de un integrante que clona el repositorio y ya tiene una base
 `gtel_talento` local con tablas o migraciones antiguas.
 
+## Instalación nueva desde cero
+
+`database/schema/gtel_talento.sql` es la fuente completa para una base nueva e incluye tablas,
+índices, claves foráneas, catálogos, políticas SLA, departamentos, vacantes y cuatro cuentas de
+desarrollo con hashes BCrypt. No se necesita ejecutar ninguna migración ni el script de corrección
+ortográfica después.
+
+`database/gtel_talento.sql` es un espejo del archivo canónico porque `docker-compose.yml` lo monta
+como init de MySQL. Cambia siempre `database/schema/gtel_talento.sql` y vuelve a copiarlo al espejo.
+
+Desde la raíz del repositorio ejecuta:
+
+```powershell
+.\database\scripts\reset-local-db.ps1
+```
+
+El script exige escribir `gtel_talento`, elimina esa base local, carga el esquema y ejecuta la
+verificación de solo lectura. Define `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER` y `MYSQL_PWD` en el
+entorno antes de ejecutarlo; si no defines `MYSQL_PWD`, el script la solicita con entrada segura.
+Las cuentas de demostración son exclusivas para desarrollo y no deben cargarse en producción.
+El bypass OTP está desactivado por defecto. Para omitirlo localmente configura únicamente
+`TEST_ACCESS_ENABLED=true` en el entorno del backend.
+
 ## Regla principal
 
 No ejecutes `schema/gtel_talento.sql` sobre una base que ya contiene datos. Ese archivo es para
@@ -11,29 +34,8 @@ aplican únicamente las migraciones faltantes.
 
 ## Caso A: el integrante no necesita conservar sus datos
 
-Si la base solo contiene pruebas descartables, se puede crear una instalación limpia:
-
-```sql
-CREATE DATABASE gtel_talento_nuevo
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-```
-
-En DBeaver, seleccionar `gtel_talento_nuevo` y ejecutar:
-
-```text
-database/schema/gtel_talento.sql
-```
-
-Después comprobar el resultado:
-
-```text
-database/scripts/check-schema.sql
-database/scripts/migration-status.sql
-```
-
-Si la aplicación requiere que el nombre sea exactamente `gtel_talento`, cambiar el nombre solo
-cuando la base anterior ya esté respaldada y no esté siendo utilizada.
+Si la base solo contiene pruebas descartables, ejecuta el flujo “Instalación nueva desde cero”.
+El script hace `DROP DATABASE` únicamente después de exigir la confirmación literal del nombre.
 
 ## Caso B: el integrante debe conservar sus datos
 
