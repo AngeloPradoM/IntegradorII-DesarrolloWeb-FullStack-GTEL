@@ -30,7 +30,7 @@ Los paquetes se agrupan por funcionalidad y mantienen capas dentro de cada modul
 ## Configuracion local
 
 1. Instalar Java 21, Maven 3.9 y MySQL 8.x.
-2. En DBeaver, conectar a MySQL y ejecutar `../database/schema/gtel_talento.sql` solamente en una base nueva. Incluye roles, no cuentas.
+2. En DBeaver, conectar a MySQL y ejecutar `../database/schema/gtel_talento.sql` solamente en una base nueva. Incluye roles y cuatro cuentas de demostración con hashes BCrypt.
 3. Copiar `config/local.properties.example` a `config/local.properties` y completar las credenciales locales. No sobrescribir un archivo local existente.
 4. Generar una clave JWT privada de al menos 32 bytes. No compartirla en Git.
 5. Ejecutar los comandos desde `backend/`, para que Spring encuentre la configuracion local.
@@ -100,6 +100,6 @@ Aplicar una vez `../database/migrations/004_admin_access.sql` en bases existente
 
 El panel React `/admin` consume GET/POST `/api/admin/users` y PUT `/api/admin/users/{id}`. Las rutas requieren ADMIN. Spring Security permite también a ADMIN los módulos de candidato y reclutador. Los JWT comprueban estado, rol y versión en cada petición. Una edición revoca sesiones anteriores y desafíos OTP pendientes.
 
-`app.security.test-access-enabled=false` es el valor seguro predeterminado. Habilitarlo solo en configuración local crea, si faltan, las tres cuentas documentadas en el [README general](../README.md#6-credenciales-de-prueba). Solo esas cuentas, con rol correcto y `otp_exempt=true`, omiten OTP después de validar contraseña. Nunca se sobrescriben cuentas existentes. Desactivar la opción invalida sus sesiones de prueba.
+El bypass OTP está desactivado por defecto. Para habilitarlo localmente define únicamente `TEST_ACCESS_ENABLED=true` en el entorno del backend. La propiedad `app.security.test-access-enabled` por sí sola no lo habilita. Solo las cuatro cuentas sembradas por `database/schema/gtel_talento.sql`, con rol correcto y `otp_exempt=true`, omiten OTP después de validar su contraseña. El backend no crea ni sobrescribe cuentas al arrancar. Desactivar el bypass invalida sus sesiones de prueba.
 
 Pruebas: `mvn.cmd test`; revisar además la sección de validación y los recorridos de navegador del README general. El registro público no permite seleccionar ni asignar ADMIN.

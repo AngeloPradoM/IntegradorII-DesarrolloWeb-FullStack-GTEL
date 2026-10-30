@@ -39,7 +39,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Iniciar sesión", description = "Valida credenciales. Si es una de las 6 cuentas de prueba, emite el token JWT directamente; si es usuario regular, inicia desafío OTP por correo.")
+    @Operation(summary = "Iniciar sesión", description = "Valida credenciales. Si es una de las cuatro cuentas locales de prueba autorizadas, emite el token JWT directamente; si es usuario regular, inicia desafío OTP por correo.")
     public ResponseEntity<Map<String,Object>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse user = candidatoService.autenticar(request);
         if(access.bypass(access.find(user.email()))) return ResponseEntity.ok(session(user,"TEST_PASSWORD"));

@@ -89,7 +89,8 @@ class ModuleWiringTest {
             .replaceAll("(?m)--[^\\r\\n]*", "")
             .replaceAll("(?is)CREATE DATABASE IF NOT EXISTS.*?;", "")
             .replaceAll("(?i)USE gtel_talento;", "")
-            .replaceAll("(?i) ENGINE=InnoDB", "");
+            .replaceAll("(?is)INSERT INTO vacantes\\s*\\(.*?;", "")
+            .replaceAll("(?i) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", "");
 
         for (String sql : schema.split(";")) {
             String trimmed = sql.trim();

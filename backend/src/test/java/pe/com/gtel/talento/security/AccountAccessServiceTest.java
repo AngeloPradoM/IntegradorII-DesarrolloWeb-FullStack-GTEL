@@ -25,6 +25,20 @@ class AccountAccessServiceTest {
         assertFalse(enabled.bypass(new AccountAccessService.Account(1,admin.email(),"ADMIN",0,false,"activo")));
         assertFalse(enabled.bypass(new AccountAccessService.Account(1,admin.email(),"ADMIN",0,true,"inactivo")));
     }
+    @Test void bypassSupportsOnlyTheFourSeededAccountsAndRequiresExplicitOptIn() {
+        var enabled=new AccountAccessService(jdbc,true);
+        var defaultConfiguration=new AccountAccessService(jdbc,false);
+        var accounts=java.util.List.of(
+            new AccountAccessService.Account(1,"Administrador@gmail.com","ADMIN",0,true,"activo"),
+            new AccountAccessService.Account(2,"postulante1@gmail.com","CANDIDATO",0,true,"activo"),
+            new AccountAccessService.Account(3,"reclutador1@gmail.com","RECLUTADOR",0,true,"activo"),
+            new AccountAccessService.Account(4,"tecnico1@gmail.com","TECNICO",0,true,"activo"));
+        for (var account:accounts) {
+            assertTrue(enabled.bypass(account),account.email());
+            assertFalse(defaultConfiguration.bypass(account),account.email());
+        }
+        assertFalse(enabled.bypass(new AccountAccessService.Account(5,"retired@example.test","JEFATURA_SOLICITANTE",0,true,"activo")));
+    }
     @Test void changedVersionRoleOrStatusRejectsPreviouslySignedToken() {
         var ds=new DriverManagerDataSource("jdbc:h2:mem:"+java.util.UUID.randomUUID()+";DB_CLOSE_DELAY=-1","sa","");
         jdbc=new JdbcTemplate(ds);
