@@ -1,7 +1,6 @@
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { NotificationProvider } from "./context/NotificationContext";
-import ToastNotifications from "./components/ui/ToastNotifications";
 import AppRoutes from "./routes/AppRoutes";
 
 function App() {
@@ -10,7 +9,6 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <AppRoutes />
-          <ToastNotifications />
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
