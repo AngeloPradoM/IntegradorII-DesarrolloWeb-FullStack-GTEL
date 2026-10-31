@@ -274,7 +274,7 @@ export default function JobListings() {
                 <div className="px-5 pb-4 flex items-center justify-between border-t border-gray-50 pt-3">
                   <span className="text-[10px] text-[#475569]">{job.posted}</span>
                   <AuthRequiredLink
-                    to={`/postulacion/${job.id}`}
+                    to={`/postular/${job.id}`}
                     className="inline-flex items-center gap-1.5 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
                   >
                     Postular ahora
