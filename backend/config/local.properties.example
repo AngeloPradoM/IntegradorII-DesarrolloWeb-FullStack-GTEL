@@ -7,6 +7,7 @@ spring.mail.password=TU_PASSWORD_DE_APLICACION
 otp.hash-secret=CLAVE_ALEATORIA_PRIVADA_DISTINTA_DE_JWT_MINIMO_32_BYTES
 
 # Solo desarrollo local; nunca habilitar con datos de produccion.
+#para pruebas colocar de false -> true
 app.security.test-access-enabled=false
 
 # Depuracion semanal de la Mesa de Ayuda (opcional; estos son los valores predeterminados).
