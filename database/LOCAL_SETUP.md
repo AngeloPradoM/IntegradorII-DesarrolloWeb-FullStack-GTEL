@@ -23,8 +23,18 @@ El script exige escribir `gtel_talento`, elimina esa base local, carga el esquem
 verificación de solo lectura. Define `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER` y `MYSQL_PWD` en el
 entorno antes de ejecutarlo; si no defines `MYSQL_PWD`, el script la solicita con entrada segura.
 Las cuentas de demostración son exclusivas para desarrollo y no deben cargarse en producción.
-El bypass OTP está desactivado por defecto. Para omitirlo localmente configura únicamente
-`TEST_ACCESS_ENABLED=true` en el entorno del backend.
+El bypass OTP está desactivado por defecto. Para habilitarlo de forma persistente en tu máquina
+local, usa una de estas opciones:
+
+- Descomenta `TEST_ACCESS_ENABLED=true` en `backend/config/local.properties`. Spring importa ese
+  archivo al iniciar el backend desde `backend/`, y `AccountAccessService` lee esa propiedad con
+  valor predeterminado `false`.
+- En PowerShell, ejecuta `setx TEST_ACCESS_ENABLED true` y abre una terminal nueva antes de iniciar
+  el backend. `setx` guarda la variable para los procesos futuros de tu usuario.
+
+En ambos casos, solo las cuatro cuentas de prueba autorizadas omiten OTP si están activas y tienen
+el rol y la marca `otp_exempt` correctos. Los usuarios normales siguen requiriendo OTP. No actives
+esta opción en entornos compartidos ni producción.
 
 ## Regla principal
 
