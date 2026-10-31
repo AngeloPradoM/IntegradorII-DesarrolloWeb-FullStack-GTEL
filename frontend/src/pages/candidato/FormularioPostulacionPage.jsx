@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { getJobs } from "../../utils/jobsData";
+import { jobs } from "../../utils/jobsData";
 import { getPublicJob } from "../../services/jobService";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -13,7 +13,7 @@ export default function ApplicationForm() {
     id
   } = useParams();
   const { user } = useAuth();
-  const [job, setJob] = useState(() => getJobs().find(item => String(item.id) === id) || null);
+  const [job, setJob] = useState(() => jobs.find(item => String(item.id) === id) || null);
   const [jobLoading, setJobLoading] = useState(!job);
 
   useEffect(() => {
