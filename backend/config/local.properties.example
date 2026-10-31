@@ -9,6 +9,9 @@ otp.hash-secret=CLAVE_ALEATORIA_PRIVADA_DISTINTA_DE_JWT_MINIMO_32_BYTES
 # Solo desarrollo local; nunca habilitar con datos de produccion.
 app.security.test-access-enabled=false
 
+# Solo desarrollo local: las 4 cuentas de prueba entran sin OTP. Nunca activar en entornos compartidos ni producción.
+# TEST_ACCESS_ENABLED=true
+
 # Depuracion semanal de la Mesa de Ayuda (opcional; estos son los valores predeterminados).
 app.support.cleanup-enabled=true
 app.support.cleanup-retention-days=7
