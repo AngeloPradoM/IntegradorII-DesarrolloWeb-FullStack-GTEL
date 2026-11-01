@@ -10,6 +10,7 @@ import {
   LifeBuoy,
   ListChecks,
   PlayCircle,
+  SlidersHorizontal,
   Trash2,
   UsersRound,
 } from "lucide-react";
@@ -180,6 +181,21 @@ const guideSections = [
       "Envía el ticket y consulta «Mis solicitudes» para seguir el estado y el código de atención.",
     ],
     tip: "No incluyas contraseñas ni datos personales innecesarios en la descripción del ticket.",
+  },
+  {
+    id: "filtros-postulantes",
+    number: "11",
+    title: "Filtros avanzados de postulantes",
+    videoUrl: "",
+    icon: SlidersHorizontal,
+    summary: "Encuentra postulantes por convocatoria, estado y fecha de registro, combinando los filtros que necesites.",
+    steps: [
+      "En «Postulantes», selecciona «Filtros avanzados» junto al buscador para abrir el panel. El número en el botón indica cuántos filtros tienes activos.",
+      "Elige una convocatoria y el estado de la postulación. Para acotar por fecha, indica «Registrado desde» y «Registrado hasta»; puedes usar solo una de las dos.",
+      "Combina los filtros con la búsqueda por nombre o puesto: el listado muestra solo a quienes cumplen todos los criterios, tanto en la vista de tablero como en la de tabla.",
+      "Revisa las etiquetas de filtros activos bajo el buscador. Quita un filtro con su «X» o usa «Limpiar filtros» para volver al listado completo.",
+    ],
+    tip: "Si la fecha inicial es posterior a la final, el sistema te avisa y no aplica el rango hasta que lo corrijas. Si no aparece ningún postulante, quita los filtros uno por uno para ver cuál está limitando el resultado.",
   },
 ];
 
