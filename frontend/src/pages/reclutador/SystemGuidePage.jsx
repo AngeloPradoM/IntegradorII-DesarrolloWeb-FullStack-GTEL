@@ -36,7 +36,7 @@ const guideSections = [
     id: "dashboard",
     number: "01",
     title: "Dashboard",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/b_kMbjhQBbE",
     icon: BookOpen,
     summary: "Revisa de un vistazo el estado general de los procesos de reclutamiento.",
     steps: [
@@ -51,7 +51,7 @@ const guideSections = [
     id: "requerimientos",
     number: "02",
     title: "Requerimientos",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/MdQEX9BNPVI",
     icon: FileCheck2,
     summary: "Administra las solicitudes de personal que envían las áreas antes de convertirlas en ofertas.",
     steps: [
@@ -66,7 +66,7 @@ const guideSections = [
     id: "ofertas",
     number: "03",
     title: "Ofertas",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/3VlDrW9sdVI",
     icon: BriefcaseBusiness,
     summary: "Busca y administra las convocatorias registradas por la organización.",
     steps: [
@@ -96,7 +96,7 @@ const guideSections = [
     id: "papelera",
     number: "05",
     title: "Papelera",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/fel8mEPu3bE",
     icon: Trash2,
     summary: "Recupera ofertas eliminadas dentro del plazo de retención.",
     steps: [
@@ -110,7 +110,7 @@ const guideSections = [
     id: "postulantes",
     number: "06",
     title: "Postulantes",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/ZZodoHQSf_U",
     icon: UsersRound,
     summary: "Consulta candidatos, encuentra perfiles y actualiza su avance en el proceso.",
     steps: [
@@ -125,7 +125,7 @@ const guideSections = [
     id: "seleccion",
     number: "07",
     title: "Selección",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/QGrSygWdjTI",
     icon: ClipboardCheck,
     summary: "Gestiona postulaciones, entrevistas y evaluaciones desde un espacio de trabajo unificado.",
     steps: [
@@ -140,7 +140,7 @@ const guideSections = [
     id: "entrevistas",
     number: "08",
     title: "Entrevistas",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/ihAQVRNmYY8",
     icon: CalendarDays,
     summary: "Organiza las entrevistas y consulta la agenda del equipo.",
     steps: [
@@ -155,7 +155,7 @@ const guideSections = [
     id: "evaluaciones",
     number: "09",
     title: "Evaluaciones",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/KzaPwc0KrC0",
     icon: ClipboardList,
     summary: "Registra resultados y criterios de evaluación de cada postulante.",
     steps: [
@@ -170,7 +170,7 @@ const guideSections = [
     id: "tickets",
     number: "10",
     title: "Solicitar ticket",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/CrA6ajgBuRg",
     icon: LifeBuoy,
     summary: "Reporta incidencias de la plataforma y sigue su atención por el equipo técnico.",
     steps: [
