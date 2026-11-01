@@ -72,7 +72,7 @@ public class SupportTicketService {
         long id = repository.create(actor.id(), request);
         repository.addHistory(id, actor.id(), null, "NUEVO", "Ticket enviado a la bandeja técnica");
         identity.audit(actor, "tickets_soporte", id, "crear", "Ticket de soporte creado");
-        String notificationMessage = "Se registró una incidencia de reclutamiento: " + request.title().trim();
+        String notificationMessage = "Se registró una " + request.attentionType().toLowerCase() + " de reclutamiento: " + request.title().trim();
         notifyRoles(List.of("TECNICO"), "Nuevo ticket de soporte", notificationMessage, "/tecnico/tickets");
         notifyRoles(List.of("ADMIN"), "Nuevo ticket de soporte", notificationMessage, "/admin/tickets");
         return requireTicket(id);

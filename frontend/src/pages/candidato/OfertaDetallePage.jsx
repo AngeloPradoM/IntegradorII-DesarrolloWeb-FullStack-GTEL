@@ -110,7 +110,7 @@ export default function OfertaDetallePage() {
             </div>
 
             <AuthRequiredLink
-              to={`/postulacion/${job.id}`}
+              to={`/postular/${job.id}`}
               className="inline-flex items-center justify-center rounded-xl bg-brand-red px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red-hover shadow-sm"
             >
               Postular ahora

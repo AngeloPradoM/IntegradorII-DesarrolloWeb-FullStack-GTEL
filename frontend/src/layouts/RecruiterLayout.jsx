@@ -45,7 +45,7 @@ const allNavItems = [
   { icon: Layers, label: "Selección", path: "/reclutador/seleccion", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH"] },
   { icon: CalendarDays, label: "Entrevistas", path: "/reclutador/entrevistas", roles: ["RECLUTADOR", "ADMIN", "ANALISTA_RRHH", "ENTREVISTADOR"] },
   { icon: ClipboardList, label: "Evaluaciones", path: "/reclutador/evaluaciones", roles: ["RECLUTADOR", "ADMIN", "ENTREVISTADOR"] },
-  { icon: TicketCheck, label: "Solicitar ticket", path: "/reclutador/tickets", roles: ["RECLUTADOR", "ADMIN"] },
+  { icon: TicketCheck, label: "Mesa de ayuda y cambios", path: "/reclutador/tickets", roles: ["RECLUTADOR", "ADMIN"] },
   { icon: BookOpen, label: "Guía de uso", path: "/reclutador/guia-uso", roles: ["RECLUTADOR", "ADMIN"] },
 ];
 

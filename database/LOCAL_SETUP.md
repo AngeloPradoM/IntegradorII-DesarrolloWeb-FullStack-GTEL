@@ -108,6 +108,7 @@ Aplicar solo las migraciones aprobadas y en orden. La secuencia consolidada es:
 | `011` | Políticas SLA configurables por prioridad |
 | `012` | Consentimiento y metadatos de privacidad del postulante |
 | `013` | Exención OTP para cuentas locales de prueba |
+| `014` | Clasificación de soporte y gestión de cambios RFC |
 
 Ejemplo: si el diagnóstico muestra que faltan tickets, ejecutar en DBeaver:
 
@@ -118,6 +119,7 @@ database/migrations/010_support_ticket_lifecycle.sql
 database/migrations/011_support_sla_policies.sql
 database/migrations/012_postulante_consentimiento.sql
 database/migrations/013_test_accounts_otp_exempt.sql
+database/migrations/014_change_management.sql
 ```
 
 No ejecutes una migración si sus tablas, columnas o restricciones ya existen sin comprobar antes

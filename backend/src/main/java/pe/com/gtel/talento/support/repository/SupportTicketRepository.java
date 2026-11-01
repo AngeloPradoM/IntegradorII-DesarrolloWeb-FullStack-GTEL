@@ -21,7 +21,7 @@ public class SupportTicketRepository {
     private final JdbcTemplate jdbc;
 
     private static final String SELECT = """
-        SELECT t.id,t.codigo,t.titulo,t.categoria,t.subcategoria,t.prioridad,t.descripcion,
+        SELECT t.id,t.codigo,t.titulo,t.categoria,t.subcategoria,t.tipo_atencion,t.prioridad,t.descripcion,
                t.justificacion_prioridad,t.area,t.estado,t.solicitante_id,sol.email solicitante_email,
                t.tecnico_id,tec.email tecnico_email,t.diagnostico,t.solucion_propuesta,
                t.estado_propuesta,t.comentario_admin,t.evidencia_ejecucion,
@@ -33,7 +33,7 @@ public class SupportTicketRepository {
 
     private final RowMapper<SupportTicketResponse> mapper = (rs, row) -> new SupportTicketResponse(
         rs.getLong("id"), rs.getString("codigo"), rs.getString("titulo"),
-        rs.getString("categoria"), rs.getString("subcategoria"), rs.getString("prioridad"),
+        rs.getString("categoria"), rs.getString("subcategoria"), rs.getString("tipo_atencion"), rs.getString("prioridad"),
         rs.getString("descripcion"), rs.getString("justificacion_prioridad"), rs.getString("area"),
         rs.getString("estado"), rs.getLong("solicitante_id"), rs.getString("solicitante_email"),
         rs.getObject("tecnico_id", Long.class), rs.getString("tecnico_email"),
@@ -50,17 +50,18 @@ public class SupportTicketRepository {
         KeyHolder keys = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement statement = connection.prepareStatement("""
-                INSERT INTO tickets_soporte(titulo,categoria,subcategoria,prioridad,descripcion,
+                INSERT INTO tickets_soporte(titulo,categoria,subcategoria,tipo_atencion,prioridad,descripcion,
                     justificacion_prioridad,area,estado,solicitante_id,estado_propuesta)
-                VALUES(?,?,?,?,?,?,'Reclutamiento','NUEVO',?,'SIN_PROPUESTA')
+                VALUES(?,?,?,?,?,?,?,'Reclutamiento','NUEVO',?,'SIN_PROPUESTA')
                 """, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, request.title().trim());
             statement.setString(2, request.category().trim());
             statement.setString(3, request.subcategory().trim());
-            statement.setString(4, request.priority());
-            statement.setString(5, request.description().trim());
-            statement.setString(6, request.priorityJustification().trim());
-            statement.setLong(7, requesterId);
+            statement.setString(4, request.attentionType());
+            statement.setString(5, request.priority());
+            statement.setString(6, request.description().trim());
+            statement.setString(7, request.priorityJustification().trim());
+            statement.setLong(8, requesterId);
             return statement;
         }, keys);
         Number key = keys.getKey();
@@ -153,9 +154,9 @@ public class SupportTicketRepository {
     public int archiveAndDeleteTerminalTicketsBefore(LocalDateTime cutoff) {
         jdbc.update("""
             INSERT INTO tickets_soporte_archivo(
-                ticket_id,codigo,solicitante_email,tecnico_email,area,titulo,categoria,prioridad,
+                ticket_id,codigo,solicitante_email,tecnico_email,area,titulo,categoria,tipo_atencion,prioridad,
                 estado_final,resumen_resolucion,cantidad_eventos,ultimo_evento,created_at,resolved_at,archived_at)
-            SELECT t.id,t.codigo,sol.email,tec.email,t.area,t.titulo,t.categoria,t.prioridad,
+            SELECT t.id,t.codigo,sol.email,tec.email,t.area,t.titulo,t.categoria,t.tipo_atencion,t.prioridad,
                    t.estado,t.evidencia_ejecucion,
                    (SELECT COUNT(*) FROM ticket_soporte_historial h WHERE h.ticket_id=t.id),
                    (SELECT h.detalle FROM ticket_soporte_historial h
