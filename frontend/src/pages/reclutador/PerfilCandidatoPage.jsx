@@ -138,7 +138,7 @@ export default function CandidateProfile() {
   const [cvAudit, setCvAudit] = useState([]); // auditoría simulada (solo en memoria)
   const topRef = useRef(null);
 
-  const sessionUser = useMemo(getSessionUser, []);
+ const sessionUser = useMemo(() => getSessionUser(), []);
   const sessionRole = getSessionRole(sessionUser);
   const canDownloadCv = isAuthorizedRole(sessionRole);
   const currentUserName = sessionUser.name ?? sessionUser.nombre ?? sessionUser.user?.name ?? "";
