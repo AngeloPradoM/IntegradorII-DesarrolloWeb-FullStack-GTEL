@@ -8,6 +8,7 @@ public record TicketCreateRequest(
     @NotBlank @Size(max=120) String title,
     @NotBlank @Size(max=80) String category,
     @NotBlank @Size(max=100) String subcategory,
+    @NotBlank @Pattern(regexp="SOLICITUD|INCIDENTE") String attentionType,
     @NotBlank @Pattern(regexp="BAJA|MEDIA|ALTA") String priority,
     @NotBlank @Size(max=2000) String description,
     @NotBlank @Size(max=1000) String priorityJustification

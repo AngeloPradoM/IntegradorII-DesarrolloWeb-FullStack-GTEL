@@ -30,7 +30,8 @@ Documentos principales:
 
 1. [Arquitectura del backend](architecture/arquitectura-src.md).
 2. [Flujo de reclutamiento](architecture/flujo-reclutamiento.md).
-3. [Control de entregas](deliveries/control-entregas.md).
-4. [Operación y producción](operations/operacion-produccion.md).
+3. [Gestión de cambios RFC](architecture/gestion-cambios.md).
+4. [Control de entregas](deliveries/control-entregas.md).
+5. [Operación y producción](operations/operacion-produccion.md).
 
 Los documentos de `reports/` conservan evidencia histórica. Si una afirmación difiere del código o de las entregas actuales, prevalecen el código validado, el README vigente y el control de entregas.

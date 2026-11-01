@@ -1,7 +1,7 @@
 -- Read-only verification for a freshly created gtel_talento database.
 SELECT DATABASE() AS selected_database;
 
-SELECT 'core tables (25)' AS requirement, COUNT(*) AS present
+SELECT 'core tables (29)' AS requirement, COUNT(*) AS present
 FROM information_schema.tables
 WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name IN (
   'roles','departamentos','usuarios','postulantes','requerimientos_personal','vacantes',
@@ -9,7 +9,9 @@ WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name IN (
   'auditoria','auth_email_challenges','perfiles_contacto','documentos_postulacion',
   'recuperacion_acceso','notificaciones','vacantes_papelera','solicitudes_arco',
   'ticket_soporte_estados','tickets_soporte','ticket_soporte_historial',
-  'tickets_soporte_archivo','ticket_sla_politicas','db_migration_history'
+  'tickets_soporte_archivo','ticket_sla_politicas','solicitudes_cambio',
+  'solicitud_cambio_documentos','solicitud_cambio_aprobaciones',
+  'solicitud_cambio_historial','db_migration_history'
 )
 UNION ALL
 SELECT 'tables using utf8mb4', COUNT(*) FROM information_schema.tables
@@ -54,6 +56,15 @@ SELECT 'ticket history state foreign keys (2)', COUNT(*) FROM information_schema
 WHERE table_schema=DATABASE() AND table_name='ticket_soporte_historial'
   AND column_name IN ('estado_anterior','estado_nuevo')
   AND referenced_table_name='ticket_soporte_estados' AND referenced_column_name='codigo'
+UNION ALL
+SELECT 'support attention type column', COUNT(*) FROM information_schema.columns
+WHERE table_schema=DATABASE() AND table_name='tickets_soporte' AND column_name='tipo_atencion'
+UNION ALL
+SELECT 'change management tables (4)', COUNT(*) FROM information_schema.tables
+WHERE table_schema=DATABASE() AND table_name IN (
+  'solicitudes_cambio','solicitud_cambio_documentos',
+  'solicitud_cambio_aprobaciones','solicitud_cambio_historial'
+)
 UNION ALL
 SELECT 'migration history table', COUNT(*) FROM information_schema.tables
 WHERE table_schema=DATABASE() AND table_name='db_migration_history';
