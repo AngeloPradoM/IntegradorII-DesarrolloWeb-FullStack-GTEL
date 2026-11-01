@@ -25,6 +25,10 @@ Las rutas históricas se conservan fuera de esta ubicación y no reciben cambios
 7. No ejecutar archivos de `snapshots/`.
 8. No guardar contraseñas, tokens ni datos personales en esta carpeta.
 
+La migración `014_change_management.sql` incorpora la clasificación solicitud/incidente y la
+persistencia completa de RFC. Debe aplicarse con respaldo y en el orden indicado; no incluye
+eliminaciones ni modifica migraciones anteriores.
+
 ## Estado de transición
 
 Los archivos fueron consolidados desde las estrategias actuales. Las referencias del backend y

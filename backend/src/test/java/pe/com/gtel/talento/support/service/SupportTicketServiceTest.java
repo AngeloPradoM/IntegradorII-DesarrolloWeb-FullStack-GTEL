@@ -98,7 +98,7 @@ class SupportTicketServiceTest {
     private SupportTicketResponse ticket(Long technicianId, String proposalStatus, String status) {
         LocalDateTime now = LocalDateTime.of(2026, 10, 22, 17, 0);
         return new SupportTicketResponse(
-            8L, "SR-000008", "Error al confirmar postulación", "Postulaciones", "No puedo postular",
+            8L, "SR-000008", "Error al confirmar postulación", "Postulaciones", "No puedo postular", "INCIDENTE",
             "ALTA", "El sistema rechaza el formulario.", "Bloquea el proceso de selección.", "Reclutamiento",
             status, 15L, "reclutador1@gmail.com", technicianId,
             technicianId == null ? null : "tecnico1@gmail.com", "Diagnóstico", "Solución propuesta",
