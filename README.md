@@ -270,14 +270,22 @@ El esquema inicial actualizado incluye estos cambios. No ejecutar las migracione
 
 Para el caso de una base local desactualizada, seguir la guía [Incorporación de una base local](database/LOCAL_SETUP.md). Incluye respaldo, diagnóstico, migraciones y validación sin perder datos.
 
-### Cuentas de desarrollo
+### Credenciales de prueba
 
-La instalación limpia crea cuatro cuentas de desarrollo para los roles `ADMIN` (id 3),
-`CANDIDATO`, `RECLUTADOR` y `TECNICO`. La base almacena únicamente sus hashes BCrypt. Los correos
-y contraseñas de demostración se entregan fuera del repositorio; estas cuentas no deben existir
-en producción. El bypass OTP está desactivado por defecto; para omitirlo en desarrollo define
-únicamente `TEST_ACCESS_ENABLED=true`. La propiedad `app.security.test-access-enabled` por sí sola
-no lo habilita.
+> [!WARNING]
+> Estas cuentas son exclusivamente para desarrollo local y demostraciones. No deben habilitarse ni utilizarse en producción.
+
+| Perfil | Rol | Correo | Contraseña de prueba |
+|---|---|---|---|
+| Administrador | `ADMIN` | `Administrador@gmail.com` | `AdminSecure2026*` |
+| Candidato | `CANDIDATO` | `postulante1@gmail.com` | `Postulante2026!` |
+| Reclutador | `RECLUTADOR` | `reclutador1@gmail.com` | `Reclutador2026!` |
+| Técnico de sistemas | `TECNICO` | `tecnico1@gmail.com` | `Tecnico2026!` |
+
+La instalación limpia crea estas cuatro cuentas y la base almacena únicamente sus hashes BCrypt.
+El bypass OTP está desactivado por defecto; para omitirlo durante las pruebas locales, define
+`TEST_ACCESS_ENABLED=true`. La propiedad `app.security.test-access-enabled` por sí sola no lo
+habilita.
 
 ### 3. Configurar el proyecto
 
@@ -499,7 +507,7 @@ El login tiene un solo formulario. Redirige a candidatos a `/mis-postulaciones`,
 
 ### Habilitar las pruebas locales
 
-Con el esquema actualizado según el apartado 2, define únicamente `TEST_ACCESS_ENABLED=true` en el entorno del backend y reinicia. El bypass está desactivado por defecto; `app.security.test-access-enabled` por sí sola no lo habilita. Las contraseñas de demostración se entregan fuera del repositorio; las excepciones nunca se deciden desde el navegador.
+Con el esquema actualizado según el apartado 2, define únicamente `TEST_ACCESS_ENABLED=true` en el entorno del backend y reinicia. El bypass está desactivado por defecto; `app.security.test-access-enabled` por sí sola no lo habilita. Usa exclusivamente las credenciales de prueba documentadas en este README; las excepciones nunca se deciden desde el navegador.
 
 **Despliegue:** dejar `TEST_ACCESS_ENABLED=false` y no cargar las cuentas semilla de desarrollo antes de exponer el sistema. Desactivar esta opción invalida también los JWT emitidos con el método de prueba.
 
