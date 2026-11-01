@@ -12,5 +12,5 @@ export default function LoginModalRedirect() {
   }
   const next = new URLSearchParams({ auth: params.get("registro") === "1" ? "register" : "login" });
   if (redirect) next.set("redirect", redirect);
-  return <Navigate replace to={`${redirect?.startsWith("/postulacion") ? "/ofertas" : "/"}?${next}`} />;
+  return <Navigate replace to={`${redirect?.startsWith("/postular/") ? "/ofertas" : "/"}?${next}`} />;
 }

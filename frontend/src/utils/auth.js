@@ -1,7 +1,7 @@
 export const AUTH_STORAGE_KEY = "gtel-user";
 
 export function getSafeAuthRedirect(value) {
-  return typeof value === "string" && /^\/(postulacion(?:\/\d+)?|mis-postulaciones|perfil|contactar-reclutador|candidato)$/.test(value) ? value : null;
+  return typeof value === "string" && /^\/(postular\/[\w-]+|mis-postulaciones|perfil|contactar-reclutador|candidato)$/.test(value) ? value : null;
 }
 
 export function getStoredUser() {

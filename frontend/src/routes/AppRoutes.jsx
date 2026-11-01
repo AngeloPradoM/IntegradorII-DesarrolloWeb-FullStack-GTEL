@@ -1,4 +1,5 @@
-import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate, Outlet } from "react-router-dom";
+import ToastNotifications from "../components/ui/ToastNotifications";
 import AdminUsersPage from "../pages/admin/UsersPage";
 import AuditPage from "../pages/admin/AuditPage";
 import LoginModalRedirect from "../pages/auth/LoginModalRedirect";
@@ -33,9 +34,18 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import NotFoundPage from "../pages/NotFoundPage";
 import SupportDashboardPage from "../pages/reclutador/SupportDashboardPage";
 
+function AppRouteShell() {
+  return (
+    <>
+      <Outlet />
+      <ToastNotifications />
+    </>
+  );
+}
+
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <>
+    <Route element={<AppRouteShell />}>
       <Route path="/login" element={<LoginModalRedirect />} />
       <Route path="/recuperar-acceso" element={<RecoveryPage />} />
 
@@ -49,8 +59,7 @@ const router = createBrowserRouter(
         <Route path="/notificaciones" element={<ProtectedRoute allowedRoles={["CANDIDATO", "RECLUTADOR", "ADMIN", "JEFATURA_SOLICITANTE", "ANALISTA_RRHH", "ENTREVISTADOR", "TECNICO"]}><NotificationsPage /></ProtectedRoute>} />
         <Route path="/ofertas" element={<OfertasLaboralesPage />} />
         <Route path="/ofertas/:id" element={<OfertaDetallePage />} />
-        <Route path="/postulacion" element={<ProtectedRoute allowedRoles={["CANDIDATO"]}><FormularioPostulacionPage /></ProtectedRoute>} />
-        <Route path="/postulacion/:id" element={<ProtectedRoute allowedRoles={["CANDIDATO"]}><FormularioPostulacionPage /></ProtectedRoute>} />
+        <Route path="/postular/:id" element={<ProtectedRoute allowedRoles={["CANDIDATO"]}><FormularioPostulacionPage /></ProtectedRoute>} />
         <Route path="/contactar-reclutador" element={<ProtectedRoute allowedRoles={["CANDIDATO"]}><ContactarReclutadorPage /></ProtectedRoute>} />
         <Route path="/mis-postulaciones" element={<ProtectedRoute allowedRoles={["CANDIDATO"]}><MisPostulacionesPage /></ProtectedRoute>} />
         <Route path="/candidato" element={<ProtectedRoute allowedRoles={["CANDIDATO"]}><MisPostulacionesPage /></ProtectedRoute>} />
@@ -82,7 +91,7 @@ const router = createBrowserRouter(
         <Route path="tickets" element={<TechnicianTicketsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </>
+    </Route>
   )
 );
 

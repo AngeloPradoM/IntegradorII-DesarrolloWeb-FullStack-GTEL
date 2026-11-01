@@ -1,6 +1,6 @@
+import { Link } from "react-router-dom";
 import { MapPin, Sparkles, Wallet } from "lucide-react";
 import Badge from "../common/Badge";
-import Button from "../common/Button";
 
 export default function JobCard({ job }) {
   return (
@@ -36,7 +36,12 @@ export default function JobCard({ job }) {
           <Sparkles className="h-3.5 w-3.5 text-brand-red" />
           <span>GTEL Talento</span>
         </div>
-        <Button>Postular</Button>
+        <Link 
+          to={`/postular/${job.id}`}
+          className="px-4 py-2 bg-brand-red text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+        >
+          Postular ahora
+        </Link>
       </div>
     </div>
   );
