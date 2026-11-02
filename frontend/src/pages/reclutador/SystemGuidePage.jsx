@@ -81,7 +81,7 @@ const guideSections = [
     id: "publicar-oferta",
     number: "04",
     title: "Publicar oferta",
-    videoUrl: "",
+    videoUrl: "https://youtu.be/HGBSe9h8IXc",
     icon: ListChecks,
     summary: "Crea la convocatoria que verán las personas postulantes.",
     steps: [
@@ -188,7 +188,7 @@ const workflow = [
   "Publicar la oferta",
   "Revisar postulantes y actualizar etapas",
   "Programar entrevistas y registrar evaluaciones",
-  "Cerrar el proceso y mantener el historial al día",
+  "Cerrar el proceso y mantener el historial al día", 
 ];
 
 export default function SystemGuidePage() {
