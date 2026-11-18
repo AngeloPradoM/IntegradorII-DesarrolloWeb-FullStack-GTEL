@@ -8,23 +8,24 @@ import { Eye, Download, ChevronDown, Filter, BarChart2, Clock, CheckCircle, XCir
 const statusConfig = {
   passed: {
     label: "Aprobado",
-    color: "bg-green-100 text-green-700",
+    color: "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300",
     icon: CheckCircle,
     bar: "bg-green-500"
   },
   review: {
     label: "En revisión",
-    color: "bg-yellow-100 text-yellow-700",
+    color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-300",
     icon: Clock,
     bar: "bg-yellow-500"
   },
   failed: {
     label: "No aprobó",
-    color: "bg-red-100 text-[#D32F2F]",
+    color: "bg-red-100 text-[#D32F2F] dark:bg-red-950/50 dark:text-red-300",
     icon: XCircle,
     bar: "bg-[#D32F2F]"
   }
 };
+const fieldClassName = "recruiter-field w-full px-3 py-2 text-sm";
 
 export default function Evaluations() {
   const { data, loading, error, retry } = useRecruiterData(getRecruiterEvaluations);
@@ -139,18 +140,18 @@ export default function Evaluations() {
   const tests = [...new Set(evaluations.map(e => e.test))];
 
   return (
-    <div className="p-6">
+    <div className="recruiter-page p-4 sm:p-6">
       <DataState loading={loading} error={error} retry={retry} />
 
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#1E293B]">Evaluaciones</h1>
-          <p className="text-sm text-[#475569]">Resultados de pruebas y criterios de candidatos</p>
+          <h1 className="recruiter-title text-xl">Evaluaciones</h1>
+          <p className="recruiter-copy text-sm">Resultados de pruebas y criterios de candidatos</p>
         </div>
         <button
           onClick={handleOpenModal}
-          className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 rounded-lg bg-app-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-action-hover"
         >
           <Plus className="w-4 h-4" />
           + Nueva Evaluación
@@ -161,14 +162,14 @@ export default function Evaluations() {
       {feedback && (
         <div className={`mb-6 p-4 rounded-xl flex items-center justify-between gap-3 text-sm font-medium border ${
           feedback.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-800'
-            : 'bg-red-50 border-red-200 text-red-800'
+            ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300'
+            : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300'
         }`}>
           <div className="flex items-center gap-2">
             {feedback.type === 'success' ? <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />}
             <span>{feedback.message}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="text-gray-400 hover:text-gray-600">
+          <button onClick={() => setFeedback(null)} className="text-app-secondary hover:text-app-primary">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -181,24 +182,24 @@ export default function Evaluations() {
             label: "Aprobados",
             value: loading || error ? "—" : evaluations.filter(e => e.status === "passed").length,
             color: "text-green-600",
-            bg: "bg-green-50"
+            bg: "bg-green-50 border-green-100 dark:bg-green-950/35 dark:border-green-900"
           },
           {
             label: "En revisión",
             value: loading || error ? "—" : evaluations.filter(e => e.status === "review").length,
             color: "text-yellow-600",
-            bg: "bg-yellow-50"
+            bg: "bg-yellow-50 border-yellow-100 dark:bg-yellow-950/35 dark:border-yellow-900"
           },
           {
             label: "No aprobaron",
             value: loading || error ? "—" : evaluations.filter(e => e.status === "failed").length,
             color: "text-[#D32F2F]",
-            bg: "bg-red-50"
+            bg: "bg-red-50 border-red-100 dark:bg-red-950/35 dark:border-red-900"
           }
         ].map(({ label, value, color, bg }) => (
-          <div key={label} className={`${bg} rounded-xl p-4 text-center border border-white`}>
+          <div key={label} className={`${bg} rounded-xl border p-4 text-center`}>
             <div className={`text-2xl font-bold ${color}`}>{value}</div>
-            <div className="text-xs text-[#475569]">{label}</div>
+            <div className="text-xs text-app-secondary">{label}</div>
           </div>
         ))}
       </div>
@@ -210,7 +211,7 @@ export default function Evaluations() {
           <select
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
-            className="appearance-none pl-9 pr-8 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]"
+            className="recruiter-field appearance-none py-2 pl-9 pr-8 text-sm"
           >
             <option value="all">Todos los estados</option>
             <option value="passed">Aprobados</option>
@@ -224,7 +225,7 @@ export default function Evaluations() {
           <select
             value={filterTest}
             onChange={e => setFilterTest(e.target.value)}
-            className="appearance-none pl-9 pr-8 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]"
+            className="recruiter-field appearance-none py-2 pl-9 pr-8 text-sm"
           >
             <option value="all">Todas las pruebas</option>
             {tests.map(t => <option key={t} value={t}>{t}</option>)}
@@ -236,21 +237,21 @@ export default function Evaluations() {
       {/* Evaluation cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {!loading && !error && filtered.length === 0 && (
-          <p className="col-span-full rounded-xl border border-gray-100 bg-white p-6 text-sm text-[#475569]">
+          <p className="recruiter-empty col-span-full bg-app-surface p-6 text-sm">
             {evaluations.length ? "No hay resultados para estos filtros." : "No hay evaluaciones disponibles."}
           </p>
         )}
         {filtered.map(ev => {
           const s = statusConfig[ev.status] || {
             label: "N/D",
-            color: "bg-slate-100 text-slate-600",
+            color: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
             icon: Clock,
             bar: "bg-slate-300"
           };
           const StatusIcon = s.icon;
           const isExpanded = expanded === ev.id;
           return (
-            <div key={ev.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <div key={ev.id} className="recruiter-card recruiter-card-interactive overflow-hidden">
               <div className="p-5">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
@@ -259,8 +260,8 @@ export default function Evaluations() {
                       {ev.avatar}
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-[#1E293B]">{ev.name}</div>
-                      <div className="text-xs text-[#475569]">{ev.job}</div>
+                      <div className="text-sm font-bold text-app-primary">{ev.name}</div>
+                      <div className="text-xs text-app-secondary">{ev.job}</div>
                     </div>
                   </div>
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${s.color}`}>
@@ -270,21 +271,21 @@ export default function Evaluations() {
                 </div>
 
                 {/* Test info */}
-                <div className="bg-[#F8FAFC] rounded-lg p-3 mb-3">
-                  <div className="text-[10px] font-semibold text-[#475569] uppercase tracking-wide mb-1">{ev.test}</div>
+                <div className="mb-3 rounded-lg bg-app-muted p-3">
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-app-secondary">{ev.test}</div>
                   <div className="flex items-center justify-between">
                     <div>
                       <span className={`text-2xl font-bold ${ev.score >= 80 ? "text-green-600" : ev.score >= 65 ? "text-yellow-600" : "text-[#D32F2F]"}`}>
                         {ev.score ?? 'N/D'}
                       </span>
-                      <span className="text-xs text-[#475569]">/100</span>
+                      <span className="text-xs text-app-secondary">/100</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-[#475569]">
+                    <div className="flex items-center gap-1 text-xs text-app-secondary">
                       <Clock className="w-3 h-3" />
                       {ev.time}
                     </div>
                   </div>
-                  <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-app-border-strong">
                     <div
                       className={`h-full rounded-full transition-all ${s.bar}`}
                       style={{ width: `${ev.score ?? 0}%` }}
@@ -299,12 +300,12 @@ export default function Evaluations() {
                       ev.details.map((d, dIdx) => (
                         <div key={d.area || dIdx}>
                           <div className="flex justify-between text-[10px] mb-1">
-                            <span className="text-[#475569]">{d.area}</span>
+                            <span className="text-app-secondary">{d.area}</span>
                             <span className={`font-semibold ${d.score >= 80 ? "text-green-600" : d.score >= 65 ? "text-yellow-600" : "text-[#D32F2F]"}`}>
                               {d.score == null ? 'N/D' : `${d.score}%`}
                             </span>
                           </div>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-1.5 overflow-hidden rounded-full bg-app-muted">
                             <div
                               className={`h-full rounded-full ${d.score >= 80 ? "bg-green-500" : d.score >= 65 ? "bg-yellow-500" : "bg-[#D32F2F]"}`}
                               style={{ width: `${d.score ?? 0}%` }}
@@ -313,25 +314,25 @@ export default function Evaluations() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-[10px] text-gray-400">Sin desglose de criterios detallado.</p>
+                      <p className="text-[10px] text-app-secondary">Sin desglose de criterios detallado.</p>
                     )}
                   </div>
                 )}
 
-                <div className="text-[10px] text-[#475569] mb-3">{ev.date}</div>
+                <div className="mb-3 text-[10px] text-app-secondary">{ev.date}</div>
 
                 {/* Actions */}
                 <div className="flex gap-2">
                   <button
                     onClick={() => setExpanded(isExpanded ? null : ev.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-[#475569] py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-app-border py-2 text-xs font-medium text-app-secondary transition-colors hover:bg-app-muted hover:text-app-primary"
                   >
                     {isExpanded ? "Ocultar" : "Ver detalle"}
                     <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   </button>
                   <Link
                     to={ev.candidateId ? `/reclutador/postulantes/${encodeURIComponent(ev.candidateId)}` : "/reclutador/postulantes"}
-                    className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-[#D32F2F] hover:border-[#D32F2F]/30 transition-colors"
+                    className="flex items-center justify-center gap-1 rounded-lg border border-app-border p-2 text-app-secondary transition-colors hover:border-app-action hover:text-app-accent"
                     title="Ver candidato"
                   >
                     <Eye className="w-4 h-4" />
@@ -347,7 +348,7 @@ export default function Evaluations() {
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
-                    className="flex items-center justify-center gap-1 p-2 border border-gray-200 text-[#475569] rounded-lg hover:text-blue-600 hover:border-blue-200 transition-colors"
+                    className="flex items-center justify-center gap-1 rounded-lg border border-app-border p-2 text-app-secondary transition-colors hover:border-app-info-icon hover:text-app-info-icon"
                     title="Descargar reporte de evaluación"
                   >
                     <Download className="w-4 h-4" />
@@ -362,9 +363,9 @@ export default function Evaluations() {
       {/* Modal Nueva Evaluación */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
+          <div className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-2xl">
             {/* Modal Header */}
-            <div className="bg-[#1E293B] text-white px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center justify-between bg-[#1E293B] px-6 py-4 text-white dark:bg-app-muted">
               <div className="flex items-center gap-2">
                 <BarChart2 className="w-5 h-5 text-[#D32F2F]" />
                 <h3 className="font-bold text-base">Registrar Nueva Evaluación con Criterios</h3>
@@ -383,14 +384,14 @@ export default function Evaluations() {
               {/* Basic Info */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-[#1E293B] uppercase mb-1">
+                  <label className="mb-1 block text-xs font-bold uppercase text-app-primary">
                     Candidato <span className="text-[#D32F2F]">*</span>
                   </label>
                   <select
                     value={formCandidateId}
                     onChange={(e) => setFormCandidateId(e.target.value)}
                     required
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F] bg-white"
+                    className={fieldClassName}
                   >
                     <option value="">Selecciona un candidato...</option>
                     {loadingCandidates ? (
@@ -408,7 +409,7 @@ export default function Evaluations() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#1E293B] uppercase mb-1">
+                  <label className="mb-1 block text-xs font-bold uppercase text-app-primary">
                     Duración (min)
                   </label>
                   <input
@@ -417,19 +418,19 @@ export default function Evaluations() {
                     max="300"
                     value={formTime}
                     onChange={(e) => setFormTime(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]"
+                    className={fieldClassName}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#1E293B] uppercase mb-1">
+                <label className="mb-1 block text-xs font-bold uppercase text-app-primary">
                   Tipo o Nombre de la Prueba
                 </label>
                 <select
                   value={formTest}
                   onChange={(e) => setFormTest(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F] bg-white"
+                  className={fieldClassName}
                 >
                   <option value="Evaluación Técnica">Evaluación Técnica</option>
                   <option value="Evaluación de Redes e Infraestructura">Evaluación de Redes e Infraestructura</option>
@@ -440,11 +441,11 @@ export default function Evaluations() {
               </div>
 
               {/* Dynamic Criteria Section */}
-              <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50">
+              <div className="rounded-xl border border-app-border bg-app-muted/50 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h4 className="text-xs font-bold text-[#1E293B] uppercase">Criterios de Evaluación</h4>
-                    <p className="text-[11px] text-gray-500">Define los factores a ponderar y su calificación de 0 a 100.</p>
+                    <h4 className="text-xs font-bold uppercase text-app-primary">Criterios de Evaluación</h4>
+                    <p className="text-[11px] text-app-secondary">Define los factores a ponderar y su calificación de 0 a 100.</p>
                   </div>
                   <button
                     type="button"
@@ -458,20 +459,20 @@ export default function Evaluations() {
 
                 <div className="space-y-3">
                   {criteria.map((item, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                    <div key={index} className="flex items-center gap-2 rounded-lg border border-app-border bg-app-surface p-3 shadow-sm">
                       <div className="flex-1 min-w-0">
-                        <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Área / Criterio</label>
+                        <label className="mb-0.5 block text-[10px] font-semibold text-app-secondary">Área / Criterio</label>
                         <input
                           type="text"
                           value={item.area}
                           onChange={(e) => handleCriterionChange(index, "area", e.target.value)}
                           placeholder="Ej. Diagnóstico de empalmes"
                           required
-                          className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#D32F2F]"
+                          className="recruiter-field w-full px-2.5 py-1.5 text-xs"
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Peso (%)</label>
+                        <label className="mb-0.5 block text-[10px] font-semibold text-app-secondary">Peso (%)</label>
                         <input
                           type="number"
                           min="1"
@@ -479,11 +480,11 @@ export default function Evaluations() {
                           value={item.weight}
                           onChange={(e) => handleCriterionChange(index, "weight", e.target.value)}
                           required
-                          className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#D32F2F] text-center"
+                          className="recruiter-field w-full px-2.5 py-1.5 text-center text-xs"
                         />
                       </div>
                       <div className="w-24">
-                        <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Nota (0-100)</label>
+                        <label className="mb-0.5 block text-[10px] font-semibold text-app-secondary">Nota (0-100)</label>
                         <input
                           type="number"
                           min="0"
@@ -491,14 +492,14 @@ export default function Evaluations() {
                           value={item.score}
                           onChange={(e) => handleCriterionChange(index, "score", e.target.value)}
                           required
-                          className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#D32F2F] text-center font-bold"
+                          className="recruiter-field w-full px-2.5 py-1.5 text-center text-xs font-bold"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveCriterion(index)}
                         disabled={criteria.length <= 1}
-                        className="mt-4 p-1.5 text-gray-400 hover:text-red-500 disabled:opacity-30 disabled:hover:text-gray-400 transition-colors"
+                        className="mt-4 p-1.5 text-app-secondary transition-colors hover:text-app-accent disabled:opacity-30"
                         title="Eliminar criterio"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -508,20 +509,20 @@ export default function Evaluations() {
                 </div>
 
                 {/* Score Summary Box */}
-                <div className="mt-4 pt-3 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg">
+                <div className="mt-4 flex flex-col justify-between gap-3 rounded-lg border-t border-app-border bg-app-surface p-3 pt-3 sm:flex-row sm:items-center">
                   <div>
-                    <span className="text-xs text-gray-500">Suma de pesos: </span>
+                    <span className="text-xs text-app-secondary">Suma de pesos: </span>
                     <span className={`text-xs font-bold ${totalWeight === 100 ? "text-green-600" : "text-amber-600"}`}>
                       {totalWeight}% {totalWeight !== 100 ? "(Sugerido: 100%)" : "✓"}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-[#1E293B] font-semibold">Puntaje Ponderado:</span>
+                    <span className="text-xs font-semibold text-app-primary">Puntaje Ponderado:</span>
                     <span className={`text-xl font-bold ${computedScore >= 75 ? "text-green-600" : computedScore >= 60 ? "text-yellow-600" : "text-[#D32F2F]"}`}>
                       {computedScore} / 100
                     </span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      computedStatus === "aprobado" ? "bg-green-100 text-green-700" : computedStatus === "en_revision" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                      computedStatus === "aprobado" ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300" : computedStatus === "en_revision" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-300" : "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
                     }`}>
                       {computedStatus === "aprobado" ? "Aprobado" : computedStatus === "en_revision" ? "En Revisión" : "No Aprobado"}
                     </span>
@@ -530,12 +531,12 @@ export default function Evaluations() {
               </div>
 
               {/* Actions */}
-              <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-3 border-t border-app-border pt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
                   disabled={submitting}
-                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="rounded-lg px-4 py-2 text-sm font-semibold text-app-secondary transition-colors hover:bg-app-muted hover:text-app-primary"
                 >
                   Cancelar
                 </button>

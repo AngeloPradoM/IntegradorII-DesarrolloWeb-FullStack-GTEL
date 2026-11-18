@@ -13,6 +13,8 @@ export default function UsersPage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(0);
   const [revision, setRevision] = useState(0);
   const [data, setData] = useState(null);
@@ -45,6 +47,10 @@ export default function UsersPage() {
       operations: rows.filter(account => ['RECLUTADOR', 'TECNICO'].includes(account.rol)).length,
     };
   }, [data]);
+  const visibleAccounts = useMemo(() => (data?.items || []).filter(account =>
+    (roleFilter === 'all' || account.rol === roleFilter) &&
+    (statusFilter === 'all' || account.estado === statusFilter)
+  ), [data, roleFilter, statusFilter]);
 
   const change = event => setEditor(previous => ({ ...previous, [event.target.name]: event.target.value }));
   const openEditor = account => { setEditor(account ? { ...account, password: '' } : { ...emptyUser }); setError(''); setNotice(''); };
@@ -103,12 +109,12 @@ export default function UsersPage() {
     </form>}
 
     <section className="surface" aria-label="Directorio de usuarios">
-      <div className="toolbar"><div className="search-field"><Search aria-hidden="true"/><input aria-label="Buscar usuarios por correo" type="search" maxLength={150} placeholder="Buscar por correo en tiempo real…" value={query} onChange={event => setQuery(event.target.value)}/></div><span className="count-label">{data ? `${data.items.length} visibles de ${data.total}` : 'Consultando directorio…'}</span></div>
+      <div className="toolbar"><div className="search-field"><Search aria-hidden="true"/><input aria-label="Buscar usuarios por correo" type="search" maxLength={150} placeholder="Buscar por correo en tiempo real…" value={query} onChange={event => setQuery(event.target.value)}/></div><label className="sr-only" htmlFor="admin-role-filter">Filtrar por rol</label><select id="admin-role-filter" className="toolbar-select" value={roleFilter} onChange={event => setRoleFilter(event.target.value)}><option value="all">Todos los roles</option>{Object.entries(roleLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><label className="sr-only" htmlFor="admin-status-filter">Filtrar por estado</label><select id="admin-status-filter" className="toolbar-select" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Todos los estados</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option></select><span className="count-label">{data ? `${visibleAccounts.length} visibles de ${data.total}` : 'Consultando directorio…'}</span></div>
       {!data && !error && <p role="status" className="empty-state">Cargando usuarios…</p>}
       {data && <><div className="table-scroll"><table><thead><tr>{['Usuario','Rol','Estado','Identificador','Acciones'].map(label => <th key={label}>{label}</th>)}</tr></thead><tbody>
-        {data.items.map(account => <tr key={account.id}><td><div className="user-identity"><span className="user-avatar">{account.email?.charAt(0).toUpperCase()}</span><div><strong>{account.email}</strong><small>{account.nombres || account.apellidos ? [account.nombres,account.apellidos].filter(Boolean).join(' ') : 'Sin nombre de perfil'}</small></div></div></td><td><span className={`pill ${account.rol?.toLowerCase()}`}>{roleLabels[account.rol] || account.rol}</span></td><td><span className={`pill ${account.estado}`}>{account.estado === 'activo' ? 'Activo' : 'Inactivo'}</span></td><td className="muted">#{account.id}</td><td><div className="row-actions"><button type="button" onClick={() => openEditor(account)}><Pencil size={14}/>Editar</button><button type="button" className="danger" disabled={String(account.id) === String(user.id)} title={String(account.id) === String(user.id) ? 'No puedes eliminar tu propia sesión' : undefined} onClick={() => setDeleteTarget(account)}><Trash2 size={14}/>Eliminar</button></div></td></tr>)}
+        {visibleAccounts.map(account => <tr key={account.id}><td><div className="user-identity"><span className="user-avatar">{account.email?.charAt(0).toUpperCase()}</span><div><strong>{account.email}</strong><small>{account.nombres || account.apellidos ? [account.nombres,account.apellidos].filter(Boolean).join(' ') : 'Sin nombre de perfil'}</small></div></div></td><td><span className={`pill ${account.rol?.toLowerCase()}`}>{roleLabels[account.rol] || account.rol}</span></td><td><span className={`pill ${account.estado}`}>{account.estado === 'activo' ? 'Activo' : 'Inactivo'}</span></td><td className="muted">#{account.id}</td><td><div className="row-actions"><button type="button" onClick={() => openEditor(account)}><Pencil size={14}/>Editar</button><button type="button" className="danger" disabled={String(account.id) === String(user.id)} title={String(account.id) === String(user.id) ? 'No puedes eliminar tu propia sesión' : undefined} onClick={() => setDeleteTarget(account)}><Trash2 size={14}/>Eliminar</button></div></td></tr>)}
       </tbody></table></div>
-      {!data.items.length && <div className="empty-state"><strong>Sin resultados</strong>No hay usuarios que coincidan con “{search}”.</div>}
+      {!visibleAccounts.length && <div className="empty-state"><strong>Sin resultados</strong>No hay usuarios que coincidan con la búsqueda y los filtros actuales.</div>}
       <footer className="pagination"><span>Página {page + 1} · {data.total} usuarios</span><div><button className="btn" disabled={page === 0} onClick={() => setPage(value => value - 1)}>Anterior</button><button className="btn" disabled={(page + 1) * 25 >= data.total} onClick={() => setPage(value => value + 1)}>Siguiente</button></div></footer></>}
     </section>
 

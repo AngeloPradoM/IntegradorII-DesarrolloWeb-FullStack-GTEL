@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (() => {
+        try {
+          const storedTheme = localStorage.getItem("gtel_theme");
+          const theme = ["light", "dark", "system"].includes(storedTheme) ? storedTheme : "system";
+          const systemPrefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+          const effectiveTheme = theme === "dark" || (theme === "system" && systemPrefersDark) ? "dark" : "light";
+          document.documentElement.classList.toggle("dark", effectiveTheme === "dark");
+          document.documentElement.dataset.theme = effectiveTheme;
+          document.documentElement.style.colorScheme = effectiveTheme;
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
     <title>GTEL Talento</title>
   </head>
   <body>

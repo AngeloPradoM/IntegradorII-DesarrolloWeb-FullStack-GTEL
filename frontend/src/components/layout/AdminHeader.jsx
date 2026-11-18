@@ -13,6 +13,7 @@ import {
   ScrollText,
   Settings,
   UserRound,
+  UserCog,
   UsersRound,
   X,
 } from 'lucide-react';
@@ -23,6 +24,7 @@ import './admin-header.css';
 
 const primaryNavigation = [
   { to: '/admin', label: 'Inicio', icon: LayoutDashboard, end: true },
+  { to: '/admin/usuarios', label: 'Usuarios', icon: UserCog },
   { to: '/admin/auditoria', label: 'Auditoría', icon: ScrollText },
   { to: '/notificaciones', label: 'Notificaciones', icon: Bell, notifications: true },
   { to: '/ofertas', label: 'Ofertas', icon: BriefcaseBusiness },
@@ -41,15 +43,19 @@ export default function AdminHeader() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [perspectiveOpen, setPerspectiveOpen] = useState(false);
   const [notificationState, setNotificationState] = useState(null);
   const headerRef = useRef(null);
   const profileAreaRef = useRef(null);
+  const perspectiveAreaRef = useRef(null);
   const profileButtonRef = useRef(null);
+  const perspectiveButtonRef = useRef(null);
   const menuButtonRef = useRef(null);
 
   useEffect(() => {
     const closeOutside = event => {
       if (!profileAreaRef.current?.contains(event.target)) setProfileOpen(false);
+      if (!perspectiveAreaRef.current?.contains(event.target)) setPerspectiveOpen(false);
       if (!headerRef.current?.contains(event.target)) setMobileOpen(false);
     };
     document.addEventListener('pointerdown', closeOutside);
@@ -88,6 +94,7 @@ export default function AdminHeader() {
   const closeMenus = () => {
     setMobileOpen(false);
     setProfileOpen(false);
+    setPerspectiveOpen(false);
   };
   const signOut = () => {
     closeMenus();
@@ -117,6 +124,17 @@ export default function AdminHeader() {
     );
   };
 
+  const perspectiveLink = item => {
+    const Icon = item.icon;
+    return (
+      <NavLink key={item.to} to={item.to} className="admin-nav-link admin-perspective" onClick={closeMenus}>
+        <Icon size={16} aria-hidden="true" />
+        <span>{item.label}</span>
+        <ExternalLink size={13} className="admin-external" aria-hidden="true" />
+      </NavLink>
+    );
+  };
+
   return (
     <header
       className="admin-header"
@@ -126,6 +144,9 @@ export default function AdminHeader() {
         if (profileOpen) {
           setProfileOpen(false);
           profileButtonRef.current?.focus();
+        } else if (perspectiveOpen) {
+          setPerspectiveOpen(false);
+          perspectiveButtonRef.current?.focus();
         } else if (mobileOpen) {
           setMobileOpen(false);
           menuButtonRef.current?.focus();
@@ -141,22 +162,43 @@ export default function AdminHeader() {
         <nav id="admin-navigation" aria-label="Navegación administrativa" className={`admin-navigation${mobileOpen ? ' is-open' : ''}`}>
           <span className="admin-nav-section-label">Gestión</span>
           <div className="admin-nav-group">{primaryNavigation.map(navigationLink)}</div>
-          <span className="admin-nav-divider" aria-hidden="true" />
-          <span className="admin-nav-section-label">Perspectivas</span>
-          <div className="admin-nav-group admin-perspectives">
-            {perspectiveNavigation.map(item => {
-              const Icon = item.icon;
-              return (
-                <NavLink key={item.to} to={item.to} className="admin-nav-link admin-perspective" onClick={closeMenus}>
-                  <Icon size={16} aria-hidden="true" /><span>{item.label}</span><ExternalLink size={13} className="admin-external" aria-hidden="true" />
-                </NavLink>
-              );
-            })}
-          </div>
+          <span className="admin-nav-divider admin-mobile-perspectives" aria-hidden="true" />
+          <span className="admin-nav-section-label admin-mobile-perspectives">Perspectivas</span>
+          <div className="admin-nav-group admin-mobile-perspectives">{perspectiveNavigation.map(perspectiveLink)}</div>
         </nav>
 
         <div className="admin-actions">
-          <ThemeToggle />
+          <div
+            ref={perspectiveAreaRef}
+            className="admin-perspective-area"
+            onBlur={event => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setPerspectiveOpen(false);
+            }}
+          >
+            <div className="admin-perspective-links">{perspectiveNavigation.map(perspectiveLink)}</div>
+            <button
+              ref={perspectiveButtonRef}
+              type="button"
+              className="admin-perspective-trigger"
+              aria-expanded={perspectiveOpen}
+              aria-controls="admin-perspective-options"
+              onClick={() => {
+                setPerspectiveOpen(value => !value);
+                setProfileOpen(false);
+                setMobileOpen(false);
+              }}
+            >
+              <UsersRound size={16} aria-hidden="true" />
+              <span>Vistas</span>
+              <ChevronDown size={14} aria-hidden="true" />
+            </button>
+            {perspectiveOpen && (
+              <div id="admin-perspective-options" className="admin-perspective-options">
+                {perspectiveNavigation.map(perspectiveLink)}
+              </div>
+            )}
+          </div>
+          <ThemeToggle className="admin-theme-toggle" />
           <div ref={profileAreaRef} className="admin-profile" onBlur={event => {
             if (!event.currentTarget.contains(event.relatedTarget)) setProfileOpen(false);
           }}>
@@ -169,11 +211,12 @@ export default function AdminHeader() {
               aria-label={`Perfil de ${displayName}`}
               onClick={() => {
                 setProfileOpen(value => !value);
+                setPerspectiveOpen(false);
                 setMobileOpen(false);
               }}
             >
               <span className="admin-avatar">{user.foto ? <img src={user.foto} alt="" /> : <UserRound size={18} />}</span>
-              <span className="admin-profile-name">{displayName}<small>Administrador</small></span>
+              <span className="admin-profile-name" title={displayName}>{displayName}<small>Administrador</small></span>
               <ChevronDown size={15} aria-hidden="true" />
             </button>
             {profileOpen && (
@@ -194,6 +237,7 @@ export default function AdminHeader() {
             onClick={() => {
               setMobileOpen(value => !value);
               setProfileOpen(false);
+              setPerspectiveOpen(false);
             }}
           >
             {mobileOpen ? <X size={21} /> : <Menu size={21} />}

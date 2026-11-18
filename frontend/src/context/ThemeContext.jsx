@@ -24,23 +24,23 @@ export function ThemeProvider({ children }) {
     return "system";
   });
 
-  const [effectiveTheme, setEffectiveTheme] = useState("light");
+  const [effectiveTheme, setEffectiveTheme] = useState(() => {
+    const systemPrefersDark = Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+    return resolveEffectiveTheme(theme, systemPrefersDark);
+  });
 
   useEffect(() => {
     const root = document.documentElement;
 
     const applyTheme = () => {
-      const isDark = theme === "dark" || (theme === "system" && Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches));
+      const systemPrefersDark = Boolean(window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+      const nextEffectiveTheme = resolveEffectiveTheme(theme, systemPrefersDark);
+      const isDark = nextEffectiveTheme === "dark";
 
-      if (isDark) {
-        root.classList.add("dark");
-        root.setAttribute("data-theme", "dark");
-        setEffectiveTheme("dark");
-      } else {
-        root.classList.remove("dark");
-        root.setAttribute("data-theme", "light");
-        setEffectiveTheme("light");
-      }
+      root.classList.toggle("dark", isDark);
+      root.setAttribute("data-theme", nextEffectiveTheme);
+      root.style.colorScheme = nextEffectiveTheme;
+      setEffectiveTheme(nextEffectiveTheme);
     };
 
     applyTheme();

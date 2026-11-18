@@ -193,7 +193,7 @@ const workflow = [
 
 export default function SystemGuidePage() {
   return (
-    <main aria-label="Guía de uso del sistema" className="min-h-full p-4 sm:p-6 lg:p-8">
+    <main aria-label="Guía de uso del sistema" className="min-h-full bg-app-bg p-4 text-app-primary sm:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="overflow-hidden rounded-2xl bg-gradient-to-br from-[#102B4E] to-[#1E293B] p-6 text-white shadow-sm sm:p-8">
           <div className="flex items-start gap-4">
@@ -211,43 +211,43 @@ export default function SystemGuidePage() {
           </div>
         </header>
 
-        <section aria-labelledby="video-guide-title" className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+        <section aria-labelledby="video-guide-title" className="rounded-2xl border border-dashed border-app-border-strong bg-app-surface p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-brand-red dark:bg-red-950/40">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-app-danger-soft text-app-accent">
                 <PlayCircle className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
-                <h2 id="video-guide-title" className="font-bold text-slate-900 dark:text-white">Video tutorial</h2>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Cada apartado tiene su propio espacio para un video que se reproduce aquí mismo.</p>
+                <h2 id="video-guide-title" className="font-bold text-app-primary">Video tutorial</h2>
+                <p className="mt-1 text-sm text-app-secondary">Cada apartado tiene su propio espacio para un video que se reproduce aquí mismo.</p>
               </div>
             </div>
-            <span className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
-              <PlayCircle className="h-4 w-4 text-brand-red" aria-hidden="true" /> Reproductor integrado por apartado
+            <span className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-app-border px-4 py-3 text-sm font-semibold text-app-secondary">
+              <PlayCircle className="h-4 w-4 text-app-accent" aria-hidden="true" /> Reproductor integrado por apartado
             </span>
           </div>
         </section>
 
-        <section aria-labelledby="workflow-title" className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <section aria-labelledby="workflow-title" className="rounded-2xl border border-app-border bg-app-surface p-5 sm:p-6">
           <div className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-brand-red">Ruta sugerida</p>
-            <h2 id="workflow-title" className="mt-1 text-lg font-bold text-slate-900 dark:text-white">Del requerimiento a la contratación</h2>
+            <p className="text-xs font-bold uppercase tracking-wide text-app-accent">Ruta sugerida</p>
+            <h2 id="workflow-title" className="mt-1 text-lg font-bold text-app-primary">Del requerimiento a la contratación</h2>
           </div>
           <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {workflow.map((step, index) => (
-              <li key={step} className="flex gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/70">
+              <li key={step} className="flex gap-3 rounded-xl bg-app-muted p-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-red text-xs font-bold text-white">{index + 1}</span>
-                <span className="text-sm font-medium leading-5 text-slate-700 dark:text-slate-200">{step}</span>
+                <span className="text-sm font-medium leading-5 text-app-body">{step}</span>
               </li>
             ))}
           </ol>
         </section>
 
-        <nav aria-label="Índice de la guía" className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="mb-3 text-sm font-bold text-slate-900 dark:text-white">Ir a un apartado</h2>
+        <nav aria-label="Índice de la guía" className="rounded-2xl border border-app-border bg-app-surface p-5">
+          <h2 className="mb-3 text-sm font-bold text-app-primary">Ir a un apartado</h2>
           <div className="flex flex-wrap gap-2">
             {guideSections.map(({ id, number, title }) => (
-              <a key={id} href={`#${id}`} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-brand-red hover:text-brand-red dark:border-slate-700 dark:text-slate-200">
+              <a key={id} href={`#${id}`} className="rounded-full border border-app-border px-3 py-1.5 text-xs font-semibold text-app-body transition hover:border-brand-red hover:text-app-accent">
                 {number}. {title}
               </a>
             ))}
@@ -258,28 +258,28 @@ export default function SystemGuidePage() {
           {guideSections.map(({ id, number, title, icon: Icon, summary, steps, tip, videoUrl }) => {
             const embedUrl = getYoutubeEmbedUrl(videoUrl);
             return (
-            <section key={id} id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+            <section key={id} id={id} aria-labelledby={`${id}-title`} className="scroll-mt-6 rounded-2xl border border-app-border bg-app-surface p-5 sm:p-6">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-brand-red dark:bg-slate-800">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-app-muted text-app-accent">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold tracking-wide text-brand-red">APARTADO {number}</p>
-                  <h2 id={`${id}-title`} className="mt-0.5 text-lg font-bold text-slate-900 dark:text-white">{title}</h2>
-                  <p className="mt-1 text-sm leading-5 text-slate-600 dark:text-slate-400">{summary}</p>
+                  <p className="text-xs font-bold tracking-wide text-app-accent">APARTADO {number}</p>
+                  <h2 id={`${id}-title`} className="mt-0.5 text-lg font-bold text-app-primary">{title}</h2>
+                  <p className="mt-1 text-sm leading-5 text-app-secondary">{summary}</p>
                 </div>
               </div>
               <ol className="mt-5 space-y-3">
                 {steps.map((step, index) => (
-                  <li key={step} className="flex gap-3 text-sm leading-5 text-slate-700 dark:text-slate-300">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-50 text-[11px] font-bold text-brand-red dark:bg-red-950/50">{index + 1}</span>
+                  <li key={step} className="flex gap-3 text-sm leading-5 text-app-body">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-app-danger-soft text-[11px] font-bold text-app-accent">{index + 1}</span>
                     <span>{step}</span>
                   </li>
                 ))}
               </ol>
               <div className="mt-5">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Video del apartado</p>
-                <div className="aspect-video overflow-hidden rounded-xl border border-slate-200 bg-slate-950 dark:border-slate-700">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-app-secondary">Video del apartado</p>
+                <div className="aspect-video overflow-hidden rounded-xl border border-app-border-strong bg-slate-950">
                   {embedUrl ? (
                     <iframe
                       className="h-full w-full"
@@ -299,8 +299,8 @@ export default function SystemGuidePage() {
                   )}
                 </div>
               </div>
-              <div className="mt-5 flex gap-2 rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs leading-5 text-slate-700 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-slate-300">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              <div className="mt-5 flex gap-2 rounded-xl border border-app-info-border bg-app-info p-3 text-xs leading-5 text-app-body">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-app-info-icon" aria-hidden="true" />
                 <p><strong>Recomendación:</strong> {tip}</p>
               </div>
             </section>
@@ -308,10 +308,10 @@ export default function SystemGuidePage() {
           })}
         </div>
 
-        <footer className="flex flex-col gap-3 rounded-2xl bg-slate-100 p-5 dark:bg-slate-800 sm:flex-row sm:items-center sm:justify-between">
+        <footer className="flex flex-col gap-3 rounded-2xl bg-app-muted p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-bold text-slate-900 dark:text-white">¿Listo para continuar?</h2>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Vuelve al Dashboard para revisar tus procesos pendientes.</p>
+            <h2 className="font-bold text-app-primary">¿Listo para continuar?</h2>
+            <p className="mt-1 text-sm text-app-secondary">Vuelve al Dashboard para revisar tus procesos pendientes.</p>
           </div>
           <Link to="/reclutador/dashboard" className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700">
             Ir al Dashboard <ArrowRight className="h-4 w-4" aria-hidden="true" />

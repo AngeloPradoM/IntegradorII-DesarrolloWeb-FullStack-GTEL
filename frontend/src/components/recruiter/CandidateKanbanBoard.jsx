@@ -17,8 +17,8 @@ export const KANBAN_COLUMNS = [
     key: "recibida",
     aliases: ["new", "recibida"],
     label: "Recibidas",
-    badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
-    headerBg: "bg-slate-50 border-slate-200",
+    badgeColor: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+    headerBg: "bg-slate-50 border-slate-200 dark:bg-slate-800/80 dark:border-slate-700",
     dotColor: "bg-slate-500",
     icon: Clock
   },
@@ -26,8 +26,8 @@ export const KANBAN_COLUMNS = [
     key: "en_revision",
     aliases: ["reviewing", "en_revision"],
     label: "En Revisión",
-    badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
-    headerBg: "bg-amber-50/60 border-amber-200",
+    badgeColor: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800",
+    headerBg: "bg-amber-50/60 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900",
     dotColor: "bg-amber-500",
     icon: Eye
   },
@@ -35,8 +35,8 @@ export const KANBAN_COLUMNS = [
     key: "entrevista",
     aliases: ["interview", "entrevista"],
     label: "Entrevistas",
-    badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
-    headerBg: "bg-blue-50/60 border-blue-200",
+    badgeColor: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800",
+    headerBg: "bg-blue-50/60 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900",
     dotColor: "bg-blue-600",
     icon: MessageSquare
   },
@@ -44,8 +44,8 @@ export const KANBAN_COLUMNS = [
     key: "aprobada",
     aliases: ["approved", "aprobada"],
     label: "Aprobados",
-    badgeColor: "bg-green-100 text-green-800 border-green-200",
-    headerBg: "bg-green-50/60 border-green-200",
+    badgeColor: "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/60 dark:text-green-300 dark:border-green-800",
+    headerBg: "bg-green-50/60 border-green-200 dark:bg-green-950/30 dark:border-green-900",
     dotColor: "bg-green-600",
     icon: CheckCircle
   },
@@ -53,8 +53,8 @@ export const KANBAN_COLUMNS = [
     key: "rechazada",
     aliases: ["rejected", "rechazada"],
     label: "Descartados",
-    badgeColor: "bg-red-100 text-red-800 border-red-200",
-    headerBg: "bg-red-50/60 border-red-200",
+    badgeColor: "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800",
+    headerBg: "bg-red-50/60 border-red-200 dark:bg-red-950/30 dark:border-red-900",
     dotColor: "bg-red-500",
     icon: XCircle
   }
@@ -135,7 +135,7 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-start pb-6">
+    <div className="grid grid-flow-col auto-cols-[minmax(245px,1fr)] items-start gap-4 overflow-x-auto pb-6">
       {KANBAN_COLUMNS.map((col) => {
         const colCandidates = candidates.filter((c) => getCandidateColKey(c) === col.key);
         const IconComponent = col.icon;
@@ -147,17 +147,17 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
             onDragOver={(e) => handleDragOver(e, col.key)}
             onDragLeave={() => setActiveDropCol(null)}
             onDrop={(e) => handleDrop(e, col.key)}
-            className={`flex flex-col bg-slate-50/80 rounded-xl border transition-all duration-200 min-h-[500px] ${
+            className={`flex min-h-[500px] flex-col rounded-xl border bg-app-muted/70 transition-all duration-200 ${
               isDragTarget
-                ? "border-brand-red ring-2 ring-brand-red/20 bg-red-50/30"
-                : "border-slate-200/80"
+                ? "border-app-action bg-app-danger-soft ring-2 ring-app-action/20"
+                : "border-app-border"
             }`}
           >
             {/* Column Header */}
             <div className={`p-3.5 border-b rounded-t-xl flex items-center justify-between ${col.headerBg}`}>
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full ${col.dotColor}`} />
-                <h3 className="text-xs font-bold text-slate-800 tracking-wide uppercase">{col.label}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wide text-app-primary">{col.label}</h3>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${col.badgeColor}`}>
                 {colCandidates.length}
@@ -167,10 +167,10 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
             {/* Column Body / Cards */}
             <div className="p-2.5 flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-280px)]">
               {colCandidates.length === 0 ? (
-                <div className="py-10 text-center border-2 border-dashed border-slate-200 rounded-lg">
-                  <IconComponent className="w-6 h-6 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs text-slate-400">Sin candidatos</p>
-                  <p className="text-[10px] text-slate-400">Arrastra aquí para mover</p>
+                <div className="rounded-lg border-2 border-dashed border-app-border-strong py-10 text-center">
+                  <IconComponent className="mx-auto mb-2 h-6 w-6 text-app-secondary" />
+                  <p className="text-xs text-app-secondary">Sin candidatos</p>
+                  <p className="text-[10px] text-app-secondary">Arrastra aquí para mover</p>
                 </div>
               ) : (
                 colCandidates.map((candidate) => {
@@ -183,7 +183,7 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                       draggable={!isUpdating}
                       onDragStart={(e) => handleDragStart(e, candidate)}
                       onDragEnd={handleDragEnd}
-                      className={`group bg-white rounded-lg p-3.5 border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-grab active:cursor-grabbing relative ${
+                      className={`group relative cursor-grab rounded-lg border border-app-border bg-app-surface p-3.5 shadow-xs transition-all hover:border-app-border-strong hover:shadow-md active:cursor-grabbing ${
                         isUpdating ? "opacity-50 pointer-events-none" : ""
                       }`}
                     >
@@ -196,12 +196,12 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                           <div className="min-w-0">
                             <Link
                               to={`/reclutador/postulantes/${encodeURIComponent(candidate.id)}`}
-                              className="text-xs font-bold text-slate-800 hover:text-brand-red truncate block"
+                              className="block truncate text-xs font-bold text-app-primary hover:text-app-accent"
                               title={candidate.name}
                             >
                               {candidate.name}
                             </Link>
-                            <span className="text-[10px] text-slate-400 font-mono block">
+                            <span className="block font-mono text-[10px] text-app-secondary">
                               ID: {candidate.id}
                             </span>
                           </div>
@@ -211,10 +211,10 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                           <span
                             className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex-shrink-0 ${
                               candidate.score >= 80
-                                ? "bg-green-100 text-green-700"
+                                ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
                                 : candidate.score >= 60
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-slate-100 text-slate-600"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
+                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                             }`}
                             title="Puntuación ATS"
                           >
@@ -224,13 +224,13 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                       </div>
 
                       {/* Job Title */}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-600 mb-2 font-medium">
+                      <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-app-body">
                         <Briefcase className="w-3.5 h-3.5 text-brand-red flex-shrink-0" />
                         <span className="truncate">{candidate.job}</span>
                       </div>
 
                       {/* Details row: Date + Department */}
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-100">
+                      <div className="flex items-center justify-between border-t border-app-border pt-2 text-[10px] text-app-secondary">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {candidate.appliedDate || candidate.date}
@@ -244,7 +244,7 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                               onClick={(e) => downloadCvDirectly(e, candidate)}
                               disabled={downloadingCvId === candidate.id}
                               title="Descargar CV"
-                              className="p-1 text-slate-400 hover:text-brand-red rounded hover:bg-slate-50 transition-colors"
+                              className="rounded p-1 text-app-secondary transition-colors hover:bg-app-danger-soft hover:text-app-accent"
                             >
                               <Download className="w-3 h-3" />
                             </button>
@@ -259,7 +259,7 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                                 setOpenMenuId(isMenuOpen ? null : candidate.id);
                               }}
                               title="Cambiar fase"
-                              className="p-1 text-slate-400 hover:text-slate-700 rounded hover:bg-slate-100 transition-colors"
+                              className="rounded p-1 text-app-secondary transition-colors hover:bg-app-muted hover:text-app-primary"
                             >
                               <ArrowRight className="w-3 h-3" />
                             </button>
@@ -267,9 +267,9 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                             {isMenuOpen && (
                               <div
                                 onClick={(e) => e.stopPropagation()}
-                                className="absolute right-0 bottom-full mb-1 w-36 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50 text-left"
+                                className="absolute bottom-full right-0 z-50 mb-1 w-36 rounded-lg border border-app-border bg-app-surface py-1 text-left shadow-lg"
                               >
-                                <div className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-100">
+                                <div className="border-b border-app-border px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-app-secondary">
                                   Mover a:
                                 </div>
                                 {KANBAN_COLUMNS.filter((target) => target.key !== col.key).map((target) => (
@@ -282,7 +282,7 @@ export default function CandidateKanbanBoard({ candidates = [], onStatusChange, 
                                         await onStatusChange(candidate.id, target.key);
                                       }
                                     }}
-                                    className="w-full text-left px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+                                    className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-xs text-app-body hover:bg-app-muted"
                                   >
                                     <span className={`w-1.5 h-1.5 rounded-full ${target.dotColor}`} />
                                     {target.label}

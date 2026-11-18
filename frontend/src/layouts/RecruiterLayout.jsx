@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,9 +15,11 @@ import {
   LogOut,
   TicketCheck,
   BookOpen,
+  Settings,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import { useAuth } from "../context/AuthContext";
+import "./recruiter-sidebar.css";
 
 const ALLOWED_STAFF_ROLES = [
   "RECLUTADOR",
@@ -49,6 +51,46 @@ const allNavItems = [
   { icon: BookOpen, label: "Guía de uso", path: "/reclutador/guia-uso", roles: ["RECLUTADOR", "ADMIN"] },
 ];
 
+const routeContexts = [
+  { match: path => path === "/reclutador/dashboard", group: "Panel principal", section: "Dashboard", icon: LayoutDashboard },
+  { match: path => path === "/reclutador/requerimientos", group: "Reclutamiento", section: "Requerimientos", icon: FileCheck2 },
+  { match: path => path === "/reclutador/publicar-oferta", group: "Reclutamiento", section: "Publicar oferta", icon: PlusSquare },
+  { match: path => path === "/reclutador/ofertas/papelera", group: "Reclutamiento", section: "Papelera", icon: Trash2 },
+  { match: path => /^\/reclutador\/ofertas\/[^/]+\/editar$/.test(path), group: "Reclutamiento", section: "Editar oferta", icon: Briefcase },
+  { match: path => /^\/reclutador\/ofertas\/[^/]+$/.test(path), group: "Reclutamiento", section: "Detalle de oferta", icon: Briefcase },
+  { match: path => path === "/reclutador/ofertas", group: "Reclutamiento", section: "Ofertas", icon: Briefcase },
+  { match: path => /^\/reclutador\/postulantes\/[^/]+$/.test(path), group: "Candidatos", section: "Perfil de postulante", icon: Users },
+  { match: path => path === "/reclutador/postulantes", group: "Candidatos", section: "Postulantes", icon: Users },
+  { match: path => path === "/reclutador/seleccion", group: "Candidatos", section: "Selección", icon: Layers },
+  { match: path => path === "/reclutador/entrevistas", group: "Seguimiento", section: "Entrevistas", icon: CalendarDays },
+  { match: path => path === "/reclutador/evaluaciones", group: "Seguimiento", section: "Evaluaciones", icon: ClipboardList },
+  { match: path => path === "/reclutador/tickets", group: "Asistencia", section: "Mesa de ayuda y cambios", icon: TicketCheck },
+  { match: path => path === "/reclutador/guia-uso", group: "Asistencia", section: "Guía de uso", icon: BookOpen },
+];
+
+function getRouteContext(pathname) {
+  return routeContexts.find(item => item.match(pathname)) || {
+    group: "Reclutamiento",
+    section: "Centro de trabajo",
+    icon: Briefcase,
+  };
+}
+
+function isNavigationActive(pathname, itemPath) {
+  if (pathname === itemPath) return true;
+  if (itemPath === "/reclutador/ofertas") {
+    return pathname.startsWith("/reclutador/ofertas/") && pathname !== "/reclutador/ofertas/papelera";
+  }
+  return itemPath === "/reclutador/postulantes" && pathname.startsWith("/reclutador/postulantes/");
+}
+
+function getNavigationGroup(itemPath) {
+  if (itemPath === "/reclutador/dashboard") return "Panel principal";
+  if (["/reclutador/entrevistas", "/reclutador/evaluaciones"].includes(itemPath)) return "Evaluación y seguimiento";
+  if (["/reclutador/tickets", "/reclutador/guia-uso"].includes(itemPath)) return "Asistencia";
+  return "Reclutamiento";
+}
+
 export default function RecruiterLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -65,8 +107,17 @@ export default function RecruiterLayout() {
     tag: "bg-slate-500/20 text-slate-300",
     avatarBg: "bg-brand-red/30"
   };
+  const displayName = [user?.nombres, user?.apellidos].filter(Boolean).join(" ").trim() || user?.email || roleInfo.label;
+  const initials = displayName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
 
   const navItems = allNavItems.filter((item) => item.roles.includes(user?.rol));
+  const routeContext = getRouteContext(location.pathname);
+  const ContextIcon = routeContext.icon;
 
   const handleLogout = () => {
     logout();
@@ -74,7 +125,7 @@ export default function RecruiterLayout() {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-brand-bg font-sans dark:bg-slate-950 dark:text-slate-100">
+    <div className="flex h-dvh overflow-hidden bg-app-bg font-sans text-app-primary">
       <a href="#contenido" className="skip-link">
         Saltar al contenido principal
       </a>
@@ -89,43 +140,80 @@ export default function RecruiterLayout() {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-40 flex h-full flex-col bg-brand-navy dark:bg-slate-900 dark:border-r dark:border-slate-800 text-white transition-all duration-300 ease-in-out lg:relative ${
+        className={`recruiter-sidebar fixed left-0 top-0 z-40 flex h-full flex-col border-r border-app-border bg-app-surface text-app-primary shadow-lg lg:relative ${
           collapsed ? "w-16" : "w-64"
-        } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        } ${collapsed ? "is-collapsed" : ""} ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        <div className={`flex items-center gap-3 border-b border-white/10 px-4 py-5 ${collapsed ? "justify-center" : ""}`}>
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-red">
+        <div className={`recruiter-sidebar-brand flex items-center gap-3 border-b border-app-border px-4 py-5 ${collapsed ? "justify-center" : ""}`}>
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-app-action shadow-sm">
             <Briefcase className="h-5 w-5 text-white" />
           </div>
-          {!collapsed && (
-            <div>
+          <div className="recruiter-sidebar-brand-copy min-w-0" aria-hidden={collapsed}>
               <div className="text-sm font-bold leading-tight">GTEL Talento</div>
-              <div className="text-xs uppercase tracking-wide text-white/50">{roleInfo.label}</div>
-            </div>
-          )}
+              <div className="mt-1 max-w-40 truncate text-[11px] font-medium text-app-secondary" title={displayName}>{displayName}</div>
+          </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
+        <nav className="flex-1 space-y-1.5 overflow-y-auto px-2 py-4" aria-label="Navegación del reclutador">
+          <div className="recruiter-location-shell">
+            {collapsed ? (
+              <div
+                className="recruiter-location-compact"
+                role="status"
+                aria-label={`Ubicación actual: ${routeContext.group}, ${routeContext.section}`}
+                data-tooltip={`${routeContext.group} · ${routeContext.section}`}
+                title={`${routeContext.group} · ${routeContext.section}`}
+              >
+                <ContextIcon className="h-4 w-4" aria-hidden="true" />
+              </div>
+            ) : (
+              <div key={location.pathname} className="recruiter-location-card" role="status" aria-live="polite">
+                <span className="recruiter-location-marker" aria-hidden="true" />
+                <div className="min-w-0">
+                  <span className="recruiter-location-label">Ubicación actual</span>
+                  <strong>{routeContext.group}</strong>
+                  <span className="recruiter-location-section">{routeContext.section}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {user.rol === "ADMIN" && (
-            <Link className="block p-3 text-xs font-semibold text-amber-300 hover:text-white" to="/admin">
-              ⚙️ Panel Administrador
+            <Link
+              className="recruiter-admin-return mb-2 flex min-h-11 items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-700 hover:border-amber-400 hover:bg-amber-100 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200 dark:hover:border-amber-300/40 dark:hover:bg-amber-400/20 dark:hover:text-white"
+              to="/admin"
+              aria-label={collapsed ? "Panel Administrador" : undefined}
+              data-tooltip={collapsed ? "Panel Administrador" : undefined}
+              title={collapsed ? "Panel Administrador" : undefined}
+            >
+              <Settings className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+              <span className="recruiter-nav-label" aria-hidden={collapsed}>Panel Administrador</span>
             </Link>
           )}
-          {navItems.map(({ icon: Icon, label, path }) => {
-            const active = location.pathname === path;
+          {navItems.map(({ icon: Icon, label, path }, index) => {
+            const active = isNavigationActive(location.pathname, path);
+            const group = getNavigationGroup(path);
+            const showGroup = index === 0 || getNavigationGroup(navItems[index - 1].path) !== group;
             return (
-              <Link
-                key={path}
-                to={path}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
-                  active ? "bg-brand-red text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
-                } ${collapsed ? "justify-center" : ""}`}
-                title={collapsed ? label : undefined}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{label}</span>}
-              </Link>
+              <Fragment key={path}>
+                {showGroup && <span className="recruiter-nav-group-label" aria-hidden="true">{group}</span>}
+                <Link
+                  to={path}
+                  onClick={() => setMobileOpen(false)}
+                  aria-current={active ? "page" : undefined}
+                  className={`recruiter-sidebar-link flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2.5 ${
+                    active
+                      ? "border-red-400/40 bg-app-action text-white shadow-sm"
+                      : "border-transparent text-app-body hover:border-app-border hover:bg-app-muted hover:text-app-primary"
+                  } ${collapsed ? "justify-center" : ""}`}
+                  aria-label={collapsed ? label : undefined}
+                  data-tooltip={collapsed ? label : undefined}
+                  title={collapsed ? label : undefined}
+                >
+                  <Icon className="recruiter-nav-icon h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                  <span className="recruiter-nav-label text-sm font-medium" aria-hidden={collapsed}>{label}</span>
+                </Link>
+              </Fragment>
             );
           })}
         </nav>
@@ -134,27 +222,28 @@ export default function RecruiterLayout() {
           <button
             type="button"
             onClick={() => setCollapsed((value) => !value)}
-            className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+            className="recruiter-sidebar-collapse rounded-lg border border-transparent p-1.5 text-app-secondary hover:border-app-border hover:bg-app-muted hover:text-app-primary"
             aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+            title={collapsed ? "Expandir menú" : "Colapsar menú"}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
 
-        <div className={`flex items-center gap-3 border-t border-white/10 p-3 ${collapsed ? "justify-center" : ""}`}>
+        <div className={`flex items-center gap-3 border-t border-app-border p-3 ${collapsed ? "justify-center" : ""}`}>
           <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${roleInfo.avatarBg} text-xs font-bold`}>
-            {(user.nombres || user.email || "U").slice(0, 2).toUpperCase()}
+            {initials || "U"}
           </div>
           {!collapsed && (
             <>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-semibold">{user.nombres || user.email}</div>
-                <div className="truncate text-[10px] text-white/50">{roleInfo.label}</div>
+                <div className="truncate text-xs font-semibold" title={displayName}>{displayName}</div>
+                <div className="truncate text-[10px] text-app-secondary">{roleInfo.label}</div>
               </div>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="text-white/40 transition-colors hover:text-white"
+                className="rounded-md p-1 text-app-secondary transition-colors hover:bg-app-muted hover:text-app-primary"
                 aria-label="Cerrar sesión"
               >
                 <LogOut className="h-4 w-4" />

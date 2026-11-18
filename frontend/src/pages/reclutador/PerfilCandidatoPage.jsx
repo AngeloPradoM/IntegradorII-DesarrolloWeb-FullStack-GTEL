@@ -73,9 +73,9 @@ export default function CandidateProfile() {
     }
   };
   if (loading || loadError || !candidate) return <div className="p-6"><Link to="/reclutador/postulantes" className="text-sm text-brand-red">Volver al directorio</Link><DataState loading={loading} error={loadError} retry={retry} empty={!candidate} emptyMessage="No se encontró el candidato solicitado." /></div>;
-  return <div className="p-6">
-      {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-      {notice && <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">{notice}</p>}
+  return <div className="candidate-profile recruiter-page p-4 sm:p-6">
+      {error && <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">{error}</p>}
+      {notice && <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300">{notice}</p>}
       {/* Back */}
       <Link to="/reclutador/postulantes" className="inline-flex items-center gap-1.5 text-sm text-[#475569] hover:text-[#1E293B] mb-5 transition-colors">
         <ArrowLeft className="w-4 h-4" />
@@ -236,12 +236,12 @@ export default function CandidateProfile() {
               <div className="relative pl-6 space-y-5 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                 {timeline.map((item, idx) => {
                   const stageBadge = {
-                    recibida: "bg-slate-100 text-slate-700 border-slate-200",
-                    en_revision: "bg-amber-100 text-amber-800 border-amber-200",
-                    entrevista: "bg-blue-100 text-blue-800 border-blue-200",
-                    aprobada: "bg-green-100 text-green-800 border-green-200",
-                    rechazada: "bg-red-100 text-red-800 border-red-200"
-                  }[item.newStatus] || "bg-gray-100 text-gray-700 border-gray-200";
+                    recibida: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+                    en_revision: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800",
+                    entrevista: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800",
+                    aprobada: "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800",
+                    rechazada: "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800"
+                  }[item.newStatus] || "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700";
 
                   const stageLabel = {
                     recibida: "Recibida",
@@ -301,7 +301,7 @@ export default function CandidateProfile() {
             <div className="flex items-center justify-center mb-3">
               <div className="relative w-24 h-24">
                 <svg className="w-24 h-24 -rotate-90" viewBox="0 0 80 80">
-                  <circle cx="40" cy="40" r="32" fill="none" stroke="#F1F5F9" strokeWidth="8" />
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="var(--color-app-muted)" strokeWidth="8" />
                   <circle cx="40" cy="40" r="32" fill="none" stroke={candidate.score >= 85 ? "#22c55e" : candidate.score >= 70 ? "#f59e0b" : "#D32F2F"} strokeWidth="8" strokeDasharray={`${(candidate.score ?? 0) / 100 * 201} 201`} strokeLinecap="round" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -376,7 +376,7 @@ export default function CandidateProfile() {
           {/* Notes */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-xs font-bold text-[#1E293B] uppercase tracking-wide mb-3">Notas del reclutador</h3>
-            <textarea rows={4} placeholder="Agrega observaciones sobre este candidato..." className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F] resize-none" />
+            <textarea rows={4} placeholder="Agrega observaciones sobre este candidato..." className="recruiter-field w-full resize-none px-3 py-2 text-xs" />
             <button disabled title="Esta acción todavía no está disponible" className="mt-2 w-full bg-[#F8FAFC] hover:bg-gray-100 text-[#475569] py-2 rounded-lg text-xs font-medium transition-colors border border-gray-200">
               Guardar nota
             </button>

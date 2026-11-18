@@ -138,11 +138,11 @@ export default function Header({
    */
   if (isRecruiter) {
     return (
-      <header className="bg-white border-b border-gray-100 px-4 lg:px-6 py-3 flex items-center gap-4 flex-shrink-0 dark:bg-slate-900 dark:border-slate-800">
+      <header className="flex flex-shrink-0 items-center gap-4 border-b border-app-border bg-app-surface px-4 py-3 text-app-primary lg:px-6">
         <button
           type="button"
           aria-label="Abrir menú lateral"
-          className="rounded-md p-2 text-brand-navy transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
+          className="rounded-md p-2 text-app-primary transition-colors hover:bg-app-muted lg:hidden"
           onClick={onToggleSidebar}
         >
           {isMobileOpen ? (
@@ -161,7 +161,7 @@ export default function Header({
               value={searchValue}
               onChange={handleSearchChange}
               placeholder="Buscar candidatos (Enter)..."
-              className="w-full rounded-lg border border-gray-200 bg-brand-bg py-2.5 pl-9 pr-4 text-sm text-brand-navy placeholder:text-gray-400 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="w-full rounded-lg border border-app-border-strong bg-app-bg py-2.5 pl-9 pr-4 text-sm text-app-primary placeholder:text-app-secondary focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
             />
           </div>
         </form>
@@ -175,7 +175,7 @@ export default function Header({
               {currentUser?.foto ? <img src={currentUser.foto} alt="" className="h-full w-full rounded-full object-cover" /> : (displayName || "U").slice(0, 2).toUpperCase()}
             </div>
 
-            <span className="hidden text-sm font-medium text-brand-navy md:block">
+            <span className="hidden text-sm font-medium text-app-primary md:block">
               {displayName}
             </span>
           </button>
@@ -183,7 +183,7 @@ export default function Header({
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-brand-gray transition-colors hover:border-brand-red hover:text-brand-red lg:inline-flex"
+            className="hidden rounded-lg border border-app-border-strong px-3 py-2 text-xs font-medium text-app-secondary transition-colors hover:border-brand-red hover:text-app-accent lg:inline-flex"
           >
             Cerrar sesión
           </button>

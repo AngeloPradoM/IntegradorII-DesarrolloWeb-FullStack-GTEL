@@ -1,176 +1,193 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Briefcase,
+  CalendarDays,
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  Eye,
+  MessageSquare,
+  Plus,
+  XCircle,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getCandidateApplications } from "../../services/api";
-import { Link } from "react-router-dom";
-import { CheckCircle, Clock, Eye, MessageSquare, XCircle, Briefcase, CalendarDays, ChevronRight, Plus } from "lucide-react";
+
 const statusMap = {
-  recibida: { label:"Recibida", color:"bg-slate-100 text-slate-700", icon:Clock },
-  en_revision: { label: "En revisión", color: "bg-yellow-100 text-yellow-700", icon: Eye },
-  entrevista: { label: "Entrevista", color: "bg-blue-100 text-blue-700", icon: MessageSquare },
-  aprobada: { label: "Aprobado", color: "bg-green-100 text-green-700", icon: CheckCircle },
-  rechazada: { label: "No avanzó", color: "bg-red-100 text-[#D32F2F]", icon: XCircle },
-  interview: {
-    label: "Entrevista",
-    color: "bg-blue-100 text-blue-700",
-    icon: MessageSquare
-  },
-  reviewing: {
-    label: "En revisión",
-    color: "bg-yellow-100 text-yellow-700",
-    icon: Eye
-  },
-  rejected: {
-    label: "No avanzó",
-    color: "bg-red-100 text-[#D32F2F]",
-    icon: XCircle
-  },
-  approved: {
-    label: "Aprobado",
-    color: "bg-green-100 text-green-700",
-    icon: CheckCircle
-  }
+  recibida: { label: "Recibida", color: "bg-app-muted text-app-body", icon: Clock },
+  en_revision: { label: "En revisión", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300", icon: Eye },
+  entrevista: { label: "Entrevista", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300", icon: MessageSquare },
+  aprobada: { label: "Aprobado", color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300", icon: CheckCircle },
+  rechazada: { label: "No avanzó", color: "bg-app-danger-soft text-app-accent", icon: XCircle },
+  interview: { label: "Entrevista", color: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300", icon: MessageSquare },
+  reviewing: { label: "En revisión", color: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300", icon: Eye },
+  rejected: { label: "No avanzó", color: "bg-app-danger-soft text-app-accent", icon: XCircle },
+  approved: { label: "Aprobado", color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300", icon: CheckCircle },
 };
+
 export default function MyApplications() {
   const { user } = useAuth();
-  const [result, setResult] = useState({ owner:null, applications:[], error:'' });
+  const [result, setResult] = useState({ owner: null, applications: [], error: "" });
   const owner = user.id || user.email;
   const applications = result.owner === owner ? result.applications : [];
   const loading = result.owner !== owner;
+
   useEffect(() => {
     let active = true;
-    Promise.resolve().then(() => getCandidateApplications(user)).then(items => {
-      if (active) setResult({ owner, applications:items.map(item => ({ ...item, appliedDate:item.date, steps:item.steps || [{label:'Postulación enviada',date:item.date,done:true}] })), error:'' });
-    }).catch(error => { if (active) setResult({ owner, applications:[], error:error.message }); });
+    Promise.resolve()
+      .then(() => getCandidateApplications(user))
+      .then(items => {
+        if (active) {
+          setResult({
+            owner,
+            applications: items.map(item => ({
+              ...item,
+              appliedDate: item.date,
+              steps: item.steps || [{ label: "Postulación enviada", date: item.date, done: true }],
+            })),
+            error: "",
+          });
+        }
+      })
+      .catch(error => {
+        if (active) setResult({ owner, applications: [], error: error.message });
+      });
     return () => { active = false; };
   }, [owner, user]);
-  return <div className="min-h-screen bg-[#F8FAFC] py-8 px-4">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+
+  const stats = [
+    { label: "Total aplicaciones", value: applications.length, color: "text-app-primary" },
+    {
+      label: "En proceso",
+      value: applications.filter(item => !["rejected", "approved", "rechazada", "aprobada"].includes(item.status)).length,
+      color: "text-blue-600 dark:text-blue-400",
+    },
+    {
+      label: "Entrevistas",
+      value: applications.filter(item => ["interview", "entrevista"].includes(item.status)).length,
+      color: "text-emerald-600 dark:text-emerald-400",
+    },
+  ];
+
+  return (
+    <main className="min-h-screen bg-app-bg px-4 py-8 text-app-primary transition-colors">
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-[#1E293B]">Mis Postulaciones</h1>
-            <p className="text-sm text-[#475569] mt-1">Seguimiento de tus aplicaciones activas</p>
+            <h1 className="text-2xl font-bold text-app-primary">Mis Postulaciones</h1>
+            <p className="mt-1 text-sm text-app-secondary">Seguimiento de tus aplicaciones activas</p>
           </div>
-          <Link to="/ofertas" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
-            <Plus className="w-4 h-4" />
+          <Link to="/ofertas" className="inline-flex items-center gap-2 rounded-lg bg-app-action px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-app-action-hover">
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Nueva postulación
           </Link>
         </div>
 
-        {loading && <p role="status">Cargando postulaciones…</p>}
-        {!loading && result.error && <p role="alert" className="mb-4 text-red-600">{result.error}</p>}
-        {!loading && !result.error && !applications.length && <p className="mb-4 text-brand-gray">Todavía no tienes postulaciones.</p>}
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {[{
-          label: "Total aplicaciones",
-          value: applications.length,
-          color: "text-[#1E293B]"
-        }, {
-          label: "En proceso",
-          value: applications.filter(item => !['rejected','approved','rechazada','aprobada'].includes(item.status)).length,
-          color: "text-blue-600"
-        }, {
-          label: "Entrevistas",
-          value: applications.filter(item => ['interview','entrevista'].includes(item.status)).length,
-          color: "text-green-600"
-        }].map(({
-          label,
-          value,
-          color
-        }) => <div key={label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
-              <div className={`text-2xl font-bold ${color}`}>{value}</div>
-              <div className="text-xs text-[#475569] mt-0.5">{label}</div>
-            </div>)}
-        </div>
+        {loading && <p role="status" className="mb-4 text-sm text-app-secondary">Cargando postulaciones…</p>}
+        {!loading && result.error && <p role="alert" className="mb-4 text-red-600 dark:text-red-400">{result.error}</p>}
+        {!loading && !result.error && !applications.length && <p className="mb-4 text-app-secondary">Todavía no tienes postulaciones.</p>}
 
-        {/* Application cards with timelines */}
-        <div className="space-y-5">
-          {applications.map(app => {
-          const status = statusMap[app.status] || statusMap.recibida;
-          const StatusIcon = status.icon;
-          return <div key={app.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                {/* Card header */}
-                <div className="p-5 border-b border-gray-50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-[#D32F2F]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Briefcase className="w-5 h-5 text-[#D32F2F]" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-[#1E293B] text-sm">{app.job}</h3>
-                        <p className="text-xs text-[#475569]">{app.company}</p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="flex items-center gap-1 text-[10px] text-[#475569]">
-                            <CalendarDays className="w-3 h-3" />
-                            Aplicado: {app.appliedDate}
-                          </span>
-                          <span className="text-[10px] font-mono text-[#475569]">{app.code}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold ${status.color}`}>
-                      <StatusIcon className="w-3 h-3" />
-                      {status.label}
-                    </span>
-                  </div>
-                </div>
+        <section className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Resumen de postulaciones">
+          {stats.map(({ label, value, color }) => (
+            <article key={label} className="rounded-xl border border-app-border bg-app-surface p-4 text-center shadow-sm">
+              <strong className={`block text-2xl font-bold ${color}`}>{value}</strong>
+              <span className="mt-0.5 block text-xs text-app-secondary">{label}</span>
+            </article>
+          ))}
+        </section>
 
-                {/* Timeline */}
-                <div className="p-5">
-                  <div className="relative">
-                    {app.steps.map((step, idx) => <div key={step.label} className="flex items-start gap-4 relative">
-                        {/* Connector line */}
-                        {idx < app.steps.length - 1 && <div className={`absolute left-3.5 top-7 w-0.5 h-6 ${step.done && !step.rejected ? "bg-[#D32F2F]" : "bg-gray-200"}`} />}
+        <section className="space-y-5" aria-label="Postulaciones registradas">
+          {applications.map(app => (
+            <ApplicationCard key={app.id} application={app} />
+          ))}
+        </section>
 
-                        {/* Dot */}
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 z-10 ${step.rejected ? "bg-red-50 border-[#D32F2F]" : step.active ? "bg-[#D32F2F] border-[#D32F2F]" : step.done ? "bg-[#D32F2F] border-[#D32F2F]" : "bg-white border-gray-200"}`}>
-                          {step.rejected ? <XCircle className="w-3.5 h-3.5 text-[#D32F2F]" /> : step.done ? <CheckCircle className="w-3.5 h-3.5 text-white" /> : step.active ? <Clock className="w-3.5 h-3.5 text-white" /> : <div className="w-2 h-2 bg-gray-200 rounded-full" />}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 pb-5">
-                          <div className="flex items-center justify-between">
-                            <span className={`text-xs font-semibold ${step.rejected ? "text-[#D32F2F]" : step.active ? "text-[#1E293B]" : step.done ? "text-[#1E293B]" : "text-gray-400"}`}>
-                              {step.label}
-                            </span>
-                            <span className="text-[10px] text-[#475569]">{step.date}</span>
-                          </div>
-                          {step.active && <div className="mt-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                              <p className="text-[10px] text-blue-700 font-medium">
-                                Revisa tu correo para conocer las actualizaciones de este proceso.
-                              </p>
-                            </div>}
-                        </div>
-                      </div>)}
-                  </div>
-
-                  {app.status !== "rejected" && app.status !== "rechazada" && <div className="flex gap-2 pt-2 border-t border-gray-50">
-                      <Link to={`/ofertas/${app.jobId}`} className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 text-[#475569] py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
-                        <Eye className="w-3.5 h-3.5" />
-                        Ver oferta
-                      </Link>
-                      <Link to={`/contactar-reclutador?oferta=${encodeURIComponent(app.job)}`} className="flex-1 flex items-center justify-center gap-1.5 bg-[#D32F2F]/10 text-[#D32F2F] py-2 rounded-lg text-xs font-semibold hover:bg-[#D32F2F]/20 transition-colors">
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        Contactar reclutador
-                        <ChevronRight className="w-3 h-3" />
-                      </Link>
-                    </div>}
-                </div>
-              </div>;
-        })}
-        </div>
-
-        {/* Empty state note */}
-        <div className="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
-          <Briefcase className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-          <p className="text-sm font-medium text-[#1E293B]">¿Listo para más oportunidades?</p>
-          <p className="text-xs text-[#475569] mt-1 mb-4">Explora nuestras ofertas laborales y postula a tu próximo reto profesional.</p>
-          <Link to="/ofertas" className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">
+        <section className="mt-6 rounded-xl border border-app-border bg-app-surface p-6 text-center shadow-sm">
+          <Briefcase className="mx-auto mb-2 h-8 w-8 text-app-border-strong" aria-hidden="true" />
+          <h2 className="text-sm font-medium text-app-primary">¿Listo para más oportunidades?</h2>
+          <p className="mb-4 mt-1 text-xs text-app-secondary">Explora nuestras ofertas laborales y postula a tu próximo reto profesional.</p>
+          <Link to="/ofertas" className="inline-flex items-center gap-2 rounded-lg bg-app-action px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-app-action-hover">
             Explorar ofertas
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-        </div>
+        </section>
       </div>
-    </div>;
+    </main>
+  );
+}
+
+function ApplicationCard({ application: app }) {
+  const status = statusMap[app.status] || statusMap.recibida;
+  const StatusIcon = status.icon;
+  const canContact = app.status !== "rejected" && app.status !== "rechazada";
+
+  return (
+    <article className="overflow-hidden rounded-xl border border-app-border bg-app-surface shadow-sm">
+      <header className="border-b border-app-border p-5">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-app-danger-soft">
+              <Briefcase className="h-5 w-5 text-app-accent" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-app-primary">{app.job}</h2>
+              <p className="text-xs text-app-secondary">{app.company}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1 text-[10px] text-app-secondary">
+                  <CalendarDays className="h-3 w-3" aria-hidden="true" />
+                  Aplicado: {app.appliedDate}
+                </span>
+                <span className="font-mono text-[10px] text-app-secondary">{app.code}</span>
+              </div>
+            </div>
+          </div>
+          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold ${status.color}`}>
+            <StatusIcon className="h-3 w-3" aria-hidden="true" />
+            {status.label}
+          </span>
+        </div>
+      </header>
+
+      <div className="p-5">
+        <div className="relative">
+          {app.steps.map((step, index) => (
+            <div key={step.label} className="relative flex items-start gap-4">
+              {index < app.steps.length - 1 && (
+                <span className={`absolute left-3.5 top-7 h-6 w-0.5 ${step.done && !step.rejected ? "bg-app-action" : "bg-app-border"}`} aria-hidden="true" />
+              )}
+              <span className={`z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border-2 ${step.rejected ? "border-app-accent bg-app-danger-soft" : step.active || step.done ? "border-app-action bg-app-action" : "border-app-border bg-app-surface"}`}>
+                {step.rejected ? <XCircle className="h-3.5 w-3.5 text-app-accent" aria-hidden="true" /> : step.done ? <CheckCircle className="h-3.5 w-3.5 text-white" aria-hidden="true" /> : step.active ? <Clock className="h-3.5 w-3.5 text-white" aria-hidden="true" /> : <span className="h-2 w-2 rounded-full bg-app-border-strong" />}
+              </span>
+              <div className="min-w-0 flex-1 pb-5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`text-xs font-semibold ${step.rejected ? "text-app-accent" : step.active || step.done ? "text-app-primary" : "text-app-secondary"}`}>{step.label}</span>
+                  <span className="flex-shrink-0 text-[10px] text-app-secondary">{step.date}</span>
+                </div>
+                {step.active && (
+                  <div className="mt-1.5 rounded-lg border border-app-info-border bg-app-info px-3 py-2">
+                    <p className="text-[10px] font-medium text-app-info-icon">Revisa tu correo para conocer las actualizaciones de este proceso.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {canContact && (
+          <div className="flex flex-col gap-2 border-t border-app-border pt-2 sm:flex-row">
+            <Link to={`/ofertas/${app.jobId}`} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-app-border bg-app-surface py-2 text-xs font-medium text-app-body transition-colors hover:bg-app-muted">
+              <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+              Ver oferta
+            </Link>
+            <Link to={`/contactar-reclutador?oferta=${encodeURIComponent(app.job)}`} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-app-danger-soft py-2 text-xs font-semibold text-app-accent transition-colors hover:bg-app-muted">
+              <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+              Contactar reclutador
+              <ChevronRight className="h-3 w-3" aria-hidden="true" />
+            </Link>
+          </div>
+        )}
+      </div>
+    </article>
+  );
 }

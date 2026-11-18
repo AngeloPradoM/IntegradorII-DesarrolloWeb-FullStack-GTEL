@@ -12,9 +12,9 @@ const statusLabels = {
 };
 
 const statusColors = {
-  activa: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  pausada: 'bg-amber-100 text-amber-800 border-amber-200',
-  cerrada: 'bg-slate-100 text-slate-700 border-slate-200',
+  activa: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800',
+  pausada: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800',
+  cerrada: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
 };
 
 export default function RecruiterJobs() {
@@ -28,21 +28,21 @@ export default function RecruiterJobs() {
   );
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="recruiter-page space-y-5 p-4 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-brand-navy">Ofertas publicadas</h1>
-          <p className="text-sm text-brand-gray">Gestiona las convocatorias de tu organización conectadas a MySQL.</p>
+          <h1 className="recruiter-title text-xl">Ofertas publicadas</h1>
+          <p className="recruiter-copy text-sm">Gestiona las convocatorias de tu organización conectadas a MySQL.</p>
         </div>
         <Link
           to="/reclutador/publicar-oferta"
-          className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-red-hover"
+          className="rounded-lg bg-app-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-action-hover"
         >
           + Publicar Oferta
         </Link>
       </div>
 
-      <div className="flex flex-wrap gap-3 rounded-xl border border-gray-100 bg-white p-4">
+      <div className="recruiter-card flex flex-col gap-3 p-4 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
           <input
@@ -50,14 +50,14 @@ export default function RecruiterJobs() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por puesto, área o ubicación..."
-            className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red"
+            className="recruiter-field w-full py-2 pl-9 pr-3 text-sm"
           />
         </div>
         <select
           aria-label="Estado de la oferta"
           value={status}
           onChange={e => setStatus(e.target.value)}
-          className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+          className="recruiter-field px-3 py-2 text-sm"
         >
           <option value="all">Todos los estados</option>
           <option value="activa">Activas</option>
@@ -76,9 +76,9 @@ export default function RecruiterJobs() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {filtered.map(job => {
-          const pillClass = statusColors[job.status] || 'bg-gray-100 text-gray-700';
+          const pillClass = statusColors[job.status] || 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
           return (
-            <article key={job.id} className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+            <article key={job.id} className="recruiter-card recruiter-card-interactive p-5">
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-brand-red flex-shrink-0" />
@@ -87,15 +87,15 @@ export default function RecruiterJobs() {
                   </span>
                 </div>
                 {job.department && (
-                  <span className="text-xs text-brand-gray font-medium">{job.department}</span>
+                  <span className="recruiter-muted text-xs font-medium">{job.department}</span>
                 )}
               </div>
-              <h2 className="font-bold text-brand-navy text-base">{job.title}</h2>
-              <p className="mt-1 text-sm text-brand-gray">{job.location} · {job.type}</p>
-              <p className="my-2 text-sm font-semibold text-slate-800">{job.salary}</p>
-              <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
-                <span className="text-xs text-brand-gray">Publicado: {job.date}</span>
-                <Link to={`/reclutador/ofertas/${encodeURIComponent(job.id)}`} className="text-sm font-semibold text-brand-red hover:underline">
+              <h2 className="recruiter-title text-base">{job.title}</h2>
+              <p className="recruiter-copy mt-1 text-sm">{job.location} · {job.type}</p>
+              <p className="my-2 text-sm font-semibold text-app-primary">{job.salary}</p>
+              <div className="mt-3 flex items-center justify-between border-t border-app-border pt-3">
+                <span className="recruiter-muted text-xs">Publicado: {job.date}</span>
+                <Link to={`/reclutador/ofertas/${encodeURIComponent(job.id)}`} className="text-sm font-semibold text-app-accent hover:underline">
                   Ver y editar →
                 </Link>
               </div>
@@ -181,7 +181,7 @@ export function RecruiterJobDetail() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 p-6">
+    <div className="recruiter-page mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
       <Link to="/reclutador/ofertas" className="inline-flex items-center gap-1.5 text-sm text-brand-red font-medium hover:underline">
         <ArrowLeft className="h-4 w-4" />
         Volver a ofertas
@@ -210,7 +210,7 @@ export function RecruiterJobDetail() {
       )}
 
       {activeJob && !editing && (
-        <article className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-6">
+        <article className="recruiter-card space-y-6 p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -218,19 +218,19 @@ export function RecruiterJobDetail() {
                   {statusLabels[activeJob.status] || activeJob.status}
                 </span>
                 {activeJob.department && (
-                  <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                  <span className="rounded bg-app-muted px-2 py-0.5 text-xs font-medium text-app-body">
                     {activeJob.department}
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl font-bold text-brand-navy">{activeJob.title}</h1>
-              <p className="mt-1 text-sm text-brand-gray">{activeJob.location} · {activeJob.type} · {activeJob.salary}</p>
+              <h1 className="recruiter-title text-2xl">{activeJob.title}</h1>
+              <p className="recruiter-copy mt-1 text-sm">{activeJob.location} · {activeJob.type} · {activeJob.salary}</p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={startEdit}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-app-border-strong bg-app-surface px-3 py-1.5 text-xs font-semibold text-app-body transition-colors hover:bg-app-muted"
               >
                 <Edit3 className="h-3.5 w-3.5 text-slate-500" />
                 Editar oferta
@@ -273,9 +273,9 @@ export function RecruiterJobDetail() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-100">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Descripción del puesto</h3>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+          <div className="border-t border-app-border pt-4">
+            <h3 className="recruiter-muted mb-2 text-xs font-semibold uppercase tracking-wider">Descripción del puesto</h3>
+            <p className="recruiter-copy whitespace-pre-wrap text-sm leading-relaxed">
               {activeJob.description || 'Sin descripción disponible.'}
             </p>
           </div>
@@ -283,45 +283,45 @@ export function RecruiterJobDetail() {
       )}
 
       {activeJob && editing && (
-        <form onSubmit={handleSaveEdit} className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h2 className="text-lg font-bold text-brand-navy">Editar Oferta Laboral</h2>
+        <form onSubmit={handleSaveEdit} className="recruiter-card space-y-4 p-6">
+          <div className="flex items-center justify-between border-b border-app-border pb-3">
+            <h2 className="recruiter-title text-lg">Editar Oferta Laboral</h2>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="text-gray-400 hover:text-gray-600 p-1 rounded"
+              className="rounded p-1 text-app-secondary hover:bg-app-muted hover:text-app-primary"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Título del puesto *</label>
+            <label className="mb-1 block text-xs font-semibold text-app-primary">Título del puesto *</label>
             <input
               type="text"
               value={formData.title}
               onChange={e => setFormData({ ...formData, title: e.target.value })}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20 focus:border-brand-red"
+              className="recruiter-field w-full px-3 py-2 text-sm"
               required
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Ubicación / Sede</label>
+              <label className="mb-1 block text-xs font-semibold text-app-primary">Ubicación / Sede</label>
               <input
                 type="text"
                 value={formData.location}
                 onChange={e => setFormData({ ...formData, location: e.target.value })}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+                className="recruiter-field w-full px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Tipo de Jornada</label>
+              <label className="mb-1 block text-xs font-semibold text-app-primary">Tipo de Jornada</label>
               <select
                 value={formData.type}
                 onChange={e => setFormData({ ...formData, type: e.target.value })}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+                className="recruiter-field w-full px-3 py-2 text-sm"
               >
                 <option value="Full-Time">Full-Time (8 horas)</option>
                 <option value="Part-Time">Part-Time (4 horas)</option>
@@ -333,41 +333,41 @@ export function RecruiterJobDetail() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Sueldo Mínimo (S/)</label>
+              <label className="mb-1 block text-xs font-semibold text-app-primary">Sueldo Mínimo (S/)</label>
               <input
                 type="number"
                 value={formData.salaryMin}
                 onChange={e => setFormData({ ...formData, salaryMin: e.target.value })}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+                className="recruiter-field w-full px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Sueldo Máximo (S/)</label>
+              <label className="mb-1 block text-xs font-semibold text-app-primary">Sueldo Máximo (S/)</label>
               <input
                 type="number"
                 value={formData.salaryMax}
                 onChange={e => setFormData({ ...formData, salaryMax: e.target.value })}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+                className="recruiter-field w-full px-3 py-2 text-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Descripción del puesto *</label>
+            <label className="mb-1 block text-xs font-semibold text-app-primary">Descripción del puesto *</label>
             <textarea
               rows={6}
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-red/20 resize-none"
+              className="recruiter-field w-full resize-none px-3 py-2 text-sm"
               required
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+          <div className="flex justify-end gap-3 border-t border-app-border pt-3">
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-app-border px-4 py-2 text-sm font-medium text-app-secondary hover:bg-app-muted hover:text-app-primary"
             >
               Cancelar
             </button>
