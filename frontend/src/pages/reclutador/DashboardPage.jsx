@@ -201,7 +201,7 @@ export default function RecruiterDashboard() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="recruiter-page p-6 space-y-6">
       <DataState
         loading={loading}
         error={error}
@@ -210,7 +210,7 @@ export default function RecruiterDashboard() {
       />
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="recruiter-page-header">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold text-[#1E293B] dark:text-slate-100">Dashboard de Analítica & KPIs</h1>
@@ -238,7 +238,7 @@ export default function RecruiterDashboard() {
           </button>
           <Link
             to="/reclutador/publicar-oferta"
-            className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+            className="recruiter-action-primary"
           >
             + Publicar Oferta
           </Link>
@@ -252,7 +252,7 @@ export default function RecruiterDashboard() {
           return (
             <div
               key={kpi.label}
-              className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 flex flex-col justify-between hover:shadow-md transition-shadow"
+              className="recruiter-card recruiter-card-interactive p-4 flex flex-col justify-between"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-10 h-10 ${kpi.bgColor} dark:bg-slate-800 rounded-xl flex items-center justify-center`}>
@@ -273,7 +273,7 @@ export default function RecruiterDashboard() {
       </div>
 
       {/* Embudo de Selección (Recruitment Funnel) */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-5">
+      <div className="recruiter-card p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 dark:border-slate-800 gap-2">
           <div>
             <h2 className="font-bold text-[#1E293B] dark:text-slate-100 text-base flex items-center gap-2">
@@ -358,7 +358,7 @@ export default function RecruiterDashboard() {
         <div className="flex-[7] space-y-6">
           {/* Tendencia Mensual de Postulaciones (si hay datos) */}
           {monthlyTrendsData.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-5">
+            <div className="recruiter-card p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="font-bold text-[#1E293B] dark:text-slate-100">Flujo de Postulaciones (Últimos Meses)</h2>
@@ -386,7 +386,7 @@ export default function RecruiterDashboard() {
           )}
 
           {/* Tabla de Últimas Postulaciones */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="recruiter-card overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50 dark:border-slate-800">
               <div>
                 <h2 className="font-bold text-[#1E293B] dark:text-slate-100">Últimas Postulaciones Recibidas</h2>
@@ -530,7 +530,7 @@ export default function RecruiterDashboard() {
         {/* Right Column (30%) */}
         <div className="flex-[3] space-y-6">
           {/* Postulaciones por Área (Donut Chart) */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-5">
+          <div className="recruiter-card p-5">
             <h2 className="font-bold text-[#1E293B] dark:text-slate-100 mb-1">Distribución por Área</h2>
             <p className="text-xs text-[#475569] dark:text-slate-400 mb-4">Postulaciones por departamento técnico</p>
             {donutData.length ? (
@@ -572,7 +572,7 @@ export default function RecruiterDashboard() {
           </div>
 
           {/* Acciones Rápidas (Operational Quick Actions) */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-5">
+          <div className="recruiter-card p-5">
             <h3 className="font-bold text-[#1E293B] dark:text-slate-100 mb-1 text-sm">Acciones Rápidas</h3>
             <p className="text-xs text-[#475569] dark:text-slate-400 mb-3">Atención prioritaria del reclutador</p>
             <div className="space-y-2.5">
@@ -627,7 +627,7 @@ export default function RecruiterDashboard() {
           </div>
 
           {/* Candidatos Destacados (Top ATS Match) */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-5">
+          <div className="recruiter-card p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-[#1E293B] dark:text-slate-100 text-sm flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-amber-500" />

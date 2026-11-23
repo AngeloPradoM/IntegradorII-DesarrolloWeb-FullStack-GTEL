@@ -1,6 +1,7 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate, Outlet } from "react-router-dom";
 import ToastNotifications from "../components/ui/ToastNotifications";
 import AdminUsersPage from "../pages/admin/UsersPage";
+import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import AuditPage from "../pages/admin/AuditPage";
 import LoginModalRedirect from "../pages/auth/LoginModalRedirect";
 import RecoveryPage from "../pages/auth/RecoveryPage";
@@ -52,7 +53,8 @@ const router = createBrowserRouter(
       <Route element={<PublicLayout />}>
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/" element={<LandingPage />} />
-        <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminDashboardPage /></ProtectedRoute>} />
+        <Route path="/admin/usuarios" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminUsersPage /></ProtectedRoute>} />
         <Route path="/admin/auditoria" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AuditPage /></ProtectedRoute>} />
         <Route path="/admin/tickets" element={<ProtectedRoute allowedRoles={["ADMIN"]}><AdminTicketsPage /></ProtectedRoute>} />
         <Route path="/admin/tablero-sla" element={<ProtectedRoute allowedRoles={["ADMIN"]}><SupportDashboardPage /></ProtectedRoute>} />

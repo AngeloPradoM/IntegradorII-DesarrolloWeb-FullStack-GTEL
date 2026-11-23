@@ -18,10 +18,10 @@ en [`../database/`](../database/); no se deben crear nuevas migraciones fuera de
 1. [README principal](../README.md).
 2. [Arquitectura del backend](architecture/arquitectura-src.md).
 3. [Guía de la base de datos](../database/README.md).
-4. [Incorporar una base local desactualizada](../database/LOCAL_SETUP.md).
-5. [Guía de migraciones](../database/MIGRATION_GUIDE.md).
-6. [Procedimiento operativo](../database/OPERATIONS.md).
-7. [Checklist de cierre](../database/POST_CUTOVER_CHECKLIST.md).
+4. [Incorporar una base local desactualizada](../database/docs/setup/LOCAL_SETUP.md).
+5. [Guía de migraciones](../database/docs/setup/MIGRATION_GUIDE.md).
+6. [Procedimiento operativo](../database/docs/operations/OPERATIONS.md).
+7. [Checklist de cierre](../database/docs/operations/POST_CUTOVER_CHECKLIST.md).
 
 Las credenciales y secretos no deben documentarse aquí. Para configurar entornos locales se
 deben utilizar los archivos `.example` y las variables privadas correspondientes.

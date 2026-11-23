@@ -22,7 +22,9 @@ public class SupportTicketRepository {
 
     private static final String SELECT = """
         SELECT t.id,t.codigo,t.titulo,t.categoria,t.subcategoria,t.tipo_atencion,t.prioridad,t.descripcion,
-               t.justificacion_prioridad,t.area,t.estado,t.solicitante_id,sol.email solicitante_email,
+               t.justificacion_prioridad,t.area,t.solicitud_tipo_codigo,t.incidente_tipo_codigo,t.canal_origen,
+               t.sla_politica_id,t.sla_respuesta_limite_at,t.sla_resolucion_limite_at,t.primera_atencion_at,
+               t.estado,t.solicitante_id,sol.email solicitante_email,
                t.tecnico_id,tec.email tecnico_email,t.diagnostico,t.solucion_propuesta,
                t.estado_propuesta,t.comentario_admin,t.evidencia_ejecucion,
                t.created_at,t.updated_at,t.resolved_at
@@ -35,6 +37,10 @@ public class SupportTicketRepository {
         rs.getLong("id"), rs.getString("codigo"), rs.getString("titulo"),
         rs.getString("categoria"), rs.getString("subcategoria"), rs.getString("tipo_atencion"), rs.getString("prioridad"),
         rs.getString("descripcion"), rs.getString("justificacion_prioridad"), rs.getString("area"),
+        rs.getString("solicitud_tipo_codigo"), rs.getString("incidente_tipo_codigo"), rs.getString("canal_origen"),
+        rs.getObject("sla_politica_id", Long.class),
+        timestamp(rs, "sla_respuesta_limite_at"), timestamp(rs, "sla_resolucion_limite_at"),
+        timestamp(rs, "primera_atencion_at"),
         rs.getString("estado"), rs.getLong("solicitante_id"), rs.getString("solicitante_email"),
         rs.getObject("tecnico_id", Long.class), rs.getString("tecnico_email"),
         rs.getString("diagnostico"), rs.getString("solucion_propuesta"),
@@ -46,22 +52,62 @@ public class SupportTicketRepository {
 
     public SupportTicketRepository(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
-    public long create(long requesterId, TicketCreateRequest request) {
+    public boolean reserveCreation(long requesterId, String key, String requestHash) {
+        return jdbc.update("""
+            INSERT IGNORE INTO ticket_creacion_idempotencia(
+                solicitante_id,clave_idempotencia,solicitud_hash)
+            VALUES (?,?,?)
+            """, requesterId, key, requestHash) == 1;
+    }
+
+    public IdempotencyRecord findCreation(long requesterId, String key) {
+        return jdbc.query("""
+            SELECT solicitud_hash,ticket_id
+            FROM ticket_creacion_idempotencia
+            WHERE solicitante_id=? AND clave_idempotencia=?
+            """, (rs,row) -> new IdempotencyRecord(
+                rs.getString("solicitud_hash"),rs.getObject("ticket_id",Long.class)),
+            requesterId,key).stream().findFirst().orElse(null);
+    }
+
+    public void completeCreation(long requesterId, String key, long ticketId) {
+        int updated=jdbc.update("""
+            UPDATE ticket_creacion_idempotencia
+            SET ticket_id=?,completed_at=CURRENT_TIMESTAMP
+            WHERE solicitante_id=? AND clave_idempotencia=? AND ticket_id IS NULL
+            """, ticketId,requesterId,key);
+        if (updated != 1) throw new IllegalStateException("No se pudo completar la reserva idempotente");
+    }
+
+    public long create(long requesterId, TicketCreateRequest request, String priority,
+                       String category, String subcategory, String priorityJustification) {
         KeyHolder keys = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement statement = connection.prepareStatement("""
-                INSERT INTO tickets_soporte(titulo,categoria,subcategoria,tipo_atencion,prioridad,descripcion,
-                    justificacion_prioridad,area,estado,solicitante_id,estado_propuesta)
-                VALUES(?,?,?,?,?,?,?,'Reclutamiento','NUEVO',?,'SIN_PROPUESTA')
+                INSERT INTO tickets_soporte(titulo,categoria,subcategoria,tipo_atencion,
+                    solicitud_tipo_codigo,incidente_tipo_codigo,canal_origen,prioridad,
+                    sla_politica_id,sla_respuesta_limite_at,sla_resolucion_limite_at,
+                    descripcion,justificacion_prioridad,area,estado,solicitante_id,estado_propuesta)
+                SELECT ?,?,?,?,?,?,?,?,sla.id,
+                    DATE_ADD(CURRENT_TIMESTAMP,INTERVAL sla.horas_respuesta HOUR),
+                    DATE_ADD(CURRENT_TIMESTAMP,INTERVAL sla.horas_resolucion HOUR),
+                    ?,?,'Reclutamiento','NUEVO',?,'SIN_PROPUESTA'
+                FROM ticket_sla_politicas sla
+                WHERE sla.prioridad=? AND sla.activo=TRUE
+                LIMIT 1
                 """, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, request.title().trim());
-            statement.setString(2, request.category().trim());
-            statement.setString(3, request.subcategory().trim());
+            statement.setString(2, category);
+            statement.setString(3, subcategory);
             statement.setString(4, request.attentionType());
-            statement.setString(5, request.priority());
-            statement.setString(6, request.description().trim());
-            statement.setString(7, request.priorityJustification().trim());
-            statement.setLong(8, requesterId);
+            statement.setString(5, normalized(request.requestTypeCode()));
+            statement.setString(6, normalized(request.incidentTypeCode()));
+            statement.setString(7, normalized(request.originChannel()));
+            statement.setString(8, priority);
+            statement.setString(9, request.description().trim());
+            statement.setString(10, priorityJustification);
+            statement.setLong(11, requesterId);
+            statement.setString(12, priority);
             return statement;
         }, keys);
         Number key = keys.getKey();
@@ -110,13 +156,17 @@ public class SupportTicketRepository {
         jdbc.update("""
             UPDATE tickets_soporte
             SET estado=?,
+                primera_atencion_at=CASE
+                    WHEN ?='EN_ATENCION' THEN COALESCE(primera_atencion_at,CURRENT_TIMESTAMP)
+                    ELSE primera_atencion_at
+                END,
                 resolved_at=CASE
                     WHEN ? IN ('RESUELTO','CERRADO') THEN COALESCE(resolved_at,CURRENT_TIMESTAMP)
                     ELSE NULL
                 END,
                 updated_at=CURRENT_TIMESTAMP
             WHERE id=?
-            """, status, status, id);
+            """, status, status, status, id);
     }
 
     public void saveProposal(long id, String diagnosis, String solution) {
@@ -227,4 +277,15 @@ public class SupportTicketRepository {
         );
         return technicianId == null ? jdbc.query(sql, mapper) : jdbc.query(sql, mapper, technicianId);
     }
+
+    private String normalized(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private static LocalDateTime timestamp(java.sql.ResultSet rs, String column) throws java.sql.SQLException {
+        var value = rs.getTimestamp(column);
+        return value == null ? null : value.toLocalDateTime();
+    }
+
+    public record IdempotencyRecord(String requestHash,Long ticketId) {}
 }

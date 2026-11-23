@@ -22,23 +22,23 @@ import {
 const statusConfig = {
   new: {
     label: "Nuevo",
-    color: "bg-blue-100 text-blue-700"
+    color: "bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
   },
   interview: {
     label: "Entrevista",
-    color: "bg-purple-100 text-purple-700"
+    color: "bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300"
   },
   reviewing: {
     label: "En revisión",
-    color: "bg-yellow-100 text-yellow-700"
+    color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-300"
   },
   approved: {
     label: "Aprobado",
-    color: "bg-green-100 text-green-700"
+    color: "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300"
   },
   rejected: {
     label: "Descartado",
-    color: "bg-red-100 text-[#D32F2F]"
+    color: "bg-red-100 text-[#D32F2F] dark:bg-red-950/50 dark:text-red-300"
   }
 };
 
@@ -127,28 +127,28 @@ export default function CandidateDirectory() {
   };
 
   return (
-    <div className="p-6">
+    <div className="recruiter-page p-4 sm:p-6">
       <DataState loading={loading} error={error} retry={retry} />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="recruiter-page-header">
         <div>
-          <h1 className="text-xl font-bold text-[#1E293B]">Pipeline de Candidatos</h1>
-          <p className="text-sm text-[#475569]">
+          <h1 className="recruiter-title text-xl">Pipeline de Candidatos</h1>
+          <p className="recruiter-copy text-sm">
             {loading || error ? '—' : candidates.length} candidatos registrados en el proceso de selección
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Switcher de Vista: Kanban / Tabla */}
-          <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200">
+          <div className="flex items-center rounded-xl border border-app-border bg-app-muted p-1">
             <button
               type="button"
               onClick={() => setViewMode("kanban")}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === "kanban"
-                  ? "bg-white text-[#D32F2F] shadow-sm font-bold"
-                  : "text-[#64748B] hover:text-[#1E293B]"
+                  ? "bg-app-surface text-app-accent shadow-sm font-bold"
+                  : "text-app-secondary hover:text-app-primary"
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -159,8 +159,8 @@ export default function CandidateDirectory() {
               onClick={() => setViewMode("table")}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === "table"
-                  ? "bg-white text-[#D32F2F] shadow-sm font-bold"
-                  : "text-[#64748B] hover:text-[#1E293B]"
+                  ? "bg-app-surface text-app-accent shadow-sm font-bold"
+                  : "text-app-secondary hover:text-app-primary"
               }`}
             >
               <TableIcon className="w-3.5 h-3.5" />
@@ -171,7 +171,7 @@ export default function CandidateDirectory() {
           <button
             disabled
             title="Exportación pendiente de integración"
-            className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-app-action px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-app-action-hover disabled:opacity-60"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Exportar Excel</span>
@@ -184,8 +184,8 @@ export default function CandidateDirectory() {
         <div
           className={`mb-5 p-3.5 rounded-xl border flex items-center justify-between gap-3 text-sm transition-all ${
             statusFeedback.type === "success"
-              ? "bg-green-50 border-green-200 text-green-800"
-              : "bg-red-50 border-red-200 text-red-800"
+              ? "bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300"
+              : "bg-red-50 border-red-200 text-red-800 dark:bg-red-950/40 dark:border-red-800 dark:text-red-300"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -206,7 +206,7 @@ export default function CandidateDirectory() {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5 flex flex-col sm:flex-row gap-3">
+      <div className="recruiter-card mb-5 flex flex-col gap-3 p-4 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -217,7 +217,7 @@ export default function CandidateDirectory() {
             }}
             type="text"
             placeholder="Buscar por nombre o puesto..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-[#F8FAFC] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]"
+            className="recruiter-field w-full py-2 pl-9 pr-4 text-sm"
           />
         </div>
         {viewMode === "table" && (
@@ -229,7 +229,7 @@ export default function CandidateDirectory() {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="appearance-none pl-9 pr-8 py-2 text-sm bg-[#F8FAFC] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]"
+              className="recruiter-field appearance-none py-2 pl-9 pr-8 text-sm"
             >
               <option value="all">Todos los estados</option>
               <option value="new">Nuevo</option>
@@ -251,20 +251,20 @@ export default function CandidateDirectory() {
           updatingId={updatingId}
         />
       ) : (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="recruiter-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#F8FAFC] border-b border-gray-100">
-                  <th className="px-5 py-3.5 text-left text-[10px] font-bold text-[#475569] uppercase tracking-wider">Candidato</th>
-                  <th className="px-5 py-3.5 text-left text-[10px] font-bold text-[#475569] uppercase tracking-wider">Puesto</th>
-                  <th className="px-5 py-3.5 text-left text-[10px] font-bold text-[#475569] uppercase tracking-wider hidden md:table-cell">Fecha</th>
-                  <th className="px-5 py-3.5 text-left text-[10px] font-bold text-[#475569] uppercase tracking-wider hidden lg:table-cell">Puntaje</th>
-                  <th className="px-5 py-3.5 text-left text-[10px] font-bold text-[#475569] uppercase tracking-wider">Estado</th>
-                  <th className="px-5 py-3.5 text-right text-[10px] font-bold text-[#475569] uppercase tracking-wider">Acciones</th>
+                <tr className="recruiter-table-head">
+                  <th className="px-5 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider">Candidato</th>
+                  <th className="px-5 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider">Puesto</th>
+                  <th className="hidden px-5 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider md:table-cell">Fecha</th>
+                  <th className="hidden px-5 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider lg:table-cell">Puntaje</th>
+                  <th className="px-5 py-3.5 text-left text-[10px] font-bold uppercase tracking-wider">Estado</th>
+                  <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-app-border">
                 {!loading && !error && !filtered.length && (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-sm text-brand-gray">
@@ -273,28 +273,28 @@ export default function CandidateDirectory() {
                   </tr>
                 )}
                 {paged.map((c, idx) => {
-                  const s = statusConfig[c.status] || { label: 'N/D', color: 'bg-slate-100 text-slate-600' };
+                  const s = statusConfig[c.status] || { label: 'N/D', color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' };
                   return (
-                    <tr key={c.id} className="hover:bg-[#F8FAFC] transition-colors">
+                    <tr key={c.id} className="recruiter-table-row">
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className={`w-9 h-9 rounded-full ${avatarColors[idx % avatarColors.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
                             {c.avatar}
                           </div>
-                          <span className="text-sm font-medium text-[#1E293B] whitespace-nowrap">{c.name}</span>
+                          <span className="whitespace-nowrap text-sm font-medium text-app-primary">{c.name}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-sm text-[#475569]">{c.job}</td>
-                      <td className="px-5 py-3.5 text-xs text-[#475569] hidden md:table-cell">{c.date}</td>
+                      <td className="px-5 py-3.5 text-sm text-app-body">{c.job}</td>
+                      <td className="hidden px-5 py-3.5 text-xs text-app-secondary md:table-cell">{c.date}</td>
                       <td className="px-5 py-3.5 hidden lg:table-cell">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden w-16">
+                          <div className="h-1.5 w-16 flex-1 overflow-hidden rounded-full bg-app-muted">
                             <div
                               className={`h-full rounded-full ${c.score >= 85 ? "bg-green-500" : c.score >= 70 ? "bg-yellow-500" : "bg-[#D32F2F]"}`}
                               style={{ width: `${c.score ?? 0}%` }}
                             />
                           </div>
-                          <span className="text-xs font-medium text-[#1E293B]">{c.score == null ? 'N/D' : `${c.score}%`}</span>
+                          <span className="text-xs font-medium text-app-primary">{c.score == null ? 'N/D' : `${c.score}%`}</span>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
@@ -306,7 +306,7 @@ export default function CandidateDirectory() {
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             to={`/reclutador/postulantes/${encodeURIComponent(c.id)}`}
-                            className="p-1.5 text-[#475569] hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 rounded-lg transition-colors"
+                            className="rounded-lg p-1.5 text-app-secondary transition-colors hover:bg-app-danger-soft hover:text-app-accent"
                             title="Ver perfil completo"
                           >
                             <Eye className="w-4 h-4" />
@@ -316,7 +316,7 @@ export default function CandidateDirectory() {
                             disabled={!c.cvUrl}
                             onClick={() => handleDownloadCv(c)}
                             className={`p-1.5 rounded-lg transition-colors ${
-                              c.cvUrl ? "text-[#475569] hover:text-blue-600 hover:bg-blue-50 cursor-pointer" : "text-gray-300 cursor-not-allowed"
+                              c.cvUrl ? "cursor-pointer text-app-secondary hover:bg-app-info hover:text-app-info-icon" : "cursor-not-allowed text-app-border-strong"
                             }`}
                             title={c.cvUrl ? "Descargar currículum vitae" : "Sin CV adjunto"}
                           >
@@ -332,15 +332,15 @@ export default function CandidateDirectory() {
           </div>
 
           {/* Pagination */}
-          <div className="px-5 py-3.5 border-t border-gray-100 bg-[#F8FAFC] flex items-center justify-between">
-            <p className="text-xs text-[#475569]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-app-border bg-app-muted px-5 py-3.5">
+            <p className="text-xs text-app-secondary">
               Mostrando {filtered.length ? (currentPage - 1) * perPage + 1 : 0}–{Math.min(currentPage * perPage, filtered.length)} de {filtered.length} resultados
             </p>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg text-[#475569] hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="rounded-lg p-1.5 text-app-secondary transition-colors hover:bg-app-surface disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -349,7 +349,7 @@ export default function CandidateDirectory() {
                   key={i}
                   onClick={() => setCurrentPage(i + 1)}
                   className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
-                    currentPage === i + 1 ? "bg-[#D32F2F] text-white" : "text-[#475569] hover:bg-gray-200"
+                    currentPage === i + 1 ? "bg-app-action text-white" : "text-app-secondary hover:bg-app-surface"
                   }`}
                 >
                   {i + 1}
@@ -358,7 +358,7 @@ export default function CandidateDirectory() {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg text-[#475569] hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="rounded-lg p-1.5 text-app-secondary transition-colors hover:bg-app-surface disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

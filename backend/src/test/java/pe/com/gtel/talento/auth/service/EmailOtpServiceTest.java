@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.web.server.ResponseStatusException;
 import pe.com.gtel.talento.auth.dto.AuthResponse;
@@ -43,7 +44,8 @@ class EmailOtpServiceTest {
         var target=new EmailOtpService(repository,mail,accounts,"test-only-secret-at-least-32-bytes-long",clock);
         var proxy=new ProxyFactory(target);
         proxy.setProxyTargetClass(true);
-        proxy.addAdvice(new TransactionInterceptor(new DataSourceTransactionManager(ds),new AnnotationTransactionAttributeSource()));
+        TransactionManager transactionManager = new DataSourceTransactionManager(ds);
+        proxy.addAdvice(new TransactionInterceptor(transactionManager,new AnnotationTransactionAttributeSource()));
         service=(EmailOtpService)proxy.getProxy();
     }
     String start() { return (String)service.start(user).get("sessionId"); }

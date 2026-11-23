@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useOperationNotice } from "../../context/NotificationContext";
 import { saveProfile, exportCandidateArcoData, anonymizeCandidateArcoAccount } from "../../services/api";
 import { Download, Trash2, ShieldCheck, AlertTriangle } from "lucide-react";
 import "./perfil.css";
@@ -11,6 +12,7 @@ const fields = user => Object.fromEntries(['nombres','apellidos','email','telefo
 
 export default function ProfileEditor() {
   const { user, updateProfile, logout } = useAuth();
+  const notifyOperation = useOperationNotice();
   const [saved, setSaved] = useState(() => fields(user));
   const [form, setForm] = useState(saved);
   const [message, setMessage] = useState('');
@@ -68,7 +70,7 @@ export default function ProfileEditor() {
     setBusy(true); setMessage('');
     try {
       const result = await saveProfile(user, { ...form, nombres:form.nombres.trim(), apellidos:form.apellidos.trim(), email:form.email.trim().toLowerCase(), correoContacto:form.correoContacto.trim().toLowerCase(), telefono:`+51${form.telefono}` });
-      updateProfile(result); setSaved(fields(result)); setForm(fields(result)); setMessage('Cambios guardados. Tu perfil está actualizado.');
+      const message='Cambios guardados. Tu perfil está actualizado.';updateProfile(result);setSaved(fields(result));setForm(fields(result));setMessage(message);notifyOperation(message);
     } catch (error) { setMessage(error.message || 'No se pudo guardar el perfil.'); }
     finally { setBusy(false); }
   };
@@ -89,7 +91,7 @@ export default function ProfileEditor() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setArcoMessage('Expediente exportado exitosamente conforme a la Ley N° 29733.');
+      const message='Expediente exportado exitosamente conforme a la Ley N° 29733.';setArcoMessage(message);notifyOperation(message);
     } catch (err) {
       setArcoError(err.message || 'Error al exportar los datos.');
     } finally {
@@ -104,7 +106,7 @@ export default function ProfileEditor() {
     try {
       const res = await anonymizeCandidateArcoAccount(true, anonymizeMotivo, user);
       setShowAnonymizeModal(false);
-      setArcoMessage(res.mensaje || 'Tu cuenta ha sido anonimizada permanentemente.');
+      const message=res.mensaje||'Tu cuenta ha sido anonimizada permanentemente.';setArcoMessage(message);notifyOperation(message);
       setTimeout(() => {
         logout();
         window.location.href = '/';
@@ -138,12 +140,12 @@ export default function ProfileEditor() {
         </div>
 
         <div className="flex flex-col gap-4 mt-2">
-          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4">
+          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-4 dark:border-slate-700 dark:bg-slate-800">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
-              <div className="text-sm text-slate-700">
-                <p className="font-semibold text-slate-900 mb-0.5">Tus datos están protegidos bajo normativa peruana</p>
-                <p className="text-xs text-slate-600 leading-relaxed">
+              <div className="text-sm text-slate-700 dark:text-slate-300">
+                <p className="font-semibold text-slate-900 dark:text-slate-50 mb-0.5">Tus datos están protegidos bajo normativa peruana</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   GTEL TALENTO S.A.C. garantiza el tratamiento seguro de tus datos para fines exclusivos de convocatorias laborales y evaluación técnica según la Ley N° 29733 y el D.S. 003-2013-JUS.
                 </p>
               </div>
@@ -151,13 +153,13 @@ export default function ProfileEditor() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col justify-between">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col justify-between dark:border-slate-700 dark:bg-slate-800">
               <div>
-                <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-50 flex items-center gap-2">
                   <Download className="h-4 w-4 text-brand-red" />
                   Derecho de Acceso y Portabilidad
                 </h4>
-                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
                   Descarga una copia completa y estructurada en formato JSON de tu expediente, historial de postulaciones, evaluaciones y consentimiento registrado.
                 </p>
               </div>
@@ -165,19 +167,19 @@ export default function ProfileEditor() {
                 type="button"
                 onClick={handleExportData}
                 disabled={exporting}
-                className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 disabled:opacity-50"
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-50 dark:hover:bg-slate-600"
               >
                 {exporting ? 'Generando legajo...' : 'Exportar mi expediente (JSON)'}
               </button>
             </div>
 
-            <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 flex flex-col justify-between">
+            <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 flex flex-col justify-between dark:border-red-900/70 dark:bg-slate-800">
               <div>
-                <h4 className="text-sm font-semibold text-red-900 flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-red-900 dark:text-red-300 flex items-center gap-2">
                   <Trash2 className="h-4 w-4 text-red-600" />
                   Derecho de Cancelación / Supresión
                 </h4>
-                <p className="text-xs text-red-700 mt-1.5 leading-relaxed">
+                <p className="text-xs text-red-700 dark:text-red-300 mt-1.5 leading-relaxed">
                   Solicita la anonimización definitiva de tu cuenta y la eliminación física de tus currículums de los servidores de GTEL.
                 </p>
               </div>
@@ -192,12 +194,12 @@ export default function ProfileEditor() {
           </div>
 
           {arcoMessage && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
               {arcoMessage}
             </div>
           )}
           {arcoError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
               {arcoError}
             </div>
           )}
@@ -209,17 +211,17 @@ export default function ProfileEditor() {
   </div></div>
   {showAnonymizeModal && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900">
         <div className="flex items-center gap-3 text-red-600 mb-3">
           <AlertTriangle className="h-6 w-6 shrink-0" />
-          <h3 className="text-lg font-bold text-slate-900">¿Confirmar supresión de datos?</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50">¿Confirmar supresión de datos?</h3>
         </div>
-        <p className="text-xs text-slate-600 leading-relaxed mb-4">
+        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
           Esta acción es <strong>irreversible</strong> conforme al Art. 20 de la Ley N° 29733. Se anonimizarán tus datos de contacto, se cancelarán tus postulaciones en curso y se eliminarán físicamente todos tus archivos de currículum (CV) del servidor.
         </p>
 
         <div className="mb-4">
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Motivo (opcional)
           </label>
           <textarea
@@ -227,11 +229,11 @@ export default function ProfileEditor() {
             value={anonymizeMotivo}
             onChange={e => setAnonymizeMotivo(e.target.value)}
             placeholder="Ej: Ya encontré trabajo / No deseo participar más"
-            className="w-full text-xs rounded-lg border border-slate-200 p-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-200"
+            className="w-full text-xs rounded-lg border border-slate-200 p-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-50 dark:placeholder:text-slate-400 dark:focus:ring-red-900"
           />
         </div>
 
-        <label className="flex items-start gap-2 text-xs text-slate-700 mb-5 cursor-pointer">
+        <label className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 mb-5 cursor-pointer">
           <input
             type="checkbox"
             checked={anonymizeConfirm}
@@ -246,7 +248,7 @@ export default function ProfileEditor() {
             type="button"
             onClick={() => { setShowAnonymizeModal(false); setAnonymizeConfirm(false); }}
             disabled={anonymizing}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+            className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Cancelar
           </button>

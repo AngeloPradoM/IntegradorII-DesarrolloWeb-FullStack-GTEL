@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -98,6 +99,15 @@ try {
 
     await api.markAllRecruiterNotificationsRead();
     assert.equal(markedAll, true);
+  });
+
+  test('Notificaciones emergentes: cierre manual por toastId y autocierre a cinco segundos', () => {
+    const contextSource = readFileSync(new URL('../src/context/NotificationContext.jsx', import.meta.url), 'utf8');
+    assert.match(contextSource, /toast\.toastId !== id/);
+    assert.match(contextSource, /}, 5000\);/);
+    assert.match(contextSource, /pushOperationToast/);
+    assert.match(contextSource, /OPERACION_SISTEMA/);
+    assert.doesNotMatch(contextSource, /prev\.filter\(\(t\) => t\.id !== id\)/);
   });
 } finally {
   await server.close();

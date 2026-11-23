@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Pencil, Plus, Search, ShieldCheck, Trash2, UserCheck, UserCog, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useOperationNotice } from '../../context/NotificationContext';
 import { deleteUser, listUsers, saveUser } from '../../services/adminService';
 import './admin-workspace.css';
 
@@ -10,9 +11,12 @@ const roleLabels = { ADMIN: 'Administrador', RECLUTADOR: 'Reclutador', CANDIDATO
 
 export default function UsersPage() {
   const { user, logout } = useAuth();
+  const notifyOperation = useOperationNotice();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(0);
   const [revision, setRevision] = useState(0);
   const [data, setData] = useState(null);
@@ -45,6 +49,10 @@ export default function UsersPage() {
       operations: rows.filter(account => ['RECLUTADOR', 'TECNICO'].includes(account.rol)).length,
     };
   }, [data]);
+  const visibleAccounts = useMemo(() => (data?.items || []).filter(account =>
+    (roleFilter === 'all' || account.rol === roleFilter) &&
+    (statusFilter === 'all' || account.estado === statusFilter)
+  ), [data, roleFilter, statusFilter]);
 
   const change = event => setEditor(previous => ({ ...previous, [event.target.name]: event.target.value }));
   const openEditor = account => { setEditor(account ? { ...account, password: '' } : { ...emptyUser }); setError(''); setNotice(''); };
@@ -57,7 +65,7 @@ export default function UsersPage() {
       await saveUser(editor.id, { ...editor, password: editor.password || null });
       if (String(editor.id) === String(user.id)) { logout(); navigate('/?auth=login', { replace: true }); return; }
       setEditor(null); setRevision(value => value + 1);
-      setNotice('Usuario guardado correctamente. Sus sesiones anteriores quedaron invalidadas.');
+      const message='Usuario guardado correctamente. Sus sesiones anteriores quedaron invalidadas.';setNotice(message);notifyOperation(message);
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }
   };
@@ -67,7 +75,7 @@ export default function UsersPage() {
     setBusy(true); setError(''); setNotice('');
     try {
       await deleteUser(deleteTarget.id);
-      setNotice(`La cuenta ${deleteTarget.email} y sus datos asociados fueron eliminados.`);
+      const message=`La cuenta ${deleteTarget.email} y sus datos asociados fueron eliminados.`;setNotice(message);notifyOperation(message);
       setDeleteTarget(null); setRevision(value => value + 1);
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }
@@ -80,16 +88,16 @@ export default function UsersPage() {
     </div>
 
     <section className="metric-grid" aria-label="Resumen de usuarios">
-      <article className="metric-card"><span className="metric-icon"><Users/></span><div><span className="metric-label">Usuarios registrados</span><strong className="metric-value">{metrics.total}</strong><small>Total en el sistema</small></div></article>
-      <article className="metric-card"><span className="metric-icon success"><UserCheck/></span><div><span className="metric-label">Activos visibles</span><strong className="metric-value">{metrics.active}</strong><small>En esta página</small></div></article>
-      <article className="metric-card"><span className="metric-icon violet"><ShieldCheck/></span><div><span className="metric-label">Administradores</span><strong className="metric-value">{metrics.admins}</strong><small>En esta página</small></div></article>
-      <article className="metric-card"><span className="metric-icon blue"><UserCog/></span><div><span className="metric-label">Equipo operativo</span><strong className="metric-value">{metrics.operations}</strong><small>Reclutadores y técnicos visibles</small></div></article>
+      <article className="metric-card metric-card-success"><span className="metric-icon success"><Users/></span><div><span className="metric-label">Usuarios registrados</span><strong className="metric-value">{metrics.total}</strong><small>Total en el sistema</small></div></article>
+      <article className="metric-card metric-card-success"><span className="metric-icon success"><UserCheck/></span><div><span className="metric-label">Activos visibles</span><strong className="metric-value">{metrics.active}</strong><small>En esta página</small></div></article>
+      <article className="metric-card metric-card-info"><span className="metric-icon info"><ShieldCheck/></span><div><span className="metric-label">Administradores</span><strong className="metric-value">{metrics.admins}</strong><small>En esta página</small></div></article>
+      <article className="metric-card metric-card-info"><span className="metric-icon info"><UserCog/></span><div><span className="metric-label">Equipo operativo</span><strong className="metric-value">{metrics.operations}</strong><small>Reclutadores y técnicos visibles</small></div></article>
     </section>
 
     {error && <div role="alert" className="alert"><span><AlertTriangle size={16}/>{error}</span><button type="button" className="btn" onClick={() => setRevision(value => value + 1)}>Reintentar</button></div>}
     {notice && <div role="status" className="alert success"><span><CheckCircle2 size={16}/>{notice}</span></div>}
 
-    {editor && <form onSubmit={submit} className="editor">
+    {editor && <form onSubmit={submit} className="editor user-editor">
       <div className="editor-heading"><div><p className="eyebrow">Datos de acceso</p><h2>{editor.id ? 'Editar usuario' : 'Nuevo usuario'}</h2></div><span className="pill">{editor.id ? `ID #${editor.id}` : 'Nueva cuenta'}</span></div>
       <div className="editor-grid">
         <label>Correo electrónico<input name="email" type="email" required maxLength={150} value={editor.email} onChange={change}/></label>
@@ -102,13 +110,13 @@ export default function UsersPage() {
       <div className="editor-actions"><button disabled={busy} className="btn btn-primary">{busy ? 'Guardando…' : 'Guardar cambios'}</button><button disabled={busy} type="button" className="btn" onClick={() => setEditor(null)}>Cancelar</button></div>
     </form>}
 
-    <section className="surface" aria-label="Directorio de usuarios">
-      <div className="toolbar"><div className="search-field"><Search aria-hidden="true"/><input aria-label="Buscar usuarios por correo" type="search" maxLength={150} placeholder="Buscar por correo en tiempo real…" value={query} onChange={event => setQuery(event.target.value)}/></div><span className="count-label">{data ? `${data.items.length} visibles de ${data.total}` : 'Consultando directorio…'}</span></div>
+    <section className="surface admin-directory" aria-label="Directorio de usuarios">
+      <div className="toolbar"><div className="search-field"><Search aria-hidden="true"/><input aria-label="Buscar usuarios por correo" type="search" maxLength={150} placeholder="Buscar por correo en tiempo real…" value={query} onChange={event => setQuery(event.target.value)}/></div><label className="sr-only" htmlFor="admin-role-filter">Filtrar por rol</label><select id="admin-role-filter" className="toolbar-select" value={roleFilter} onChange={event => setRoleFilter(event.target.value)}><option value="all">Todos los roles</option>{Object.entries(roleLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><label className="sr-only" htmlFor="admin-status-filter">Filtrar por estado</label><select id="admin-status-filter" className="toolbar-select" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Todos los estados</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option></select><span className="count-label">{data ? `${visibleAccounts.length} visibles de ${data.total}` : 'Consultando directorio…'}</span></div>
       {!data && !error && <p role="status" className="empty-state">Cargando usuarios…</p>}
       {data && <><div className="table-scroll"><table><thead><tr>{['Usuario','Rol','Estado','Identificador','Acciones'].map(label => <th key={label}>{label}</th>)}</tr></thead><tbody>
-        {data.items.map(account => <tr key={account.id}><td><div className="user-identity"><span className="user-avatar">{account.email?.charAt(0).toUpperCase()}</span><div><strong>{account.email}</strong><small>{account.nombres || account.apellidos ? [account.nombres,account.apellidos].filter(Boolean).join(' ') : 'Sin nombre de perfil'}</small></div></div></td><td><span className={`pill ${account.rol?.toLowerCase()}`}>{roleLabels[account.rol] || account.rol}</span></td><td><span className={`pill ${account.estado}`}>{account.estado === 'activo' ? 'Activo' : 'Inactivo'}</span></td><td className="muted">#{account.id}</td><td><div className="row-actions"><button type="button" onClick={() => openEditor(account)}><Pencil size={14}/>Editar</button><button type="button" className="danger" disabled={String(account.id) === String(user.id)} title={String(account.id) === String(user.id) ? 'No puedes eliminar tu propia sesión' : undefined} onClick={() => setDeleteTarget(account)}><Trash2 size={14}/>Eliminar</button></div></td></tr>)}
+        {visibleAccounts.map(account => <tr key={account.id}><td><div className="user-identity"><span className="user-avatar">{account.email?.charAt(0).toUpperCase()}</span><div><strong>{account.email}</strong><small>{account.nombres || account.apellidos ? [account.nombres,account.apellidos].filter(Boolean).join(' ') : 'Sin nombre de perfil'}</small></div></div></td><td><span className={`pill ${account.rol?.toLowerCase()}`}>{roleLabels[account.rol] || account.rol}</span></td><td><span className={`pill ${account.estado}`}>{account.estado === 'activo' ? 'Activo' : 'Inactivo'}</span></td><td className="muted">#{account.id}</td><td><div className="row-actions"><button type="button" onClick={() => openEditor(account)}><Pencil size={14}/>Editar</button><button type="button" className="danger" disabled={String(account.id) === String(user.id)} title={String(account.id) === String(user.id) ? 'No puedes eliminar tu propia sesión' : undefined} onClick={() => setDeleteTarget(account)}><Trash2 size={14}/>Eliminar</button></div></td></tr>)}
       </tbody></table></div>
-      {!data.items.length && <div className="empty-state"><strong>Sin resultados</strong>No hay usuarios que coincidan con “{search}”.</div>}
+      {!visibleAccounts.length && <div className="empty-state"><strong>Sin resultados</strong>No hay usuarios que coincidan con la búsqueda y los filtros actuales.</div>}
       <footer className="pagination"><span>Página {page + 1} · {data.total} usuarios</span><div><button className="btn" disabled={page === 0} onClick={() => setPage(value => value - 1)}>Anterior</button><button className="btn" disabled={(page + 1) * 25 >= data.total} onClick={() => setPage(value => value + 1)}>Siguiente</button></div></footer></>}
     </section>
 

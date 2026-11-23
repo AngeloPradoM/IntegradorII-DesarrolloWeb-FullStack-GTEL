@@ -27,7 +27,7 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 | Frontend | React/Vite con rutas de candidato, reclutador, técnico y administrador |
 | Base de datos | `database/` es la única fuente oficial |
 | Documentación | Centralizada en `docs/` |
-| Docker | `docker-compose.yml` conservado sin cambios |
+| Docker | Compose seguro con configuración externa mediante `.env` |
 
 ## Contenido
 
@@ -44,18 +44,35 @@ Plataforma de selección de personal para candidatos, reclutadores y administrad
 Para ejecutar la arquitectura completa (Frontend React con Nginx, Backend Spring Boot y Base de Datos MySQL 8) sin necesidad de instalar Java, Maven, Node.js ni MySQL en el equipo:
 
 1. Asegurarse de tener **Docker Desktop** abierto y en ejecución.
-2. Abrir una terminal en el directorio del proyecto y ejecutar:
-   ```bash
-   docker compose up -d
+2. Crear la configuración local desde la plantilla:
+   ```powershell
+   Copy-Item .env.example .env
    ```
-3. Acceso a los servicios:
+3. Editar `.env` y sustituir todos los valores `CHANGE_ME`. `JWT_SECRET` y
+   `OTP_HASH_SECRET` deben ser secretos aleatorios distintos. El archivo `.env`
+   está excluido de Git.
+4. Validar la configuración y construir los contenedores:
+   ```powershell
+   docker compose config --quiet
+   docker compose up -d --build
+   docker compose ps
+   ```
+5. Acceso a los servicios:
    - **Frontend Web:** [http://localhost:3000](http://localhost:3000)
-   - **Swagger UI (Documentación API):** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-   - **MySQL 8:** Puerto 3307 (Usuario: `gtel_user`, Contraseña: `GtelSecure2026*`, Base de datos: `gtel_talento`)
-4. Para detener los contenedores:
-   ```bash
+   - **API/health:** [http://localhost:8080/api/health](http://localhost:8080/api/health)
+   - **MySQL 8:** `127.0.0.1:3307`, con usuario y contraseña definidos en `.env`.
+
+   Swagger queda desactivado en el perfil Docker de producción.
+6. Para consultar registros o detener los contenedores:
+   ```powershell
+   docker compose logs -f backend
    docker compose down
    ```
+
+El script `database/gtel_talento.sql` se carga únicamente cuando el volumen
+`gtel_mysql_data` se crea vacío. Un volumen existente conserva sus datos y debe
+actualizarse mediante las migraciones aprobadas; no usar `docker compose down -v`
+si se desea conservar la base de datos.
 
 ---
 
@@ -268,7 +285,7 @@ Conservar los datos y revisar qué cambios faltan antes de ejecutar SQL. Los scr
 
 El esquema inicial actualizado incluye estos cambios. No ejecutar las migraciones sobre una instalación nueva creada con ese esquema. Si una migración se aplicó parcialmente, revisar las columnas existentes antes de continuar.
 
-Para el caso de una base local desactualizada, seguir la guía [Incorporación de una base local](database/LOCAL_SETUP.md). Incluye respaldo, diagnóstico, migraciones y validación sin perder datos.
+Para el caso de una base local desactualizada, seguir la guía [Incorporación de una base local](database/docs/setup/LOCAL_SETUP.md). Incluye respaldo, diagnóstico, migraciones y validación sin perder datos.
 
 ### Credenciales de prueba
 

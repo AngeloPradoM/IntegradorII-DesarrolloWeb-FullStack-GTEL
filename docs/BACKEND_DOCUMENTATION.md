@@ -19,12 +19,12 @@ Toda aplicación sobre una base compartida requiere autorización y respaldo.
 Documentos principales:
 
 - [Plan de consolidación](database-consolidation-plan.md).
-- [Guía de migración](../database/MIGRATION_GUIDE.md).
-- [Matriz de compatibilidad](../database/COMPATIBILITY_MATRIX.md).
-- [Informe de validación](../database/VALIDATION_REPORT.md).
-- [Procedimiento operativo](../database/OPERATIONS.md).
-- [Checklist de cierre post-corte](../database/POST_CUTOVER_CHECKLIST.md).
-- [Traspaso de la entrega](../database/STEP9_HANDOFF.md).
+- [Guía de migración](../database/docs/setup/MIGRATION_GUIDE.md).
+- [Matriz de compatibilidad](../database/docs/reports/COMPATIBILITY_MATRIX.md).
+- [Informe de validación](../database/docs/reports/VALIDATION_REPORT.md).
+- [Procedimiento operativo](../database/docs/operations/OPERATIONS.md).
+- [Checklist de cierre post-corte](../database/docs/operations/POST_CUTOVER_CHECKLIST.md).
+- [Traspaso de la entrega](../database/docs/reports/STEP9_HANDOFF.md).
 
 ## Lectura recomendada
 

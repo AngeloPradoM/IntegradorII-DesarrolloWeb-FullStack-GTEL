@@ -9,7 +9,9 @@ import { registerCandidate } from "../services/api";
 import { getDefaultRouteForRole, getSafeAuthRedirect } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import AdminHeader from "../components/layout/AdminHeader";
+import { useOperationNotice } from "../context/NotificationContext";
 export default function PublicLayout() {
+  const notifyOperation = useOperationNotice();
   const {
     login,
     logout,
@@ -50,11 +52,13 @@ export default function PublicLayout() {
   };
   const handleRegister = async (payload) => {
     await registerCandidate(payload);
-    setRegistrationNotice("Cuenta registrada correctamente en el servidor. Ya puedes iniciar sesión con tu correo y contraseña.");
+    const message = "Cuenta registrada correctamente en el servidor. Ya puedes iniciar sesión con tu correo y contraseña.";
+    setRegistrationNotice(message);
+    notifyOperation(message);
     setModal("login");
   };
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 font-['Inter',sans-serif] text-slate-800 dark:text-slate-100">
+    <div className={`${isAdmin ? 'admin-shell' : 'bg-app-bg'} min-h-screen font-['Inter',sans-serif] text-app-primary transition-colors duration-200`}>
       <a href="#contenido" className="skip-link">
         Saltar al contenido principal
       </a>
@@ -63,7 +67,7 @@ export default function PublicLayout() {
         <div className="max-w-[1488px] mx-auto px-4 sm:px-6">
           <div className="flex min-h-18 flex-nowrap items-center justify-between gap-4">
             <Link to="/" className="flex shrink-0 items-center gap-3">
-              <div className="w-9 h-9 bg-[#D32F2F] rounded-lg flex items-center justify-center">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-app-action">
                 <Briefcase className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -91,7 +95,7 @@ export default function PublicLayout() {
                   Registrarse
                 </button>
               </>}
-              <Link to="/ofertas" className="hidden xl:flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              <Link to="/ofertas" className="hidden items-center gap-2 rounded-lg bg-app-action px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-app-action-hover xl:flex">
                 Ver Ofertas
               </Link>
               <button aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"} aria-controls="public-mobile-menu" aria-expanded={menuOpen} className="xl:hidden p-2 text-white/80" onClick={() => setMenuOpen(!menuOpen)}>
@@ -123,7 +127,7 @@ export default function PublicLayout() {
           </div>}
       </header>}
 
-      <div id="contenido"><Outlet context={{ openLogin, openRegister }} /></div>
+      <div id="contenido" className={isAdmin ? 'admin-content' : undefined}><Outlet context={{ openLogin, openRegister }} /></div>
       {modal === "login" && <AuthModal isOpen onClose={() => setModal(null)} onSubmit={handleAuthenticated} onRegisterClick={openRegister} notice={registrationNotice} />}
       <RegistrationModal isOpen={modal === "register"} onClose={() => setModal(null)} onSubmit={handleRegister} onLoginClick={openLogin} closeOnSubmit={false} />
     </div>

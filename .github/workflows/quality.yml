@@ -31,7 +31,12 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - run: mvn -B clean test
+      - name: Backend tests
+        run: >-
+          mvn -B
+          -Dmaven.wagon.http.retryHandler.count=3
+          -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+          clean test
   mysql-contract:
     runs-on: ubuntu-latest
     services:
@@ -54,7 +59,12 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - run: mvn -B -Dtest=ModuleWiringTest test
+      - name: MySQL contract test
+        run: >-
+          mvn -B
+          -Dmaven.wagon.http.retryHandler.count=3
+          -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
+          -Dtest=ModuleWiringTest test
         working-directory: backend
         env:
           QA_MYSQL_URL: jdbc:mysql://127.0.0.1:3306/gtel_qa_ci?allowPublicKeyRetrieval=true&useSSL=false

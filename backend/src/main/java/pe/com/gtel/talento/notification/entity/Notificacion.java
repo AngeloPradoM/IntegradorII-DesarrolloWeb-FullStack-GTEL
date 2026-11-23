@@ -2,10 +2,13 @@ package pe.com.gtel.talento.notification.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "notificaciones")
 public class Notificacion {
+
+    private static final ZoneId APPLICATION_ZONE = ZoneId.of("America/Lima");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +33,7 @@ public class Notificacion {
     private boolean leida = false;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = nowInApplicationZone();
 
     public Notificacion() {}
 
@@ -41,7 +44,11 @@ public class Notificacion {
         this.tipo = tipo;
         this.enlace = enlace;
         this.leida = false;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = nowInApplicationZone();
+    }
+
+    private static LocalDateTime nowInApplicationZone() {
+        return LocalDateTime.now(APPLICATION_ZONE);
     }
 
     public Long getId() {

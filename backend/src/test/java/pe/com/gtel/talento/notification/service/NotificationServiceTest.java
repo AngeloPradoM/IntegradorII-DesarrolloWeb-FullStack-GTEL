@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +27,8 @@ import pe.com.gtel.talento.notification.repository.NotificacionRepository;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
+
+    private static final ZoneId APPLICATION_ZONE = ZoneId.of("America/Lima");
 
     @Mock
     private NotificacionRepository notificacionRepository;
@@ -118,6 +122,7 @@ class NotificationServiceTest {
     @Test
     @DisplayName("notifyUser debe guardar en BD y retransmitir vía SSE")
     void shouldPersistAndBroadcastToUser() {
+        LocalDateTime beforeCreation = LocalDateTime.now(APPLICATION_ZONE).minusSeconds(1);
         Notificacion entity = new Notificacion(3L, "Alerta", "Detalle", "TIPO", "/link");
         entity.setId(50L);
         when(notificacionRepository.save(any(Notificacion.class))).thenReturn(entity);
@@ -126,6 +131,8 @@ class NotificationServiceTest {
 
         assertNotNull(res);
         assertEquals(50L, res.id());
+        assertFalse(entity.getCreatedAt().isBefore(beforeCreation));
+        assertFalse(entity.getCreatedAt().isAfter(LocalDateTime.now(APPLICATION_ZONE).plusSeconds(1)));
         verify(notificacionRepository).save(any(Notificacion.class));
         verify(sseService).sendToUser(eq(3L), any(NotificacionResponse.class));
     }

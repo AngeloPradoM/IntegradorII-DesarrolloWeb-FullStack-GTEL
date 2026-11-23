@@ -15,6 +15,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import pe.com.gtel.talento.security.JwtAuthenticationFilter;
 import pe.com.gtel.talento.security.ratelimit.RateLimitingFilter;
 
@@ -34,8 +35,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).filter(origin -> !origin.isEmpty()).toList());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Authorization", "Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining"));
+        configuration.setAllowedHeaders(List.of(
+            "Authorization","Content-Type","Accept","X-Requested-With","Idempotency-Key"));
+        configuration.setExposedHeaders(List.of(
+            "Authorization", "Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-Error-Id"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -53,7 +56,9 @@ public class SecurityConfig {
                         .contentTypeOptions(Customizer.withDefaults())
                         .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
                         .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                        .permissionsPolicy(permissions -> permissions.policy("geolocation=(), camera=(), microphone=()")))
+                        .addHeaderWriter(new StaticHeadersWriter(
+                                "Permissions-Policy",
+                                "geolocation=(), camera=(), microphone=()")))
                 .exceptionHandling(errors -> errors
                     .authenticationEntryPoint((request,response,error)->response.sendError(401))
                     .accessDeniedHandler((request,response,error)->response.sendError(403)))
@@ -72,6 +77,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/production-incidents/**").hasAnyRole("RECLUTADOR","TECNICO","ADMIN")
                         .requestMatchers("/api/support/**").hasAnyRole("RECLUTADOR","TECNICO","ADMIN")
                         .requestMatchers("/api/recruiter/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR")
                         .requestMatchers("/api/applications/**").hasAnyRole("RECLUTADOR","ADMIN","JEFATURA_SOLICITANTE","ANALISTA_RRHH","ENTREVISTADOR","CANDIDATO")

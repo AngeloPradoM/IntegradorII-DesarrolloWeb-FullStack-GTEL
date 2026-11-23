@@ -82,7 +82,7 @@ Comparar el resultado del diagnóstico con:
 
 ```text
 database/schema/gtel_talento.sql
-database/COMPATIBILITY_MATRIX.md
+database/docs/reports/COMPATIBILITY_MATRIX.md
 ```
 
 No se deben comparar únicamente los nombres de tablas. Revisar también columnas, tipos, índices,
@@ -109,6 +109,8 @@ Aplicar solo las migraciones aprobadas y en orden. La secuencia consolidada es:
 | `012` | Consentimiento y metadatos de privacidad del postulante |
 | `013` | Exención OTP para cuentas locales de prueba |
 | `014` | Clasificación de soporte y gestión de cambios RFC |
+| `015` | Incidentes de producción P1–P4 y relaciones con tickets/RFC |
+| `016` | Categorías, SLA, reglas de asignación y escalamiento de incidentes |
 
 Ejemplo: si el diagnóstico muestra que faltan tickets, ejecutar en DBeaver:
 
@@ -120,6 +122,8 @@ database/migrations/011_support_sla_policies.sql
 database/migrations/012_postulante_consentimiento.sql
 database/migrations/013_test_accounts_otp_exempt.sql
 database/migrations/014_change_management.sql
+database/migrations/015_production_incidents.sql
+database/migrations/016_incident_reporting.sql
 ```
 
 No ejecutes una migración si sus tablas, columnas o restricciones ya existen sin comprobar antes
@@ -133,6 +137,18 @@ Ejecutar nuevamente:
 database/scripts/check-schema.sql
 database/scripts/migration-status.sql
 ```
+
+Si la estructura de la migración `016` está completa pero no aparece en la bitácora, ejecutar una
+sola vez el registro protegido y volver a consultar el estado:
+
+```text
+database/scripts/register-016-after-verification.sql
+database/scripts/migration-status.sql
+```
+
+El script solo inserta la versión `016` cuando encuentra las 9 tablas, 16 columnas, categorías,
+SLA y reglas activas esperadas. Ante una estructura incompleta o un checksum diferente no escribe
+en `db_migration_history`.
 
 Después ejecutar las pruebas del backend:
 
