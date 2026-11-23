@@ -60,7 +60,7 @@ class IncidentReportingMigrationTest {
             + "(CASE WHEN resuelto_at IS NULL THEN incidente_id ELSE NULL END) VIRTUAL";
         assertTrue(canonical.contains(mysql8EscalationGuard));
         assertTrue(bootstrap.contains(mysql8EscalationGuard));
-        assertTrue(schemaCheck.contains("core tables (38)"));
+        assertTrue(schemaCheck.contains("core tables (41)"));
         assertTrue(schemaCheck.contains("production incident tables (9)"));
         assertTrue(schemaCheck.contains("incident reporting columns (16)"));
         assertTrue(schemaCheck.contains("incident SLA policies (4)"));
