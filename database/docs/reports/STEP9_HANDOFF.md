@@ -27,12 +27,12 @@ Esto aprueba la compatibilidad automatizada del backend con las referencias cons
 
 ## Entregables para el equipo
 
-- [`database/README.md`](README.md)
-- [`database/OPERATIONS.md`](OPERATIONS.md)
-- [`database/MIGRATION_GUIDE.md`](MIGRATION_GUIDE.md)
-- [`database/COMPATIBILITY_MATRIX.md`](COMPATIBILITY_MATRIX.md)
-- [`database/VALIDATION_REPORT.md`](VALIDATION_REPORT.md)
-- [`database/POST_CUTOVER_CHECKLIST.md`](POST_CUTOVER_CHECKLIST.md)
+- [`database/README.md`](../../README.md)
+- [`database/docs/operations/OPERATIONS.md`](../operations/OPERATIONS.md)
+- [`database/docs/setup/MIGRATION_GUIDE.md`](../setup/MIGRATION_GUIDE.md)
+- [`database/docs/reports/COMPATIBILITY_MATRIX.md`](COMPATIBILITY_MATRIX.md)
+- [`database/docs/reports/VALIDATION_REPORT.md`](VALIDATION_REPORT.md)
+- [`database/docs/operations/POST_CUTOVER_CHECKLIST.md`](../operations/POST_CUTOVER_CHECKLIST.md)
 
 ## Criterio de cierre definitivo
 

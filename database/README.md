@@ -1,41 +1,60 @@
 # Base de datos oficial de GTEL Talento
 
-Esta carpeta contiene la estrategia consolidada de base de datos. `database/` es la única
-fuente que utiliza el backend para nuevas instalaciones, pruebas y cambios incrementales.
-Las rutas históricas se conservan fuera de esta ubicación y no reciben cambios nuevos.
+Esta carpeta contiene el esquema canónico, las migraciones y las herramientas de
+comprobación de MySQL. Empieza siempre por este archivo.
 
-## Estructura
+## Mapa rápido
 
-- `schema/`: instalación limpia.
-- `migrations/`: cambios incrementales consolidados y numerados.
-- `seeds/`: datos de referencia o desarrollo, separados de la estructura.
-- `scripts/`: comprobaciones de solo lectura.
-- `snapshots/`: archivos históricos que no se ejecutan como migraciones.
-- `OPERATIONS.md`: procedimiento de respaldo, baseline, actualización y recuperación.
-- `LOCAL_SETUP.md`: guía práctica para integrar una base local desactualizada.
+| Ruta | Para qué sirve | ¿Se ejecuta? |
+|---|---|---|
+| `schema/gtel_talento.sql` | Crea una instalación nueva y completa | Solo sobre una base vacía |
+| `gtel_talento.sql` | Espejo del esquema usado por Docker | Docker lo carga automáticamente en un volumen nuevo |
+| `migrations/` | Cambios incrementales numerados de una base existente | Sí, en orden y después de respaldo/preflight |
+| `rollbacks/` | Reversión controlada de migraciones concretas | Solo ante una reversión aprobada |
+| `seeds/` | Datos de referencia o demostración | Solo cuando el entorno lo requiera |
+| `scripts/` | Preflight, verificaciones y registro del historial | Según la clasificación de su README |
+| `docs/setup/` | Instalación local y estrategia de migraciones | Documentación |
+| `docs/operations/` | Respaldo, recuperación y cierre operativo | Documentación |
+| `docs/reports/` | Evidencias, compatibilidad y traspaso | Documentación |
+| `snapshots/` | Copias históricas anteriores a la consolidación | Nunca como migraciones actuales |
 
-## Reglas
+## Qué ruta debo usar
+
+- **Base nueva y vacía:** `schema/gtel_talento.sql`.
+- **Base existente con datos:** respaldo, preflight y solo las migraciones faltantes.
+- **Docker con volumen nuevo:** `gtel_talento.sql`, montado por `docker-compose.yml`.
+- **Comprobar el estado:** scripts `check-*` y `migration-status.sql`.
+- **Entender el procedimiento:** [`docs/README.md`](docs/README.md).
+
+## Reglas obligatorias
 
 1. No editar una migración después de aplicarla.
-2. Crear una migración nueva para cada cambio de estructura.
-3. Ejecutar `schema/gtel_talento.sql` únicamente sobre una base nueva.
-4. Respaldar una base existente antes de aplicar migraciones.
-5. Registrar cada aplicación en `db_migration_history` con su SHA-256.
-6. No registrar un baseline sin evidencia estructural de la base.
+2. Crear una migración nueva para cada cambio posterior.
+3. No importar el esquema completo sobre una base con datos.
+4. Respaldar y comprobar la restauración antes de una migración.
+5. Registrar versión, archivo y SHA-256 en `db_migration_history`.
+6. No registrar un baseline sin comprobar previamente la estructura.
 7. No ejecutar archivos de `snapshots/`.
-8. No guardar contraseñas, tokens ni datos personales en esta carpeta.
+8. No guardar contraseñas, tokens ni datos personales en el repositorio.
 
-La migración `014_change_management.sql` incorpora la clasificación solicitud/incidente y la
-persistencia completa de RFC. Debe aplicarse con respaldo y en el orden indicado; no incluye
-eliminaciones ni modifica migraciones anteriores.
+## Estado actual de Mesa de Ayuda
 
-## Estado de transición
+- `015`: incidentes de producción P1-P4 y relaciones con tickets/RFC.
+- `016`: categorías, SLA, asignación, escalamiento y seguimiento.
+- `017`: consolidación estructural de solicitudes e incidentes.
+- `018`: catálogos de 11 solicitudes y 16 problemas técnicos.
+- `019`: idempotencia persistente para evitar tickets duplicados por reintentos.
+- `020`: control operativo de incidentes y vista calculada de seguimiento.
 
-Los archivos fueron consolidados desde las estrategias actuales. Las referencias del backend y
-las pruebas ya apuntan al esquema consolidado; la base real no fue modificada automáticamente.
-La evidencia de las pruebas aisladas está en [`VALIDATION_REPORT.md`](VALIDATION_REPORT.md).
-El procedimiento operativo está en [`OPERATIONS.md`](OPERATIONS.md).
-El detalle del corte está en [`CUTOVER_REPORT.md`](CUTOVER_REPORT.md).
-El checklist de cierre está en [`POST_CUTOVER_CHECKLIST.md`](POST_CUTOVER_CHECKLIST.md).
-El traspaso de la entrega está en [`STEP9_HANDOFF.md`](STEP9_HANDOFF.md).
-La incorporación de una base local está en [`LOCAL_SETUP.md`](LOCAL_SETUP.md).
+Una instalación nueva creada con `database/gtel_talento.sql` utiliza únicamente
+el esquema `gtel_talento` e incorpora 015 a 020 como `BASELINE`. Las migraciones
+individuales se conservan para actualizar instalaciones anteriores; no deben
+ejecutarse nuevamente sobre una instalación consolidada.
+
+## Lectura recomendada
+
+1. [Índice documental](docs/README.md).
+2. [Configuración local](docs/setup/LOCAL_SETUP.md).
+3. [Guía de migraciones](docs/setup/MIGRATION_GUIDE.md).
+4. [Operación y recuperación](docs/operations/OPERATIONS.md).
+5. [Informe de validación](docs/reports/VALIDATION_REPORT.md).

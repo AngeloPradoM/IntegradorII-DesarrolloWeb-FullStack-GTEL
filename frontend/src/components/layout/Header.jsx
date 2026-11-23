@@ -138,11 +138,11 @@ export default function Header({
    */
   if (isRecruiter) {
     return (
-      <header className="flex flex-shrink-0 items-center gap-4 border-b border-app-border bg-app-surface px-4 py-3 text-app-primary lg:px-6">
+      <header className="recruiter-topbar flex flex-shrink-0 items-center gap-4 border-b border-app-border bg-app-surface px-4 py-3 text-app-primary lg:px-6">
         <button
           type="button"
           aria-label="Abrir menú lateral"
-          className="rounded-md p-2 text-app-primary transition-colors hover:bg-app-muted lg:hidden"
+          className="recruiter-menu-button rounded-md p-2 text-app-primary transition-colors hover:bg-app-muted lg:hidden"
           onClick={onToggleSidebar}
         >
           {isMobileOpen ? (
@@ -152,7 +152,7 @@ export default function Header({
           )}
         </button>
 
-        <form className="max-w-md flex-1" onSubmit={event=>{event.preventDefault();navigate(`/reclutador/postulantes?q=${encodeURIComponent(searchValue.trim())}`);}}>
+        <form className="recruiter-search max-w-md flex-1" onSubmit={event=>{event.preventDefault();navigate(`/reclutador/postulantes?q=${encodeURIComponent(searchValue.trim())}`);}}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
 
@@ -166,11 +166,11 @@ export default function Header({
           </div>
         </form>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="recruiter-topbar-actions ml-auto flex items-center gap-3">
           <ThemeToggle />
           <NotificationBell />
 
-          <button type="button" onClick={handleProfileEdit} aria-label="Editar perfil" className="flex items-center gap-2">
+          <button type="button" onClick={handleProfileEdit} aria-label="Editar perfil" className="recruiter-profile flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand-red/20 bg-red-50 text-xs font-bold text-brand-red">
               {currentUser?.foto ? <img src={currentUser.foto} alt="" className="h-full w-full rounded-full object-cover" /> : (displayName || "U").slice(0, 2).toUpperCase()}
             </div>
@@ -183,7 +183,7 @@ export default function Header({
           <button
             type="button"
             onClick={handleLogout}
-            className="hidden rounded-lg border border-app-border-strong px-3 py-2 text-xs font-medium text-app-secondary transition-colors hover:border-brand-red hover:text-app-accent lg:inline-flex"
+            className="recruiter-logout hidden rounded-lg border border-app-border-strong px-3 py-2 text-xs font-medium text-app-secondary transition-colors hover:border-brand-red hover:text-app-accent lg:inline-flex"
           >
             Cerrar sesión
           </button>

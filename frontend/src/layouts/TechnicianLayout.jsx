@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { BriefcaseBusiness, ChevronLeft, Layers3, LogOut, Menu, Search, Ticket, X } from 'lucide-react';
+import { BriefcaseBusiness, ChevronLeft, Layers3, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, ServerCrash, Ticket, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import NotificationBell from '../components/layout/NotificationBell';
@@ -11,6 +11,7 @@ export default function TechnicianLayout() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => setMenuOpen(false), [location.pathname, searchParams]);
   useEffect(() => {
@@ -24,7 +25,8 @@ export default function TechnicianLayout() {
 
   const displayName = [user?.nombres, user?.apellidos].filter(Boolean).join(' ').trim() || user.email;
   const initials = displayName.split(/\s+/).slice(0, 2).map(value => value[0]).join('').toUpperCase();
-  const activeQueue = searchParams.get('queue') === 'changes' ? 'changes' : 'support';
+  const requestedQueue = searchParams.get('queue');
+  const activeQueue = ['changes', 'incidents'].includes(requestedQueue) ? requestedQueue : 'support';
   const search = searchParams.get('q') || '';
 
   const updateSearch = value => {
@@ -45,25 +47,29 @@ export default function TechnicianLayout() {
 
   const navigation = (
     <nav aria-label="Navegación técnica" className="space-y-2">
-      <Link to={queueHref('support')} aria-current={activeQueue === 'support' ? 'page' : undefined} className={`technician-nav-link ${activeQueue === 'support' ? 'is-active' : ''}`}>
+      <Link to={queueHref('support')} title={sidebarCollapsed ? 'Tickets' : undefined} aria-current={activeQueue === 'support' ? 'page' : undefined} className={`technician-nav-link ${activeQueue === 'support' ? 'is-active' : ''}`}>
         <Ticket className="h-5 w-5" aria-hidden="true" />
-        Tickets
+        <span className="technician-nav-label">Tickets</span>
       </Link>
-      <Link to={queueHref('changes')} aria-current={activeQueue === 'changes' ? 'page' : undefined} className={`technician-nav-link ${activeQueue === 'changes' ? 'is-active' : ''}`}>
+      <Link to={queueHref('changes')} title={sidebarCollapsed ? 'RFC (Cambios)' : undefined} aria-current={activeQueue === 'changes' ? 'page' : undefined} className={`technician-nav-link ${activeQueue === 'changes' ? 'is-active' : ''}`}>
         <Layers3 className="h-5 w-5" aria-hidden="true" />
-        RFC (Cambios)
+        <span className="technician-nav-label">RFC (Cambios)</span>
+      </Link>
+      <Link to={queueHref('incidents')} title={sidebarCollapsed ? 'Control de Incidentes' : undefined} aria-current={activeQueue === 'incidents' ? 'page' : undefined} className={`technician-nav-link ${activeQueue === 'incidents' ? 'is-active' : ''}`}>
+        <ServerCrash className="h-5 w-5" aria-hidden="true" />
+        <span className="technician-nav-label">Control de Incidentes</span>
       </Link>
     </nav>
   );
 
   return (
-    <div className="min-h-dvh bg-app-bg text-app-primary lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
-      <aside className="technician-sidebar sticky top-0 hidden h-dvh self-start flex-col lg:flex">
-        <Link to={queueHref('support')} className="flex items-center gap-3 border-b border-white/10 px-6 py-5" aria-label="GTEL Talento, soporte técnico">
+    <div className={`technician-shell min-h-dvh bg-app-bg text-app-primary lg:grid ${sidebarCollapsed ? 'lg:grid-cols-[80px_minmax(0,1fr)]' : 'lg:grid-cols-[264px_minmax(0,1fr)]'}`}>
+      <aside className={`technician-sidebar sticky top-0 hidden h-dvh self-start flex-col lg:flex ${sidebarCollapsed ? 'is-collapsed' : ''}`}>
+        <Link to={queueHref('support')} className="technician-brand flex items-center gap-3 border-b border-white/10 px-6 py-5" aria-label="GTEL Talento, soporte técnico">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-app-action text-white shadow-lg shadow-red-950/20">
             <BriefcaseBusiness className="h-6 w-6" aria-hidden="true" />
           </span>
-          <span className="min-w-0">
+          <span className="technician-brand-copy min-w-0">
             <strong className="block truncate text-base text-white">GTEL Talento</strong>
             <small className="block truncate text-sm text-slate-300">Soporte Técnico</small>
           </span>
@@ -71,15 +77,20 @@ export default function TechnicianLayout() {
 
         <div className="px-4 py-7">{navigation}</div>
 
-        <div className="mt-auto border-t border-white/10 p-4">
+        <button type="button" onClick={() => setSidebarCollapsed(value => !value)} className="technician-collapse mx-4 mt-auto flex items-center justify-center gap-2 rounded-lg border border-white/15 px-3 py-2.5 text-xs font-bold text-slate-300" aria-label={sidebarCollapsed ? 'Expandir menú técnico' : 'Contraer menú técnico'} title={sidebarCollapsed ? 'Expandir menú' : 'Contraer menú'}>
+          {sidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          <span className="technician-nav-label">Contraer menú</span>
+        </button>
+
+        <div className="border-t border-white/10 p-4">
           <div className="flex items-center gap-3 rounded-xl p-2 text-white">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-700 text-xs font-black">{initials}</span>
-            <span className="min-w-0 flex-1">
+            <span className="technician-user-copy min-w-0 flex-1">
               <strong className="block truncate text-xs">{displayName}</strong>
               <small className="block truncate text-[11px] text-slate-400">{user.email}</small>
               <small className="block truncate text-[11px] text-slate-400">Soporte Técnico</small>
             </span>
-            <button type="button" onClick={exit} className="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión">
+            <button type="button" onClick={exit} className="technician-logout rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión">
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
@@ -102,7 +113,7 @@ export default function TechnicianLayout() {
             <input value={search} onChange={event => updateSearch(event.target.value)} className="technical-top-search w-full py-2.5 pl-12 pr-4 text-sm" placeholder="Buscar ticket (código, título o solicitante)..." />
           </label>
 
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <div className="technician-topbar-actions ml-auto flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <NotificationBell />
             <span className="grid h-10 w-10 place-items-center rounded-full border border-app-border-strong bg-app-muted text-xs font-black text-app-primary" title={displayName}>{initials}</span>

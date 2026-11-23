@@ -16,6 +16,7 @@ class SecurityConfigTest {
         assertEquals("https://team.example.test", cors.checkOrigin("https://team.example.test"));
         assertNull(cors.checkOrigin("https://unknown.example.test"));
         assertTrue(cors.getAllowedHeaders().contains("Authorization"));
+        assertTrue(cors.getAllowedHeaders().contains("Idempotency-Key"));
         assertTrue(cors.getAllowedMethods().contains("POST"));
     }
 }

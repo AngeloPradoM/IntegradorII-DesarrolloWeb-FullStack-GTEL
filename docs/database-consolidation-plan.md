@@ -83,7 +83,7 @@ Responsabilidades:
 
 La numeración de `database` queda documentada y es la fuente de ejecución del
 backend hasta aprobar el corte. La evidencia de validación está en
-[`database/VALIDATION_REPORT.md`](../database/VALIDATION_REPORT.md).
+[`database/docs/reports/VALIDATION_REPORT.md`](../database/docs/reports/VALIDATION_REPORT.md).
 
 ## Reglas de control
 

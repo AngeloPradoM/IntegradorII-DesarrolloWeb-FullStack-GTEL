@@ -10,6 +10,8 @@ backend/config/local.properties
 .vscode/
 .idea/
 docs/backups/
+/backups/*.sql
+/backups/*.dump
 *.zip
 backend/uploads/
 uploads/

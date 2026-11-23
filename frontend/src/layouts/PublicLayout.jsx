@@ -54,7 +54,7 @@ export default function PublicLayout() {
     setModal("login");
   };
   return (
-    <div className="min-h-screen bg-app-bg font-['Inter',sans-serif] text-app-primary transition-colors duration-200">
+    <div className={`${isAdmin ? 'admin-shell' : 'bg-app-bg'} min-h-screen font-['Inter',sans-serif] text-app-primary transition-colors duration-200`}>
       <a href="#contenido" className="skip-link">
         Saltar al contenido principal
       </a>
@@ -123,7 +123,7 @@ export default function PublicLayout() {
           </div>}
       </header>}
 
-      <div id="contenido"><Outlet context={{ openLogin, openRegister }} /></div>
+      <div id="contenido" className={isAdmin ? 'admin-content' : undefined}><Outlet context={{ openLogin, openRegister }} /></div>
       {modal === "login" && <AuthModal isOpen onClose={() => setModal(null)} onSubmit={handleAuthenticated} onRegisterClick={openRegister} notice={registrationNotice} />}
       <RegistrationModal isOpen={modal === "register"} onClose={() => setModal(null)} onSubmit={handleRegister} onLoginClick={openLogin} closeOnSubmit={false} />
     </div>

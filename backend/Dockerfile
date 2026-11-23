@@ -39,7 +39,7 @@ EXPOSE 8080
 
 # Variables de entorno por defecto
 ENV SERVER_PORT=8080 \
-    SPRING_PROFILES_ACTIVE=default \
+    SPRING_PROFILES_ACTIVE=prod \
     JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC"
 
 # Healthcheck interno del contenedor

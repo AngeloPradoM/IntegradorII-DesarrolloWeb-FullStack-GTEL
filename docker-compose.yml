@@ -12,21 +12,20 @@ services:
     container_name: gtel-mysql
     restart: unless-stopped
     command: >
-      --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_ROOT_PASSWORD: RootSecure2026*
-      MYSQL_DATABASE: gtel_talento
-      MYSQL_USER: gtel_user
-      MYSQL_PASSWORD: GtelSecure2026*
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-gtel_talento}
+      MYSQL_USER: ${MYSQL_USER:-gtel_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD in .env}
     ports:
-      - "3307:3306"
+      - "127.0.0.1:${MYSQL_HOST_PORT:-3307}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/gtel_talento.sql:/docker-entrypoint-initdb.d/01_gtel_talento.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -pRootSecure2026* || exit 1"]
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$${MYSQL_ROOT_PASSWORD}\" mysqladmin ping -h 127.0.0.1 -u root --silent"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,18 +46,21 @@ services:
       mysql:
         condition: service_healthy
     environment:
+      SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
-      DB_URL: jdbc:mysql://mysql:3306/gtel_talento?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      DB_USERNAME: gtel_user
-      DB_PASSWORD: GtelSecure2026*
-      JPA_DDL_AUTO: none
-      FRONTEND_URL: https://gtel-talento.northcentralus.cloudapp.azure.com,http://localhost,http://localhost:80,http://localhost:3000,http://localhost:5173,http://127.0.0.1
-      JWT_SECRET: 8038c15dee51ba3d4d72cf6387caff388dab09033fd5c21539fc79983e5e1a97b7253d2aa0ea5f455d13f3218158df20
-      TEST_ACCESS_ENABLED: "true"
-      MAIL_USERNAME: soporte.gtel.talento@gmail.com
-      MAIL_PASSWORD: uafeikafcuxfupao
+      DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-gtel_talento}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: ${MYSQL_USER:-gtel_user}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD in .env}
+      JPA_DDL_AUTO: validate
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      RECOVERY_URL: ${RECOVERY_URL:-http://localhost:3000/recuperar-acceso}
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET in .env}
+      OTP_HASH_SECRET: ${OTP_HASH_SECRET:?Define OTP_HASH_SECRET in .env}
+      TEST_ACCESS_ENABLED: ${TEST_ACCESS_ENABLED:-false}
+      MAIL_USERNAME: ${MAIL_USERNAME:?Define MAIL_USERNAME in .env}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:?Define MAIL_PASSWORD in .env}
     ports:
-      - "8080:8080"
+      - "127.0.0.1:${BACKEND_HOST_PORT:-8080}:8080"
     volumes:
       - uploads_cv:/app/uploads/cv
     networks:
@@ -72,13 +74,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: "https://gtel-talento.northcentralus.cloudapp.azure.com"
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     container_name: gtel-frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
-      - "3000:80"
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-3000}:80"
     networks:
       - gtel-network
 

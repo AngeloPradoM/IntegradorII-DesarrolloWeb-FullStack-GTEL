@@ -86,16 +86,16 @@ export default function UsersPage() {
     </div>
 
     <section className="metric-grid" aria-label="Resumen de usuarios">
-      <article className="metric-card"><span className="metric-icon"><Users/></span><div><span className="metric-label">Usuarios registrados</span><strong className="metric-value">{metrics.total}</strong><small>Total en el sistema</small></div></article>
-      <article className="metric-card"><span className="metric-icon success"><UserCheck/></span><div><span className="metric-label">Activos visibles</span><strong className="metric-value">{metrics.active}</strong><small>En esta página</small></div></article>
-      <article className="metric-card"><span className="metric-icon violet"><ShieldCheck/></span><div><span className="metric-label">Administradores</span><strong className="metric-value">{metrics.admins}</strong><small>En esta página</small></div></article>
-      <article className="metric-card"><span className="metric-icon blue"><UserCog/></span><div><span className="metric-label">Equipo operativo</span><strong className="metric-value">{metrics.operations}</strong><small>Reclutadores y técnicos visibles</small></div></article>
+      <article className="metric-card metric-card-success"><span className="metric-icon success"><Users/></span><div><span className="metric-label">Usuarios registrados</span><strong className="metric-value">{metrics.total}</strong><small>Total en el sistema</small></div></article>
+      <article className="metric-card metric-card-success"><span className="metric-icon success"><UserCheck/></span><div><span className="metric-label">Activos visibles</span><strong className="metric-value">{metrics.active}</strong><small>En esta página</small></div></article>
+      <article className="metric-card metric-card-info"><span className="metric-icon info"><ShieldCheck/></span><div><span className="metric-label">Administradores</span><strong className="metric-value">{metrics.admins}</strong><small>En esta página</small></div></article>
+      <article className="metric-card metric-card-info"><span className="metric-icon info"><UserCog/></span><div><span className="metric-label">Equipo operativo</span><strong className="metric-value">{metrics.operations}</strong><small>Reclutadores y técnicos visibles</small></div></article>
     </section>
 
     {error && <div role="alert" className="alert"><span><AlertTriangle size={16}/>{error}</span><button type="button" className="btn" onClick={() => setRevision(value => value + 1)}>Reintentar</button></div>}
     {notice && <div role="status" className="alert success"><span><CheckCircle2 size={16}/>{notice}</span></div>}
 
-    {editor && <form onSubmit={submit} className="editor">
+    {editor && <form onSubmit={submit} className="editor user-editor">
       <div className="editor-heading"><div><p className="eyebrow">Datos de acceso</p><h2>{editor.id ? 'Editar usuario' : 'Nuevo usuario'}</h2></div><span className="pill">{editor.id ? `ID #${editor.id}` : 'Nueva cuenta'}</span></div>
       <div className="editor-grid">
         <label>Correo electrónico<input name="email" type="email" required maxLength={150} value={editor.email} onChange={change}/></label>
@@ -108,7 +108,7 @@ export default function UsersPage() {
       <div className="editor-actions"><button disabled={busy} className="btn btn-primary">{busy ? 'Guardando…' : 'Guardar cambios'}</button><button disabled={busy} type="button" className="btn" onClick={() => setEditor(null)}>Cancelar</button></div>
     </form>}
 
-    <section className="surface" aria-label="Directorio de usuarios">
+    <section className="surface admin-directory" aria-label="Directorio de usuarios">
       <div className="toolbar"><div className="search-field"><Search aria-hidden="true"/><input aria-label="Buscar usuarios por correo" type="search" maxLength={150} placeholder="Buscar por correo en tiempo real…" value={query} onChange={event => setQuery(event.target.value)}/></div><label className="sr-only" htmlFor="admin-role-filter">Filtrar por rol</label><select id="admin-role-filter" className="toolbar-select" value={roleFilter} onChange={event => setRoleFilter(event.target.value)}><option value="all">Todos los roles</option>{Object.entries(roleLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><label className="sr-only" htmlFor="admin-status-filter">Filtrar por estado</label><select id="admin-status-filter" className="toolbar-select" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="all">Todos los estados</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option></select><span className="count-label">{data ? `${visibleAccounts.length} visibles de ${data.total}` : 'Consultando directorio…'}</span></div>
       {!data && !error && <p role="status" className="empty-state">Cargando usuarios…</p>}
       {data && <><div className="table-scroll"><table><thead><tr>{['Usuario','Rol','Estado','Identificador','Acciones'].map(label => <th key={label}>{label}</th>)}</tr></thead><tbody>

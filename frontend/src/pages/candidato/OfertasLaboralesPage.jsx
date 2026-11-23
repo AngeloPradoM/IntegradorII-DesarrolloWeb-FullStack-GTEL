@@ -74,9 +74,9 @@ export default function JobListings() {
   if (sortBy === "salary-low") filtered.sort((a, b) => salaryVal(a) - salaryVal(b));
 
   return (
-    <div className="min-h-screen bg-app-bg text-app-primary">
+    <div className={`min-h-screen bg-app-bg text-app-primary ${isAdminPreview ? "admin-offers-preview" : ""}`}>
       {/* Search hero */}
-      <div className="bg-brand-navy px-4 py-10 dark:bg-app-surface">
+      <div className="admin-offers-hero bg-brand-navy px-4 py-10 dark:bg-app-surface">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold text-white mb-2 text-center">{isAdminPreview ? 'Supervisión de ofertas' : 'Encuentra tu próximo empleo en GTEL'}</h1>
           <p className="text-white/60 text-sm text-center mb-6">
@@ -164,7 +164,7 @@ export default function JobListings() {
       </div>
 
       {/* Results */}
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="admin-offers-results mx-auto max-w-4xl px-4 py-8">
         <div className="flex items-center justify-between mb-5">
           <div className="text-sm text-app-secondary">
             <span className="font-semibold text-app-primary">{filtered.length}</span> resultados encontrados
@@ -207,11 +207,11 @@ export default function JobListings() {
             <p className="text-sm mt-1">Intenta con otros términos de búsqueda o filtros.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="admin-offers-grid grid grid-cols-1 md:grid-cols-2 gap-4">
             {filtered.map(job => (
               <div
                 key={job.id}
-                className="group flex flex-col rounded-xl border border-app-border bg-app-surface shadow-sm transition-all hover:-translate-y-0.5 hover:border-app-border-strong hover:shadow-md"
+                className="admin-offer-card group flex flex-col rounded-xl border border-app-border bg-app-surface shadow-sm transition-all hover:-translate-y-0.5 hover:border-app-border-strong hover:shadow-md"
               >
                 <div className="p-5 flex-1">
                   <div className="flex items-start justify-between mb-3">

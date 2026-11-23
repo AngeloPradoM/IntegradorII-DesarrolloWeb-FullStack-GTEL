@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,8 +54,10 @@ public class SupportTicketController {
 
     @PostMapping("/tickets")
     @ResponseStatus(HttpStatus.CREATED)
-    public SupportTicketResponse create(@Valid @RequestBody TicketCreateRequest request, Principal principal) {
-        return service.create(request, principal.getName());
+    public SupportTicketResponse create(@Valid @RequestBody TicketCreateRequest request,
+                                        @RequestHeader(value="Idempotency-Key",required=false) String idempotencyKey,
+                                        Principal principal) {
+        return service.create(request, principal.getName(), idempotencyKey);
     }
 
     @PatchMapping("/tickets/{id}/assignment")

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS departamentos (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(80) NOT NULL UNIQUE,
   descripcion VARCHAR(200),
-  estado ENUM('activo','inactivo') DEFAULT 'activo') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  estado VARCHAR(20) NOT NULL DEFAULT 'activo') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS requerimientos_personal (
   titulo VARCHAR(150) NOT NULL,
   descripcion TEXT,
   cantidad INT DEFAULT 1,
-  estado ENUM('pendiente','aprobado','rechazado','cerrado') DEFAULT 'pendiente',
+  estado VARCHAR(20) DEFAULT 'pendiente',
   fecha_solicitud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_aprobacion TIMESTAMP NULL,
   observaciones VARCHAR(255),
@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS vacantes (
   num_vacantes INT DEFAULT 1,
   sueldo_min DECIMAL(10,2),
   sueldo_max DECIMAL(10,2),
-  tipo_jornada ENUM('full_time','part_time','por_turnos','freelance') NOT NULL,
-  modalidad ENUM('presencial','remoto','hibrido') NOT NULL,
+  tipo_jornada VARCHAR(30) NOT NULL,
+  modalidad VARCHAR(30) NOT NULL,
   sede VARCHAR(150),
   fecha_publicacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_limite_postulacion DATE,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS vacantes (
   nivel_educativo VARCHAR(80),
   experiencia_minima VARCHAR(80),
   habilidades VARCHAR(255),
-  estado ENUM('activa','pausada','cerrada') DEFAULT 'activa',
+  estado VARCHAR(20) NOT NULL DEFAULT 'activa',
   FOREIGN KEY (requerimiento_id) REFERENCES requerimientos_personal(id),
   FOREIGN KEY (departamento_id) REFERENCES departamentos(id),
   FOREIGN KEY (reclutador_id) REFERENCES usuarios(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -113,9 +113,9 @@ CREATE TABLE IF NOT EXISTS entrevistas (
   fecha DATE NOT NULL,
   hora TIME NOT NULL,
   duracion_min INT DEFAULT 30,
-  tipo ENUM('video','presencial') NOT NULL,
+  tipo VARCHAR(20) NOT NULL,
   ubicacion VARCHAR(255),
-  estado ENUM('programada','realizada','cancelada') DEFAULT 'programada',
+  estado VARCHAR(20) DEFAULT 'programada',
   FOREIGN KEY (postulacion_id) REFERENCES postulaciones(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS evaluaciones (
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS evaluaciones (
   tipo_evaluacion VARCHAR(100) NOT NULL,
   puntaje_total INT NOT NULL,
   tiempo_min INT,
-  resultado ENUM('aprobado','en_revision','no_aprobado') NOT NULL,
+  resultado VARCHAR(30) NOT NULL,
   fecha_evaluacion DATE,
   usuario_id BIGINT,
   FOREIGN KEY (postulacion_id) REFERENCES postulaciones(id),
@@ -248,6 +248,38 @@ ON DUPLICATE KEY UPDATE
   terminal = VALUES(terminal),
   descripcion = VALUES(descripcion);
 
+CREATE TABLE IF NOT EXISTS solicitud_tipos (
+  codigo VARCHAR(64) PRIMARY KEY,
+  nombre VARCHAR(120) NOT NULL,
+  descripcion VARCHAR(500) NOT NULL,
+  modulo_codigo VARCHAR(50) NOT NULL,
+  activa BOOLEAN NOT NULL DEFAULT TRUE,
+  orden_visual INT NOT NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  CONSTRAINT chk_solicitud_tipo_orden CHECK (orden_visual > 0),
+  UNIQUE KEY uk_solicitud_tipo_orden (orden_visual),
+  INDEX idx_solicitud_tipo_activa (activa,orden_visual)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO solicitud_tipos
+  (codigo,nombre,descripcion,modulo_codigo,activa,orden_visual)
+VALUES
+  ('SOL_RECUPERAR_ACCESO','Recuperar acceso','Ayuda para restablecer contraseña o recuperar el acceso','AUTH',TRUE,10),
+  ('SOL_AYUDA_CUENTA','Ayuda con mi cuenta','Orientación sobre datos y configuración de cuenta','AUTH',TRUE,20),
+  ('SOL_AYUDA_CV','Ayuda para cargar CV','Asistencia para adjuntar correctamente un currículum','CV',TRUE,30),
+  ('SOL_FORMATO_CV','Formato de archivo CV','Consultas sobre formatos y requisitos del documento','CV',TRUE,40),
+  ('SOL_PERFIL','Actualización de perfil','Orientación para modificar datos del usuario','PROFILE',TRUE,50),
+  ('SOL_PUBLICAR_OFERTA','Ayuda con ofertas','Asistencia para crear o publicar una oferta laboral','JOBS',TRUE,60),
+  ('SOL_EDITAR_OFERTA','Modificación de oferta','Orientación para actualizar una publicación','JOBS',TRUE,70),
+  ('SOL_POSTULACIONES','Consulta de postulaciones','Ayuda para comprender estados y seguimiento','APPLICATIONS',TRUE,80),
+  ('SOL_NOTIFICACIONES','Configuración de notificaciones','Asistencia para revisar notificaciones','NOTIFICATIONS',TRUE,90),
+  ('SOL_USO_SISTEMA','Orientación general','Consultas sobre funcionalidades de GTEL Talento','GENERAL',TRUE,100),
+  ('SOL_OTROS','Otra solicitud','Necesidad individual que requiere clasificación','OTHER',TRUE,110)
+ON DUPLICATE KEY UPDATE
+  nombre=VALUES(nombre),descripcion=VALUES(descripcion),modulo_codigo=VALUES(modulo_codigo),
+  activa=VALUES(activa),orden_visual=VALUES(orden_visual);
+
 CREATE TABLE IF NOT EXISTS tickets_soporte (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   codigo VARCHAR(20) NULL UNIQUE,
@@ -258,7 +290,14 @@ CREATE TABLE IF NOT EXISTS tickets_soporte (
   categoria VARCHAR(80) NOT NULL,
   subcategoria VARCHAR(100) NOT NULL,
   tipo_atencion ENUM('SOLICITUD','INCIDENTE') NOT NULL DEFAULT 'INCIDENTE',
+  solicitud_tipo_codigo VARCHAR(64) NULL,
+  incidente_tipo_codigo VARCHAR(64) NULL,
+  canal_origen VARCHAR(30) NULL,
   prioridad ENUM('BAJA','MEDIA','ALTA') NOT NULL DEFAULT 'MEDIA',
+  sla_politica_id BIGINT NULL,
+  sla_respuesta_limite_at TIMESTAMP NULL,
+  sla_resolucion_limite_at TIMESTAMP NULL,
+  primera_atencion_at TIMESTAMP NULL,
   justificacion_prioridad VARCHAR(1000) NOT NULL,
   descripcion VARCHAR(2000) NOT NULL,
   estado VARCHAR(30) NOT NULL DEFAULT 'NUEVO',
@@ -272,10 +311,42 @@ CREATE TABLE IF NOT EXISTS tickets_soporte (
   resolved_at TIMESTAMP NULL,
   FOREIGN KEY (solicitante_id) REFERENCES usuarios(id),
   FOREIGN KEY (tecnico_id) REFERENCES usuarios(id),
+  CONSTRAINT fk_ticket_solicitud_tipo FOREIGN KEY (solicitud_tipo_codigo) REFERENCES solicitud_tipos(codigo),
   CONSTRAINT fk_ticket_estado_catalogo FOREIGN KEY (estado) REFERENCES ticket_soporte_estados(codigo),
+  CONSTRAINT chk_ticket_tipo_estructurado CHECK (
+    (solicitud_tipo_codigo IS NULL AND incidente_tipo_codigo IS NULL)
+    OR (tipo_atencion='SOLICITUD' AND solicitud_tipo_codigo IS NOT NULL AND incidente_tipo_codigo IS NULL)
+    OR (tipo_atencion='INCIDENTE' AND solicitud_tipo_codigo IS NULL AND incidente_tipo_codigo IS NOT NULL)),
+  CONSTRAINT chk_ticket_canal_origen CHECK (
+    canal_origen IS NULL OR canal_origen IN ('WEB','MONITOREO','TECNICO','INTEGRACION')),
   INDEX idx_ticket_solicitante (solicitante_id, created_at),
   INDEX idx_ticket_tecnico (tecnico_id, estado),
-  INDEX idx_ticket_estado (estado, prioridad)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  INDEX idx_ticket_estado (estado, prioridad),
+  INDEX idx_ticket_solicitud_tipo (solicitud_tipo_codigo,created_at),
+  INDEX idx_ticket_incidente_tipo (incidente_tipo_codigo,created_at),
+  INDEX idx_ticket_canal_origen (canal_origen,created_at),
+  INDEX idx_ticket_sla_respuesta (estado,sla_respuesta_limite_at),
+  INDEX idx_ticket_sla_resolucion (estado,sla_resolucion_limite_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS ticket_creacion_idempotencia (
+  solicitante_id BIGINT NOT NULL,
+  clave_idempotencia VARCHAR(100) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  solicitud_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  ticket_id BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP NULL,
+  PRIMARY KEY (solicitante_id,clave_idempotencia),
+  UNIQUE KEY uk_ticket_idempotencia_ticket (ticket_id),
+  INDEX idx_ticket_idempotencia_fecha (created_at),
+  CONSTRAINT fk_ticket_idempotencia_solicitante FOREIGN KEY (solicitante_id)
+    REFERENCES usuarios(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ticket_idempotencia_ticket FOREIGN KEY (ticket_id)
+    REFERENCES tickets_soporte(id) ON DELETE CASCADE,
+  CONSTRAINT chk_ticket_idempotencia_hash CHECK (
+    solicitud_hash REGEXP '^[0-9a-f]{64}$'
+  )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 CREATE TABLE IF NOT EXISTS solicitudes_cambio (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -415,6 +486,11 @@ ON DUPLICATE KEY UPDATE
   horas_resolucion = VALUES(horas_resolucion),
   descripcion = VALUES(descripcion),
   activo = VALUES(activo);
+
+ALTER TABLE tickets_soporte
+  ADD CONSTRAINT fk_ticket_sla_politica FOREIGN KEY (sla_politica_id)
+    REFERENCES ticket_sla_politicas(id);
+
 INSERT INTO roles (id, nombre, descripcion) VALUES
   (1, 'CANDIDATO', 'Postulante'),
   (2, 'RECLUTADOR', 'Gestión de reclutamiento'),
@@ -473,3 +549,314 @@ CREATE TABLE IF NOT EXISTS db_migration_history (
   applied_by VARCHAR(150) NOT NULL,
   result ENUM('APPLIED','BASELINE','FAILED') NOT NULL,
   notes VARCHAR(1000) NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Configuración de clasificación, SLA y asignación de incidentes.
+CREATE TABLE IF NOT EXISTS incidente_categorias (
+  codigo VARCHAR(50) PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  modulo_codigo VARCHAR(50) NOT NULL UNIQUE,
+  descripcion VARCHAR(500) NULL,
+  activa BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO incidente_categorias(codigo,nombre,modulo_codigo,descripcion,activa) VALUES
+  ('ACCESO_AUTENTICACION','Acceso y autenticación','AUTH','Inicio de sesión, permisos y recuperación de acceso',TRUE),
+  ('CARGA_CV','Carga de CV','CV','Carga, lectura y descarga de currículums',TRUE),
+  ('POSTULACIONES','Postulaciones','APPLICATIONS','Registro y seguimiento de postulaciones',TRUE),
+  ('OFERTAS_LABORALES','Ofertas laborales','JOBS','Publicación y administración de ofertas',TRUE),
+  ('DATOS_MYSQL','Datos y MySQL','DATABASE','Persistencia, consultas e integridad de datos',TRUE),
+  ('RENDIMIENTO_SATURACION','Rendimiento y saturación','PERFORMANCE','Latencia, capacidad y consumo de recursos',TRUE),
+  ('DISPONIBILIDAD_PLATAFORMA','Disponibilidad de la plataforma','AVAILABILITY','Interrupciones generales o parciales del servicio',TRUE),
+  ('NOTIFICACIONES','Notificaciones','NOTIFICATIONS','Entrega y visualización de notificaciones',TRUE),
+  ('INTERFAZ','Interfaz','UI','Presentación, accesibilidad y comportamiento visual',TRUE),
+  ('OTROS','Otros','OTHER','Incidentes que requieren clasificación administrativa',TRUE)
+ON DUPLICATE KEY UPDATE nombre=VALUES(nombre),modulo_codigo=VALUES(modulo_codigo),descripcion=VALUES(descripcion),activa=VALUES(activa);
+
+CREATE TABLE IF NOT EXISTS incidente_tipos_problema (
+  codigo VARCHAR(64) PRIMARY KEY,
+  categoria_codigo VARCHAR(50) NOT NULL,
+  nombre VARCHAR(120) NOT NULL,
+  descripcion VARCHAR(500) NOT NULL,
+  activa BOOLEAN NOT NULL DEFAULT TRUE,
+  orden_visual INT NOT NULL,
+  created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  CONSTRAINT fk_incidente_tipo_categoria FOREIGN KEY (categoria_codigo)
+    REFERENCES incidente_categorias(codigo),
+  CONSTRAINT chk_incidente_tipo_orden CHECK (orden_visual > 0),
+  UNIQUE KEY uk_incidente_tipo_categoria_orden (categoria_codigo,orden_visual),
+  UNIQUE KEY uk_incidente_tipo_codigo_categoria (codigo,categoria_codigo),
+  INDEX idx_incidente_tipo_activo (activa,categoria_codigo,orden_visual)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO incidente_tipos_problema
+  (codigo,categoria_codigo,nombre,descripcion,activa,orden_visual)
+VALUES
+  ('INC_ERROR_LOGIN','ACCESO_AUTENTICACION','Error técnico de inicio de sesión','Fallo técnico al iniciar sesión.',TRUE,10),
+  ('INC_PERMISOS','ACCESO_AUTENTICACION','Permisos incorrectos','Permisos incorrectos que bloquean funciones.',TRUE,20),
+  ('INC_CV_SUBIDA','CARGA_CV','Error al subir CV','Error técnico al subir un CV válido.',TRUE,10),
+  ('INC_CV_DESCARGA','CARGA_CV','Error al descargar CV','Error técnico al descargar currículums.',TRUE,20),
+  ('INC_DATOS_NO_GUARDAN','DATOS_MYSQL','Datos no guardados','La información no se guarda correctamente.',TRUE,10),
+  ('INC_DATOS_NO_CARGAN','DATOS_MYSQL','Datos no disponibles','Los registros no aparecen o no pueden consultarse.',TRUE,20),
+  ('INC_PLATAFORMA_CAIDA','DISPONIBILIDAD_PLATAFORMA','Plataforma inaccesible','La plataforma se encuentra completamente inaccesible.',TRUE,10),
+  ('INC_MODULO_CAIDO','DISPONIBILIDAD_PLATAFORMA','Módulo fuera de servicio','Un módulo deja de responder.',TRUE,20),
+  ('INC_FORMULARIO','INTERFAZ','Formulario inoperativo','Un formulario falla o bloquea una operación.',TRUE,10),
+  ('INC_PANTALLA_BLANCA','INTERFAZ','Pantalla en blanco','Pantalla en blanco o error de renderizado.',TRUE,20),
+  ('INC_NOTIFICACIONES','NOTIFICACIONES','Fallo de notificaciones','Fallo técnico en la entrega de notificaciones.',TRUE,10),
+  ('INC_OFERTAS_GUARDADO','OFERTAS_LABORALES','Error al guardar ofertas','Error al guardar o publicar ofertas laborales.',TRUE,10),
+  ('INC_POSTULACIONES','POSTULACIONES','Fallo de postulaciones','Fallo en el registro o consulta de postulaciones.',TRUE,10),
+  ('INC_LENTITUD','RENDIMIENTO_SATURACION','Lentitud anormal','La plataforma responde con lentitud anormal.',TRUE,10),
+  ('INC_TIEMPO_ESPERA','RENDIMIENTO_SATURACION','Tiempo de espera excedido','Una operación excede el tiempo de espera.',TRUE,20),
+  ('INC_OTROS','OTROS','Otro problema técnico','Problema técnico que requiere revisión y clasificación.',TRUE,10)
+ON DUPLICATE KEY UPDATE
+  categoria_codigo=VALUES(categoria_codigo),nombre=VALUES(nombre),descripcion=VALUES(descripcion),
+  activa=VALUES(activa),orden_visual=VALUES(orden_visual);
+
+ALTER TABLE tickets_soporte
+  ADD CONSTRAINT fk_ticket_incidente_tipo FOREIGN KEY (incidente_tipo_codigo)
+    REFERENCES incidente_tipos_problema(codigo);
+
+CREATE TABLE IF NOT EXISTS incidente_sla_politicas (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  prioridad ENUM('P1','P2','P3','P4') NOT NULL UNIQUE,
+  minutos_primera_atencion INT NOT NULL,
+  minutos_resolucion INT NOT NULL,
+  descripcion VARCHAR(500) NOT NULL,
+  activa BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_incidente_sla_atencion CHECK (minutos_primera_atencion > 0),
+  CONSTRAINT chk_incidente_sla_resolucion CHECK (minutos_resolucion >= minutos_primera_atencion)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO incidente_sla_politicas(prioridad,minutos_primera_atencion,minutos_resolucion,descripcion,activa) VALUES
+  ('P1',15,240,'Crítica: atención en 15 minutos y recuperación objetivo en 4 horas',TRUE),
+  ('P2',30,480,'Alta: atención en 30 minutos y recuperación objetivo en 8 horas',TRUE),
+  ('P3',240,1440,'Media: atención en 4 horas y recuperación objetivo en 24 horas',TRUE),
+  ('P4',480,4320,'Baja: atención en 8 horas y recuperación objetivo en 72 horas',TRUE)
+ON DUPLICATE KEY UPDATE minutos_primera_atencion=VALUES(minutos_primera_atencion),minutos_resolucion=VALUES(minutos_resolucion),descripcion=VALUES(descripcion),activa=VALUES(activa);
+
+CREATE TABLE IF NOT EXISTS incidente_asignacion_reglas (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  categoria_codigo VARCHAR(50) NOT NULL,
+  prioridad ENUM('P1','P2','P3','P4') NULL,
+  prioridad_clave VARCHAR(2) GENERATED ALWAYS AS (COALESCE(prioridad,'*')) STORED,
+  tecnico_id BIGINT NOT NULL,
+  precedencia SMALLINT NOT NULL DEFAULT 100,
+  activa BOOLEAN NOT NULL DEFAULT TRUE,
+  vigencia_desde TIMESTAMP NULL,
+  vigencia_hasta TIMESTAMP NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_incidente_regla_categoria FOREIGN KEY (categoria_codigo) REFERENCES incidente_categorias(codigo),
+  CONSTRAINT fk_incidente_regla_tecnico FOREIGN KEY (tecnico_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  CONSTRAINT chk_incidente_regla_precedencia CHECK (precedencia > 0),
+  CONSTRAINT chk_incidente_regla_vigencia CHECK (vigencia_hasta IS NULL OR vigencia_desde IS NULL OR vigencia_hasta > vigencia_desde),
+  UNIQUE KEY uk_incidente_regla (categoria_codigo,prioridad_clave,tecnico_id),
+  INDEX idx_incidente_regla_busqueda (categoria_codigo,prioridad,activa,precedencia)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO incidente_asignacion_reglas(categoria_codigo,prioridad,tecnico_id,precedencia,activa)
+SELECT c.codigo,NULL,u.id,100,TRUE FROM incidente_categorias c CROSS JOIN usuarios u
+JOIN roles r ON r.id=u.rol_id
+WHERE c.activa=TRUE AND u.estado='activo' AND r.nombre='TECNICO'
+ON DUPLICATE KEY UPDATE activa=TRUE,updated_at=CURRENT_TIMESTAMP;
+
+-- Gestión de incidentes de producción P1-P4.
+CREATE TABLE IF NOT EXISTS incidentes_produccion (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  codigo VARCHAR(24) NULL UNIQUE,
+  titulo VARCHAR(180) NOT NULL,
+  componente VARCHAR(100) NOT NULL,
+  tipo VARCHAR(80) NOT NULL,
+  modulo_codigo VARCHAR(50) NULL,
+  categoria_sugerida VARCHAR(50) NULL,
+  categoria_codigo VARCHAR(50) NULL,
+  incidente_tipo_codigo VARCHAR(64) NULL,
+  categoria_motivo VARCHAR(800) NULL,
+  fuente ENUM('MANUAL','MONITOREO') NOT NULL DEFAULT 'MANUAL',
+  canal_reporte ENUM('WEB','TELEFONO','MONITOREO','INTEGRACION') NOT NULL DEFAULT 'WEB',
+  reportante_detalle VARCHAR(200) NULL,
+  clave_deduplicacion CHAR(64) NULL UNIQUE,
+  descripcion TEXT NOT NULL,
+  alcance ENUM('LIMITADO','MULTIPLE','GENERAL') NOT NULL,
+  impacto ENUM('BAJO','MEDIO','ALTO','CRITICO') NOT NULL,
+  urgencia ENUM('BAJA','MEDIA','ALTA','INMEDIATA') NOT NULL,
+  proceso_esencial BOOLEAN NOT NULL DEFAULT FALSE,
+  alternativa_disponible BOOLEAN NOT NULL DEFAULT TRUE,
+  servicio_bloqueado BOOLEAN NOT NULL DEFAULT FALSE,
+  prioridad_sugerida ENUM('P1','P2','P3','P4') NOT NULL,
+  prioridad ENUM('P1','P2','P3','P4') NULL,
+  estado ENUM('REGISTRADO','CLASIFICADO','ASIGNADO','EN_INVESTIGACION','EN_MITIGACION','SERVICIO_RECUPERADO','VERIFICADO','CERRADO') NOT NULL DEFAULT 'REGISTRADO',
+  reportado_por BIGINT NULL,
+  registrado_por BIGINT NULL,
+  responsable_id BIGINT NULL,
+  asignacion_fuente ENUM('PENDIENTE','MANUAL','AUTOMATICA') NOT NULL DEFAULT 'PENDIENTE',
+  regla_asignacion_id BIGINT NULL,
+  asignado_at TIMESTAMP NULL,
+  verificado_por BIGINT NULL,
+  detectado_at TIMESTAMP NOT NULL,
+  iniciado_at TIMESTAMP NULL,
+  primera_atencion_at TIMESTAMP NULL,
+  recuperado_at TIMESTAMP NULL,
+  verificado_at TIMESTAMP NULL,
+  cerrado_at TIMESTAMP NULL,
+  solucion_aplicada TEXT NULL,
+  causa_raiz TEXT NULL,
+  aprendizaje TEXT NULL,
+  falla_repetida BOOLEAN NOT NULL DEFAULT FALSE,
+  incidente_previo_id BIGINT NULL,
+  sla_primera_atencion_at TIMESTAMP NULL,
+  sla_resolucion_at TIMESTAMP NULL,
+  sla_politica_id BIGINT NULL,
+  version INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_incidente_reportante FOREIGN KEY (reportado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidente_registrador FOREIGN KEY (registrado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidente_responsable FOREIGN KEY (responsable_id) REFERENCES usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidente_verificador FOREIGN KEY (verificado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidente_categoria_sugerida FOREIGN KEY (categoria_sugerida) REFERENCES incidente_categorias(codigo),
+  CONSTRAINT fk_incidente_categoria FOREIGN KEY (categoria_codigo) REFERENCES incidente_categorias(codigo),
+  CONSTRAINT fk_incidente_tipo_categoria_compuesta FOREIGN KEY (incidente_tipo_codigo,categoria_codigo)
+    REFERENCES incidente_tipos_problema(codigo,categoria_codigo),
+  CONSTRAINT fk_incidente_sla_politica FOREIGN KEY (sla_politica_id) REFERENCES incidente_sla_politicas(id),
+  CONSTRAINT fk_incidente_previo FOREIGN KEY (incidente_previo_id) REFERENCES incidentes_produccion(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidente_regla_asignacion FOREIGN KEY (regla_asignacion_id) REFERENCES incidente_asignacion_reglas(id) ON DELETE SET NULL,
+  CONSTRAINT chk_incidente_tipo_requiere_categoria CHECK (
+    incidente_tipo_codigo IS NULL OR categoria_codigo IS NOT NULL),
+  INDEX idx_incidente_estado_prioridad (estado, prioridad),
+  INDEX idx_incidente_responsable (responsable_id, estado),
+  INDEX idx_incidente_componente (componente, detectado_at),
+  INDEX idx_incidente_deteccion (detectado_at),
+  INDEX idx_incidente_categoria_fecha (categoria_codigo,detectado_at),
+  INDEX idx_incidente_tipo_fecha (incidente_tipo_codigo,detectado_at),
+  INDEX idx_incidente_sla_politica (sla_politica_id,detectado_at),
+  INDEX idx_incidente_sla_resolucion (estado,sla_resolucion_at),
+  INDEX idx_incidente_repetido (falla_repetida,detectado_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS incidente_escalamientos (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  incidente_id BIGINT NOT NULL,
+  escalado_por BIGINT NULL,
+  escalado_a BIGINT NULL,
+  motivo VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  atendido_at TIMESTAMP NULL,
+  resuelto_at TIMESTAMP NULL,
+  resuelto_por BIGINT NULL,
+  resolucion VARCHAR(1000) NULL,
+  incidente_activo_id BIGINT GENERATED ALWAYS AS (CASE WHEN resuelto_at IS NULL THEN incidente_id ELSE NULL END) VIRTUAL,
+  CONSTRAINT fk_incidente_escalamiento_incidente FOREIGN KEY (incidente_id) REFERENCES incidentes_produccion(id) ON DELETE CASCADE,
+  CONSTRAINT fk_incidente_escalamiento_actor FOREIGN KEY (escalado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidente_escalamiento_destino FOREIGN KEY (escalado_a) REFERENCES usuarios(id) ON DELETE SET NULL,
+  CONSTRAINT fk_incidente_escalamiento_resolutor FOREIGN KEY (resuelto_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  UNIQUE KEY uk_incidente_escalamiento_activo (incidente_activo_id),
+  INDEX idx_incidente_escalamiento_historial (incidente_id,created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS incidente_historial (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  incidente_id BIGINT NOT NULL,
+  actor_id BIGINT NULL,
+  actor_email VARCHAR(150) NOT NULL,
+  estado_anterior VARCHAR(40) NULL,
+  estado_nuevo VARCHAR(40) NOT NULL,
+  detalle VARCHAR(1000) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_incidente_historial_incidente FOREIGN KEY (incidente_id) REFERENCES incidentes_produccion(id) ON DELETE CASCADE,
+  CONSTRAINT fk_incidente_historial_actor FOREIGN KEY (actor_id) REFERENCES usuarios(id) ON DELETE SET NULL,
+  INDEX idx_incidente_historial (incidente_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS incidente_actividades (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  incidente_id BIGINT NOT NULL,
+  actor_id BIGINT NULL,
+  actor_email VARCHAR(150) NOT NULL,
+  tipo ENUM('DIAGNOSTICO','MITIGACION','EVIDENCIA','CAUSA','RESOLUCION','PREVENCION','NOTA') NOT NULL,
+  detalle TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_incidente_actividad_incidente FOREIGN KEY (incidente_id) REFERENCES incidentes_produccion(id) ON DELETE CASCADE,
+  CONSTRAINT fk_incidente_actividad_actor FOREIGN KEY (actor_id) REFERENCES usuarios(id) ON DELETE SET NULL,
+  INDEX idx_incidente_actividad (incidente_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS incidente_ticket (
+  incidente_id BIGINT NOT NULL,
+  ticket_id BIGINT NOT NULL,
+  tipo_relacion ENUM('ORIGEN','AFECTADO','RELACIONADO') NOT NULL DEFAULT 'RELACIONADO',
+  vinculado_por BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (incidente_id, ticket_id),
+  CONSTRAINT fk_incidente_ticket_incidente FOREIGN KEY (incidente_id) REFERENCES incidentes_produccion(id) ON DELETE CASCADE,
+  CONSTRAINT fk_incidente_ticket_ticket FOREIGN KEY (ticket_id) REFERENCES tickets_soporte(id) ON DELETE CASCADE,
+  CONSTRAINT fk_incidente_ticket_actor FOREIGN KEY (vinculado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  INDEX idx_incidente_ticket_ticket (ticket_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS incidente_cambio (
+  incidente_id BIGINT NOT NULL,
+  solicitud_cambio_id BIGINT NOT NULL,
+  proposito ENUM('MITIGACION','CORRECCION','PREVENCION') NOT NULL,
+  vinculado_por BIGINT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (incidente_id, solicitud_cambio_id),
+  CONSTRAINT fk_incidente_cambio_incidente FOREIGN KEY (incidente_id) REFERENCES incidentes_produccion(id) ON DELETE CASCADE,
+  CONSTRAINT fk_incidente_cambio_solicitud FOREIGN KEY (solicitud_cambio_id) REFERENCES solicitudes_cambio(id) ON DELETE CASCADE,
+  CONSTRAINT fk_incidente_cambio_actor FOREIGN KEY (vinculado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  INDEX idx_incidente_cambio_solicitud (solicitud_cambio_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Vista operativa del Control de Incidentes. Los tiempos se calculan para evitar
+-- duplicar valores que podrían quedar desactualizados en la tabla principal.
+CREATE OR REPLACE VIEW vw_control_incidentes AS
+SELECT
+  i.codigo AS codigo,
+  i.detectado_at AS fecha_hora_deteccion,
+  COALESCE(rep.email,i.reportante_detalle,'Sin identificar') AS reportado_por,
+  i.descripcion AS descripcion,
+  c.nombre AS categoria,
+  COALESCE(i.prioridad,i.prioridad_sugerida) AS prioridad,
+  resp.email AS responsable,
+  i.estado AS estado,
+  i.primera_atencion_at AS fecha_hora_primera_atencion,
+  i.cerrado_at AS fecha_hora_cierre,
+  i.solucion_aplicada AS solucion_aplicada,
+  CONCAT_WS('\n',i.causa_raiz,i.aprendizaje) AS causa_y_aprendizaje,
+  i.falla_repetida AS falla_repetida,
+  CASE WHEN i.primera_atencion_at IS NULL THEN NULL
+       ELSE ROUND(TIMESTAMPDIFF(MINUTE,i.detectado_at,i.primera_atencion_at)/60,2)
+  END AS horas_hasta_primera_atencion,
+  CASE WHEN i.recuperado_at IS NULL THEN NULL
+       ELSE ROUND(TIMESTAMPDIFF(MINUTE,i.detectado_at,i.recuperado_at)/60,2)
+  END AS horas_hasta_solucion,
+  CASE WHEN sla.minutos_resolucion IS NULL THEN NULL
+       ELSE ROUND(sla.minutos_resolucion/60,2)
+  END AS tiempo_limite_h,
+  CASE WHEN i.sla_resolucion_at IS NULL THEN NULL
+       WHEN COALESCE(i.recuperado_at,CURRENT_TIMESTAMP) > i.sla_resolucion_at THEN TRUE
+       ELSE FALSE
+  END AS vencido
+FROM incidentes_produccion i
+LEFT JOIN usuarios rep ON rep.id=i.reportado_por
+LEFT JOIN usuarios resp ON resp.id=i.responsable_id
+LEFT JOIN incidente_categorias c ON c.codigo=i.categoria_codigo
+LEFT JOIN incidente_sla_politicas sla ON sla.id=i.sla_politica_id;
+
+-- La instalación consolidada ya contiene las estructuras de 015 a 020.
+INSERT INTO db_migration_history
+  (version,filename,checksum_sha256,applied_by,result,notes)
+VALUES
+  ('015','015_production_incidents.sql','e2ad73827346f44b24b5e1bf114b9be386d4fbc7a717c632db4afa3d43337ae0',CURRENT_USER(),'BASELINE','Estructura incluida en el esquema consolidado'),
+  ('016','016_incident_reporting.sql','6216076ccb96a52b8632641d6f6d746a25dcf0d0b2220d6ef0be8af68fc31b9b',CURRENT_USER(),'BASELINE','Campos de reporte incluidos en el esquema consolidado'),
+  ('017','017_helpdesk_consolidation.sql','f8da9263d043bd551df82a859146b7f7c5fa22084d33b4a2309e0b280e4781ba',CURRENT_USER(),'BASELINE','Catálogos y referencias de Mesa de Ayuda incluidos'),
+  ('018','018_helpdesk_catalog_seed.sql','8c8b601dd9bc18b723e506811728b059232fc5e3b57b2324e66c78ee38ca5d0',CURRENT_USER(),'BASELINE','Catálogos SOL e INC incluidos'),
+  ('019','019_support_ticket_idempotency.sql','17f99aab91a3bc11bd7dd883c3a703ec403f044941da1b9505d524dc8e8c4207',CURRENT_USER(),'BASELINE','Idempotencia de tickets incluida'),
+  ('020','020_incident_control_consolidation.sql','679a6a4e9e3c6a56fe918f2112149a6d36aa9d1829847bd9cbefabf7ee79a761',CURRENT_USER(),'BASELINE','Control operativo de incidentes y vista de seguimiento incluidos')
+ON DUPLICATE KEY UPDATE
+  filename=VALUES(filename),checksum_sha256=VALUES(checksum_sha256),notes=VALUES(notes);

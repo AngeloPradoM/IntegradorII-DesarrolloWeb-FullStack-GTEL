@@ -131,7 +131,7 @@ export default function CandidateDirectory() {
       <DataState loading={loading} error={error} retry={retry} />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="recruiter-page-header">
         <div>
           <h1 className="recruiter-title text-xl">Pipeline de Candidatos</h1>
           <p className="recruiter-copy text-sm">

@@ -93,7 +93,10 @@ export default function ToastNotifications() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => dismissToast(toast.toastId)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    dismissToast(toast.toastId);
+                  }}
                   className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                   aria-label="Cerrar notificación"
                 >

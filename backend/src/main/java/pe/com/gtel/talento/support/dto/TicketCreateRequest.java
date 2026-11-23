@@ -11,5 +11,13 @@ public record TicketCreateRequest(
     @NotBlank @Pattern(regexp="SOLICITUD|INCIDENTE") String attentionType,
     @NotBlank @Pattern(regexp="BAJA|MEDIA|ALTA") String priority,
     @NotBlank @Size(max=2000) String description,
-    @NotBlank @Size(max=1000) String priorityJustification
+    @NotBlank @Size(max=1000) String priorityJustification,
+    @Size(max=64) String requestTypeCode,
+    @Size(max=64) String incidentTypeCode,
+    @Pattern(regexp="WEB|MONITOREO|TECNICO|INTEGRACION") String originChannel,
+    @Pattern(regexp="UN_USUARIO|VARIOS_USUARIOS|SERVICIO_GENERAL") String scope,
+    @Pattern(regexp="BAJO|MEDIO|ALTO") String impact,
+    @Pattern(regexp="BAJA|MEDIA|ALTA") String urgency,
+    Boolean blocksWork,
+    @Pattern(regexp="PRIMERA_VEZ|INTERMITENTE|RECURRENTE") String frequency
 ) {}

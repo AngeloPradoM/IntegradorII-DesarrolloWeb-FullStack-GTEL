@@ -201,9 +201,9 @@ export default function RequerimientosPage() {
   const countRechazado = requirements.filter((r) => r.status === "rechazado").length;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="recruiter-page p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="recruiter-page-header">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold text-[#1E293B] dark:text-slate-100">Requerimientos de Personal</h1>
@@ -218,16 +218,16 @@ export default function RequerimientosPage() {
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm"
+          className="recruiter-action-primary"
         >
           <Plus className="w-4 h-4" />
-          + Solicitar Personal
+          Solicitar Personal
         </button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3">
+        <div className="recruiter-card p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300">
             <FileCheck2 className="w-5 h-5" />
           </div>
@@ -237,7 +237,7 @@ export default function RequerimientosPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3">
+        <div className="recruiter-card p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
             <Clock className="w-5 h-5" />
           </div>
@@ -247,7 +247,7 @@ export default function RequerimientosPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3">
+        <div className="recruiter-card p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="w-5 h-5" />
           </div>
@@ -257,7 +257,7 @@ export default function RequerimientosPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3">
+        <div className="recruiter-card p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center text-red-600 dark:text-red-400">
             <XCircle className="w-5 h-5" />
           </div>
@@ -269,7 +269,7 @@ export default function RequerimientosPage() {
       </div>
 
       {/* Filters and Search Bar */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="recruiter-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {["todos", "pendiente", "aprobado", "rechazado"].map((st) => (
             <button
@@ -299,7 +299,7 @@ export default function RequerimientosPage() {
       </div>
 
       {/* Main Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="recruiter-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
