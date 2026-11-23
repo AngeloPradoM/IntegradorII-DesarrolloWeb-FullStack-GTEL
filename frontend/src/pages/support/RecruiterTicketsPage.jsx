@@ -5,6 +5,7 @@ import { listProductionIncidentsLinkedToMyTickets } from '../../services/inciden
 import { createChangeRequest, downloadChangeDocument, downloadChangeTemplate, listChangeRequests, validateChangeExecution } from '../../services/changeManagementService';
 import { classifyRecruiterTicket } from '../../utils/ticketClassification';
 import { formatIncidentDate } from '../../utils/incidentUi';
+import { useOperationNotice } from '../../context/NotificationContext';
 
 const ticketInitial = { requestTypeCode: '', incidentTypeCode: '', title: '', description: '', scope: '', impact: '', urgency: '', blocksWork: '', frequency: '' };
 const changeInitial = { title: '', type: 'NORMAL', category: 'SOFTWARE', priority: 'MEDIA', impact: 'MEDIO', urgency: 'MEDIA', description: '', justification: '', affectedAreas: '' };
@@ -23,6 +24,7 @@ const ticketSlaTone = ticket => {
 };
 
 export default function RecruiterTicketsPage(){
+  const notifyOperation=useOperationNotice();
   const [mode,setMode]=useState('SOLICITUD');
   const [form,setForm]=useState(ticketInitial),[changeForm,setChangeForm]=useState(changeInitial),[document,setDocument]=useState(null),[fileKey,setFileKey]=useState(0);
   const [tickets,setTickets]=useState([]),[changes,setChanges]=useState([]),[linkedIncidents,setLinkedIncidents]=useState([]),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -36,20 +38,32 @@ export default function RecruiterTicketsPage(){
   useEffect(()=>{const controller=new AbortController();listHelpdeskCatalogs(controller.signal).then(value=>setCatalog({requestTypes:Array.isArray(value?.requestTypes)?value.requestTypes:[],incidentProblemTypes:Array.isArray(value?.incidentProblemTypes)?value.incidentProblemTypes:[]})).catch(e=>{if(e.name!=='AbortError')setError(e.message);}).finally(()=>setCatalogLoading(false));return()=>controller.abort();},[]);
   const changeTicket=e=>{const {name,value}=e.target;setReviewing(false);setIdempotencyKey(null);setForm(previous=>({...previous,[name]:value}));};
   const reviewTicket=e=>{e.preventDefault();if(!classification.priority||!selectedRequest)return;setError('');setIdempotencyKey(globalThis.crypto.randomUUID());setReviewing(true);};
-  const submitTicket=async()=>{if(busy||!classification.priority||!selectedRequest||!idempotencyKey)return;setBusy(true);setError('');setNotice('');try{const incidentMode=mode==='INCIDENTE';const created=await createSupportTicket({title:form.title,category:incidentMode?selectedRequest.categoryCode:selectedRequest.moduleCode,subcategory:selectedRequest.name,attentionType:mode,priority:classification.priority,description:form.description,priorityJustification:classification.explanation,requestTypeCode:incidentMode?null:selectedRequest.code,incidentTypeCode:incidentMode?selectedRequest.code:null,originChannel:'WEB',scope:form.scope,impact:form.impact,urgency:form.urgency,blocksWork:form.blocksWork==='SI',frequency:form.frequency},idempotencyKey);setTickets(previous=>previous.some(item=>item.id===created.id)?previous:[created,...previous]);setForm(ticketInitial);setReviewing(false);setIdempotencyKey(null);setNotice(`${created.code} fue registrado con prioridad ${evaluationLabel(created.priority)}.`);}catch(failure){setError(failure.message);}finally{setBusy(false);}};
-  const submitChange=async e=>{e.preventDefault();if(busy)return;if(!document){setError('Descarga, completa y adjunta el formato RFC en DOCX.');return;}setBusy(true);setError('');setNotice('');try{const created=await createChangeRequest(changeForm,document);setChanges(previous=>[created,...previous]);setChangeForm(changeInitial);setDocument(null);setFileKey(value=>value+1);setNotice(`${created.code} fue registrada y notificada a soporte técnico y administración.`);}catch(failure){setError(failure.message);}finally{setBusy(false);}};
+  const refreshTicketsAfterCreate=async created=>{try{const rows=await listSupportTickets();if(!Array.isArray(rows))throw new Error('La lista de tickets no tiene un formato válido.');setTickets(rows);return true;}catch{setTickets(previous=>previous.some(item=>item.id===created.id)?previous:[created,...previous]);return false;}};
+  const submitTicket=async()=>{
+    if(busy||!classification.priority||!selectedRequest||!idempotencyKey)return;
+    setBusy(true);setError('');setNotice('');
+    try{
+      const incidentMode=mode==='INCIDENTE';
+      const created=await createSupportTicket({title:form.title,category:incidentMode?selectedRequest.categoryCode:selectedRequest.moduleCode,subcategory:selectedRequest.name,attentionType:mode,priority:classification.priority,description:form.description,priorityJustification:classification.explanation,requestTypeCode:incidentMode?null:selectedRequest.code,incidentTypeCode:incidentMode?selectedRequest.code:null,originChannel:'WEB',scope:form.scope,impact:form.impact,urgency:form.urgency,blocksWork:form.blocksWork==='SI',frequency:form.frequency},idempotencyKey);
+      const refreshed=await refreshTicketsAfterCreate(created);
+      setForm(ticketInitial);setReviewing(false);setIdempotencyKey(null);
+      const message=`${created.code} fue registrado con prioridad ${evaluationLabel(created.priority)}.${refreshed?'':' El ticket fue confirmado; el listado completo se actualizará al recargar.'}`;setNotice(message);notifyOperation(message);
+    }catch(failure){setError(failure.message);}finally{setBusy(false);}
+  };
+  const submitChange=async e=>{e.preventDefault();if(busy)return;if(!document){setError('Descarga, completa y adjunta el formato RFC en DOCX.');return;}setBusy(true);setError('');setNotice('');try{const created=await createChangeRequest(changeForm,document);setChanges(previous=>[created,...previous]);setChangeForm(changeInitial);setDocument(null);setFileKey(value=>value+1);const message=`${created.code} fue registrada y notificada a soporte técnico y administración.`;setNotice(message);notifyOperation(message);}catch(failure){setError(failure.message);}finally{setBusy(false);}};
   const selectDocument=e=>{const selected=e.target.files?.[0]||null;setError('');if(!selected){setDocument(null);return;}if(!selected.name.toLowerCase().endsWith('.docx')){setDocument(null);setFileKey(value=>value+1);setError('El RFC debe ser un documento Word con extensión .docx.');return;}if(selected.size>10*1024*1024){setDocument(null);setFileKey(value=>value+1);setError('El RFC supera el tamaño máximo permitido de 10 MB.');return;}setDocument(selected);};
-  const run=async callback=>{if(busy)return;setBusy(true);setError('');setNotice('');try{await callback();setNotice('Operación completada correctamente.');}catch(failure){setError(failure.message);}finally{setBusy(false);}};
+  const run=async callback=>{if(busy)return;setBusy(true);setError('');setNotice('');try{await callback();const message='Operación completada correctamente.';setNotice(message);notifyOperation(message);}catch(failure){setError(failure.message);}finally{setBusy(false);}};
   const validate=async(change,accepted)=>{const comment=(validationComments[change.id]||'').trim();if(!accepted&&!comment){setError('Indica la corrección requerida antes de observar el cambio.');return;}await run(async()=>{const updated=await validateChangeExecution(change.id,{accepted,comment});setChanges(rows=>rows.map(row=>row.id===updated.id?updated:row));});};
   const field='recruiter-field mt-1 w-full rounded-xl px-3 py-2.5 text-sm';
   const modes=[['SOLICITUD','Solicitud','Asistencia individual mediante el catálogo SOL_*.'],['INCIDENTE','Reportar incidente','Falla técnica mediante el catálogo INC_*; primero genera un ticket SR-*.'],['CAMBIO','Cambio','Modifica algo que funciona y requiere RFC, evaluación, reversa y aprobación.']];
-  return <div className="recruiter-page space-y-6 p-4 sm:p-6 lg:p-8">
-    <header className="recruiter-page-header"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-app-accent">Mesa de ayuda y cambios</p><h1 className="recruiter-title mt-1 text-3xl">Registrar una atención</h1><p className="recruiter-copy mt-2 max-w-3xl text-sm">Clasifica primero lo que necesitas para aplicar el flujo y las aprobaciones correctas.</p></div><div className="rounded-xl border border-app-info-border bg-app-info px-4 py-3 text-xs font-semibold text-app-info-icon"><LifeBuoy className="mr-2 inline h-4 w-4"/>Área solicitante: Reclutamiento</div></header>
+  return <div className="recruiter-page recruiter-helpdesk-page space-y-6 p-4 sm:p-6 lg:p-8">
+    <header className="recruiter-page-header recruiter-helpdesk-header"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-app-accent">Mesa de ayuda y cambios</p><h1 className="recruiter-title mt-1 text-3xl">Registrar una atención</h1><p className="recruiter-copy mt-2 max-w-3xl text-sm">Clasifica primero lo que necesitas para aplicar el flujo y las aprobaciones correctas.</p></div><div className="rounded-xl border border-app-info-border bg-app-info px-4 py-3 text-xs font-semibold text-app-info-icon"><LifeBuoy className="mr-2 inline h-4 w-4"/>Área solicitante: Reclutamiento</div></header>
     {error&&<p role="alert" className="flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300"><AlertCircle className="h-5 w-5 shrink-0"/>{error}</p>}
     {notice&&<p role="status" className="flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"><CheckCircle2 className="h-5 w-5 shrink-0"/>{notice}</p>}
-    <section className="grid gap-3 md:grid-cols-3">{modes.map(([value,label,description])=><button type="button" key={value} aria-pressed={mode===value} onClick={()=>{setMode(value);setForm(ticketInitial);setReviewing(false);setIdempotencyKey(null);}} className={`rounded-2xl border p-4 text-left transition ${mode===value?'border-app-action bg-app-danger-soft ring-2 ring-app-action/15':'border-app-border bg-app-surface hover:border-app-border-strong hover:bg-app-muted'}`}><strong className="block text-app-primary">{label}</strong><span className="mt-1 block text-xs leading-5 text-app-secondary">{description}</span></button>)}</section>
-    {mode!=='CAMBIO'?<form onSubmit={reviewTicket} className="recruiter-card rounded-2xl p-5 sm:p-6">
-      <div className="border-b border-slate-100 pb-4 dark:border-slate-800"><h2 className="text-lg font-bold">{mode==='INCIDENTE'?'Nuevo reporte de incidente':'Nueva solicitud'}</h2><p className="text-sm text-slate-500">Selecciona una opción del catálogo. El servidor confirmará la categoría y la prioridad del ticket.</p></div>
+    <section className="recruiter-helpdesk-modes grid gap-3 md:grid-cols-3">{modes.map(([value,label,description])=><button type="button" key={value} aria-pressed={mode===value} onClick={()=>{setMode(value);setForm(ticketInitial);setReviewing(false);setIdempotencyKey(null);}} className={`recruiter-helpdesk-mode rounded-2xl border p-4 text-left transition ${mode===value?'border-app-action bg-app-danger-soft ring-2 ring-app-action/15':'border-app-border bg-app-surface hover:border-app-border-strong hover:bg-app-muted'}`}><strong className="block text-app-primary">{label}</strong><span className="mt-1 block text-xs leading-5 text-app-secondary">{description}</span></button>)}</section>
+    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(320px,2fr)]">
+    {mode!=='CAMBIO'?<form onSubmit={reviewTicket} className="recruiter-card recruiter-helpdesk-form rounded-2xl p-5 sm:p-6">
+      <div className="recruiter-helpdesk-card-header border-b border-app-border pb-4"><h2 className="text-lg font-bold text-app-primary">{mode==='INCIDENTE'?'Nuevo reporte de incidente':'Nueva solicitud'}</h2><p className="mt-1 text-sm text-app-secondary">Selecciona una opción del catálogo. El servidor confirmará la categoría y la prioridad del ticket.</p></div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-semibold sm:col-span-2">¿Qué ayuda necesitas?
           <select className={field} name={mode==='INCIDENTE'?'incidentTypeCode':'requestTypeCode'} required disabled={catalogLoading||!catalogItems.length} value={mode==='INCIDENTE'?form.incidentTypeCode:form.requestTypeCode} onChange={changeTicket}>
@@ -99,42 +113,47 @@ export default function RecruiterTicketsPage(){
         <label className="rounded-xl border-2 border-dashed border-app-border-strong p-4 text-sm font-semibold sm:col-span-2 lg:col-span-3"><span className="flex items-center gap-2"><Upload className="h-4 w-4 text-app-accent"/>RFC completado en DOCX</span><input key={fileKey} className="mt-3 block w-full text-sm text-app-body" type="file" required accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={selectDocument}/><small className="mt-2 block text-app-secondary">Máximo 10 MB. El archivo y su hash se conservarán en la base de datos.</small>{document&&<small role="status" className="mt-2 block font-semibold text-emerald-700 dark:text-emerald-300">Archivo listo: {document.name} ({Math.ceil(document.size/1024)} KB)</small>}</label>
       </div><div className="mt-5 flex justify-end"><button disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-brand-red px-5 py-3 text-sm font-bold text-white disabled:opacity-50"><FileCog className="h-4 w-4"/>{busy?'Registrando…':'Iniciar gestión de cambio'}</button></div>
     </form>}
-    <div className="grid items-start gap-6 xl:grid-cols-2">
-      <Tracking title="Mis solicitudes e incidencias" count={tickets.length} loading={loading} empty="Aún no registraste tickets.">{tickets.map(ticket=><article key={ticket.id} className="rounded-xl border border-app-border bg-app-surface p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0"><p className="text-xs font-black text-app-accent">{ticket.code}</p><h3 className="mt-1 truncate font-bold text-app-primary">{ticket.title}</h3></div>
-          <div className="flex max-w-[55%] flex-wrap justify-end gap-2">
-            <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${isIncidentTicket(ticket)?'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300':'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'}`}>{ticketTypeLabel(ticket)}</span>
-            {isIncidentTicket(ticket)
-              ?<span className={`rounded-full px-2 py-1 text-[10px] font-bold ${priorityTone(ticket.priority)}`}>Prioridad ticket {evaluationLabel(ticket.priority)}</span>
-              :<span className={`rounded-full px-2 py-1 text-[10px] font-bold ${priorityTone(ticket.priority)}`}>Prioridad {evaluationLabel(ticket.priority)}</span>}
-          </div>
-        </div>
-        <p className="mt-2 text-xs text-app-secondary"><strong className="text-app-primary">{ticketCatalogLabel(ticket)}</strong> · {ticket.category||'Sin categoría'}{ticket.subcategory&&<span> · {ticket.subcategory}</span>}</p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${statusTone(ticket.status)}`}>{statusLabel(ticket.status)}</span>
-          <span className="inline-flex items-center gap-1 text-[11px] text-app-secondary"><Clock3 className="h-3.5 w-3.5"/>{formatTicketDate(ticket.createdAt)}</span>
-        </div>
-        <dl className="mt-3 grid gap-2 border-t border-app-border pt-3 text-xs sm:grid-cols-2">
-          <div><dt className="font-semibold text-app-secondary">Responsable</dt><dd className="mt-1 text-app-primary">{ticket.technicianEmail||'Pendiente de asignación'}</dd></div>
-          <div><dt className="font-semibold text-app-secondary">Vencimiento de resolución</dt><dd className={`mt-1 ${ticketSlaTone(ticket)}`}>{ticketSlaLabel(ticket)}</dd></div>
-        </dl>
-        <details className="mt-3 border-t border-app-border pt-3">
-          <summary className="cursor-pointer text-xs font-bold text-app-accent">Ver detalle y seguimiento</summary>
-          <div className="mt-3 space-y-2 text-xs text-app-body">
-            <p className="whitespace-pre-wrap">{ticket.description}</p>
-            <p><strong>Canal:</strong> {ticket.originChannel||'No registrado'} · <strong>Primera atención:</strong> {formatTicketDate(ticket.firstAttentionAt)}</p>
-            {ticket.resolvedAt&&<p><strong>Resolución:</strong> {formatTicketDate(ticket.resolvedAt)}</p>}
-            {ticket.adminComment&&<p><strong>Actualización autorizada:</strong> {ticket.adminComment}</p>}
-          </div>
-        </details>
-      </article>)}</Tracking>
+    <aside className="recruiter-helpdesk-followup grid min-w-0 content-start gap-4" aria-label="Seguimiento de mesa de ayuda">
+      <TicketTracking tickets={tickets} loading={loading} title="Mis solicitudes enviadas" subtitle="Consulta los tickets registrados y su estado de atención."/>
       <Tracking title="Mis gestiones de cambio" count={changes.length} loading={loading} empty="Aún no registraste cambios.">{changes.map(change=><article key={change.id} className="rounded-xl border border-app-border bg-app-surface p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black text-app-accent">{change.code}</p><h3 className="mt-1 font-bold text-app-primary">{change.title}</h3></div><span className="rounded-full bg-violet-50 px-2 py-1 text-[10px] font-bold text-violet-700 dark:bg-violet-950/50 dark:text-violet-300">{change.type}</span></div><p className="mt-2 text-xs text-app-secondary">{change.category.replace('_',' ')} · Impacto {change.impact}</p><div className="mt-3 flex flex-wrap items-center gap-2"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${statusTone(change.status)}`}>{statusLabel(change.status)}</span><button type="button" onClick={()=>run(()=>downloadChangeDocument(change))} className="text-xs font-bold text-app-accent hover:underline">Descargar RFC</button></div>{change.status==='EN_VALIDACION'&&<div className="mt-4 border-t border-app-border pt-3"><textarea className={field} rows={2} placeholder="Observación si requiere corrección" value={validationComments[change.id]||''} onChange={e=>setValidationComments(previous=>({...previous,[change.id]:e.target.value}))}/><div className="mt-2 flex gap-2"><button type="button" disabled={busy} onClick={()=>validate(change,true)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white">Validar y cerrar</button><button type="button" disabled={busy} onClick={()=>validate(change,false)} className="rounded-lg border border-red-300 px-3 py-2 text-xs font-bold text-red-700 dark:border-red-800 dark:text-red-300">Solicitar corrección</button></div></div>}</article>)}</Tracking>
+      <Tracking title="Incidentes operativos relacionados" count={linkedIncidents.length} loading={loading} empty="Tus reportes todavía no están vinculados a un incidente operativo.">{linkedIncidents.map(incident=><article key={incident.id} className="rounded-xl border border-app-border bg-app-surface p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black text-app-accent">{incident.code}</p><h3 className="mt-1 font-bold text-app-primary">{incident.title}</h3><p className="mt-1 text-xs text-app-secondary">{incident.component}</p></div><div className="flex gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${priorityTone(incident.priority==='P1'||incident.priority==='P2'?'ALTA':incident.priority==='P3'?'MEDIA':'BAJA')}`}>{incident.priority||'Por confirmar'}</span><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${statusTone(incident.status)}`}>{statusLabel(incident.status)}</span></div></div><p className="mt-3 text-xs text-app-secondary">Información operativa limitada al incidente relacionado con uno de tus tickets. Las actividades técnicas internas permanecen restringidas.</p></article>)}</Tracking>
+    </aside>
     </div>
-    <Tracking title="Incidentes operativos relacionados" count={linkedIncidents.length} loading={loading} empty="Tus reportes todavía no están vinculados a un incidente operativo.">{linkedIncidents.map(incident=><article key={incident.id} className="rounded-xl border border-app-border bg-app-surface p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black text-app-accent">{incident.code}</p><h3 className="mt-1 font-bold text-app-primary">{incident.title}</h3><p className="mt-1 text-xs text-app-secondary">{incident.component}</p></div><div className="flex gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${priorityTone(incident.priority==='P1'||incident.priority==='P2'?'ALTA':incident.priority==='P3'?'MEDIA':'BAJA')}`}>{incident.priority||'Por confirmar'}</span><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${statusTone(incident.status)}`}>{statusLabel(incident.status)}</span></div></div><p className="mt-3 text-xs text-app-secondary">Información operativa limitada al incidente relacionado con uno de tus tickets. Las actividades técnicas internas permanecen restringidas.</p></article>)}</Tracking>
   </div>;
 }
 
-function Tracking({title,count,loading,empty,children}){
-  return <section className="recruiter-card rounded-2xl"><header className="flex items-center justify-between border-b border-app-border p-5"><div><h2 className="font-bold text-app-primary">{title}</h2><p className="text-xs text-app-secondary">Seguimiento y trazabilidad</p></div><span className="rounded-full bg-app-muted px-3 py-1 text-xs font-bold text-app-body">{count}</span></header><div className="max-h-[720px] space-y-3 overflow-y-auto p-4">{loading?<p className="p-8 text-center text-sm text-app-secondary">Cargando…</p>:count?children:<p className="p-8 text-center text-sm text-app-secondary">{empty}</p>}</div></section>;
+function TicketTracking({tickets,loading,title='Mis solicitudes e incidencias',subtitle='Seguimiento y trazabilidad'}){
+  return <Tracking title={title} subtitle={subtitle} count={tickets.length} loading={loading} empty="Aún no registraste tickets.">{tickets.map(ticket=><article key={ticket.id} className="rounded-xl border border-app-border bg-app-surface p-4">
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0"><p className="text-xs font-black text-app-accent">{ticket.code}</p><h3 className="mt-1 truncate font-bold text-app-primary">{ticket.title}</h3></div>
+      <div className="flex max-w-[55%] flex-wrap justify-end gap-2">
+        <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${isIncidentTicket(ticket)?'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300':'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'}`}>{ticketTypeLabel(ticket)}</span>
+        {isIncidentTicket(ticket)
+          ?<span className={`rounded-full px-2 py-1 text-[10px] font-bold ${priorityTone(ticket.priority)}`}>Prioridad ticket {evaluationLabel(ticket.priority)}</span>
+          :<span className={`rounded-full px-2 py-1 text-[10px] font-bold ${priorityTone(ticket.priority)}`}>Prioridad {evaluationLabel(ticket.priority)}</span>}
+      </div>
+    </div>
+    <p className="mt-2 text-xs text-app-secondary"><strong className="text-app-primary">{ticketCatalogLabel(ticket)}</strong> · {ticket.category||'Sin categoría'}{ticket.subcategory&&<span> · {ticket.subcategory}</span>}</p>
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${statusTone(ticket.status)}`}>{statusLabel(ticket.status)}</span>
+      <span className="inline-flex items-center gap-1 text-[11px] text-app-secondary"><Clock3 className="h-3.5 w-3.5"/>{formatTicketDate(ticket.createdAt)}</span>
+    </div>
+    <dl className="mt-3 grid gap-2 border-t border-app-border pt-3 text-xs sm:grid-cols-2">
+      <div><dt className="font-semibold text-app-secondary">Responsable</dt><dd className="mt-1 text-app-primary">{ticket.technicianEmail||'Pendiente de asignación'}</dd></div>
+      <div><dt className="font-semibold text-app-secondary">Vencimiento de resolución</dt><dd className={`mt-1 ${ticketSlaTone(ticket)}`}>{ticketSlaLabel(ticket)}</dd></div>
+    </dl>
+    <details className="mt-3 border-t border-app-border pt-3">
+      <summary className="cursor-pointer text-xs font-bold text-app-accent">Ver detalle y seguimiento</summary>
+      <div className="mt-3 space-y-2 text-xs text-app-body">
+        <p className="whitespace-pre-wrap">{ticket.description}</p>
+        <p><strong>Canal:</strong> {ticket.originChannel||'No registrado'} · <strong>Primera atención:</strong> {formatTicketDate(ticket.firstAttentionAt)}</p>
+        {ticket.resolvedAt&&<p><strong>Resolución:</strong> {formatTicketDate(ticket.resolvedAt)}</p>}
+        {ticket.adminComment&&<p><strong>Actualización autorizada:</strong> {ticket.adminComment}</p>}
+      </div>
+    </details>
+  </article>)}</Tracking>;
+}
+
+function Tracking({title,subtitle='Seguimiento y trazabilidad',count,loading,empty,children}){
+  return <section className="recruiter-card recruiter-tracking-card min-w-0 overflow-hidden rounded-2xl"><header className="flex items-center justify-between gap-3 border-b border-app-border bg-admin-section px-4 py-3.5"><div className="min-w-0"><h2 className="text-sm font-bold text-app-primary">{title}</h2><p className="mt-0.5 text-[11px] text-app-secondary">{subtitle}</p></div><span className="shrink-0 rounded-full bg-app-muted px-2.5 py-1 text-[11px] font-bold text-app-body">{count}</span></header><div className="recruiter-tracking-scroll max-h-[340px] space-y-3 overflow-y-auto p-3">{loading?<p className="p-5 text-center text-sm text-app-secondary">Cargando…</p>:count?children:<p className="p-5 text-center text-xs text-app-secondary">{empty}</p>}</div></section>;
 }

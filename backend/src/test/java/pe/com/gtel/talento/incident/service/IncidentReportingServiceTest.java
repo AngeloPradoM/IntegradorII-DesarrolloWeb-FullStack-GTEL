@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pe.com.gtel.talento.identity.dto.WorkflowActor;
 import pe.com.gtel.talento.identity.service.WorkflowIdentity;
 import pe.com.gtel.talento.incident.dto.IncidentReportFilter;
+import pe.com.gtel.talento.incident.dto.IncidentControlResponse;
 import pe.com.gtel.talento.incident.dto.IncidentResponse;
 import pe.com.gtel.talento.incident.repository.ProductionIncidentRepository;
 
@@ -91,18 +92,39 @@ class IncidentReportingServiceTest {
 
         var error = assertThrows(ResponseStatusException.class, () -> service.indicators(
             new IncidentReportFilter(null, null, null, null, null, null, null), "recruiter@gtel.test"));
+        var controlError = assertThrows(ResponseStatusException.class,
+            () -> service.control("recruiter@gtel.test"));
 
         assertEquals(HttpStatus.FORBIDDEN, error.getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, controlError.getStatusCode());
         verifyNoInteractions(repository, workbook);
+    }
+
+    @Test
+    void consolidatedControlUsesRoleScopedViewQueries() {
+        WorkflowActor admin = new WorkflowActor(1L, "ADMIN");
+        WorkflowActor technician = new WorkflowActor(22L, "TECNICO");
+        IncidentControlResponse row = new IncidentControlResponse(9L, "INC-2026-00009", LocalDateTime.now(),
+            "recruiter@gtel.test", "Falla", "Disponibilidad", "P1", "tech@gtel.test", "REGISTRADO",
+            null, null, null, null, false, null, null, 4.0, false, "WEB", null, 22L, "tech@gtel.test");
+        when(identity.actor("admin@gtel.test")).thenReturn(admin);
+        when(identity.actor("tech@gtel.test")).thenReturn(technician);
+        when(repository.listControlAll()).thenReturn(List.of(row));
+        when(repository.listControlForTechnician(22L)).thenReturn(List.of(row));
+
+        assertEquals(List.of(row), service.control("admin@gtel.test"));
+        assertEquals(List.of(row), service.control("tech@gtel.test"));
+        verify(repository).listControlAll();
+        verify(repository).listControlForTechnician(22L);
     }
 
     private IncidentResponse incident(long id, String priority, String category, String status,
                                       String displayStatus, LocalDateTime detected, LocalDateTime attended,
                                       LocalDateTime recovered, LocalDateTime resolutionDeadline, boolean repeated) {
         return new IncidentResponse(id, "INC-" + id, "Incidente " + id, "API", "CAIDA", "MANUAL",
-            "AVAILABILITY", category, category, "", "Descripción", "GENERAL", "ALTO", "ALTA",
+            "WEB", null, "AVAILABILITY", category, category, "", "Descripción", "GENERAL", "ALTO", "ALTA",
             true, false, true, priority, priority, status, displayStatus, false,
-            1L, "admin@gtel.test", 22L, "tech@gtel.test", "AUTOMATICA", 7L, detected,
+            1L, "admin@gtel.test", 1L, "admin@gtel.test", 22L, "tech@gtel.test", "AUTOMATICA", 7L, detected,
             null, null, detected, detected, attended, recovered, recovered, "CERRADO".equals(status) ? recovered : null,
             recovered == null ? null : "Reinicio", "Bloqueo", "Alerta", repeated, null,
             detected.plusMinutes(30), resolutionDeadline, 3, detected, detected);

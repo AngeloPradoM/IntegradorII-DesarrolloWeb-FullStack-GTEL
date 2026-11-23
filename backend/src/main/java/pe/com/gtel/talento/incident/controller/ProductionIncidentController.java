@@ -27,6 +27,7 @@ import pe.com.gtel.talento.incident.dto.IncidentChangeLinkRequest;
 import pe.com.gtel.talento.incident.dto.IncidentClassificationRequest;
 import pe.com.gtel.talento.incident.dto.IncidentCreateRequest;
 import pe.com.gtel.talento.incident.dto.IncidentConfigurationResponse;
+import pe.com.gtel.talento.incident.dto.IncidentControlResponse;
 import pe.com.gtel.talento.incident.dto.IncidentDetailResponse;
 import pe.com.gtel.talento.incident.dto.IncidentEscalationRequest;
 import pe.com.gtel.talento.incident.dto.IncidentEscalationResolveRequest;
@@ -62,6 +63,11 @@ public class ProductionIncidentController {
     public IncidentIndicatorsResponse indicators(@Valid @ModelAttribute IncidentReportFilter filter,
                                                   Principal principal) {
         return reporting.indicators(filter, principal.getName());
+    }
+
+    @GetMapping("/control")
+    public List<IncidentControlResponse> control(Principal principal) {
+        return reporting.control(principal.getName());
     }
 
     @GetMapping("/export")

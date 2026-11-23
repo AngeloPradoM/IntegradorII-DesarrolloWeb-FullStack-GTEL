@@ -15,6 +15,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import pe.com.gtel.talento.incident.dto.IncidentActivityResponse;
+import pe.com.gtel.talento.incident.dto.IncidentControlResponse;
 import pe.com.gtel.talento.incident.dto.IncidentCreateRequest;
 import pe.com.gtel.talento.incident.dto.IncidentEscalationResponse;
 import pe.com.gtel.talento.incident.dto.IncidentHistoryResponse;
@@ -24,29 +25,53 @@ import pe.com.gtel.talento.incident.dto.IncidentResponse;
 @Repository
 public class ProductionIncidentRepository {
     private static final String SELECT = """
-        SELECT i.*,rep.email reportante_email,res.email responsable_email,ver.email verificador_email,
+        SELECT i.*,rep.email reportante_email,reg.email registrador_email,
+          res.email responsable_email,ver.email verificador_email,
           EXISTS(SELECT 1 FROM incidente_escalamientos ie
                  WHERE ie.incidente_id=i.id AND ie.resuelto_at IS NULL) escalado_activo
         FROM incidentes_produccion i
         LEFT JOIN usuarios rep ON rep.id=i.reportado_por
+        LEFT JOIN usuarios reg ON reg.id=i.registrado_por
         LEFT JOIN usuarios res ON res.id=i.responsable_id
         LEFT JOIN usuarios ver ON ver.id=i.verificado_por
         """;
+    private static final String CONTROL_SELECT = """
+        SELECT i.id,v.codigo,v.fecha_hora_deteccion,v.reportado_por,v.descripcion,v.categoria,
+          v.prioridad,v.responsable,v.estado,v.fecha_hora_primera_atencion,v.fecha_hora_cierre,
+          v.solucion_aplicada,v.causa_y_aprendizaje,v.falla_repetida,
+          v.horas_hasta_primera_atencion,v.horas_hasta_solucion,v.tiempo_limite_h,v.vencido,
+          i.canal_reporte,i.reportante_detalle,i.registrado_por,reg.email registrador_email
+        FROM vw_control_incidentes v
+        JOIN incidentes_produccion i ON i.codigo=v.codigo
+        LEFT JOIN usuarios reg ON reg.id=i.registrado_por
+        """;
 
     private final JdbcTemplate jdbc;
+    private final RowMapper<IncidentControlResponse> controlMapper = (rs, row) -> new IncidentControlResponse(
+        rs.getLong("id"), rs.getString("codigo"), timestamp(rs, "fecha_hora_deteccion"),
+        rs.getString("reportado_por"), rs.getString("descripcion"), rs.getString("categoria"),
+        rs.getString("prioridad"), rs.getString("responsable"), rs.getString("estado"),
+        timestamp(rs, "fecha_hora_primera_atencion"), timestamp(rs, "fecha_hora_cierre"),
+        rs.getString("solucion_aplicada"), rs.getString("causa_y_aprendizaje"),
+        rs.getBoolean("falla_repetida"), nullableDouble(rs, "horas_hasta_primera_atencion"),
+        nullableDouble(rs, "horas_hasta_solucion"), nullableDouble(rs, "tiempo_limite_h"),
+        rs.getBoolean("vencido"), rs.getString("canal_reporte"), rs.getString("reportante_detalle"),
+        rs.getObject("registrado_por", Long.class), rs.getString("registrador_email"));
     private final RowMapper<IncidentResponse> mapper = (rs, row) -> {
         String status = rs.getString("estado");
         boolean escalated = rs.getBoolean("escalado_activo");
         return new IncidentResponse(
             rs.getLong("id"), rs.getString("codigo"), rs.getString("titulo"), rs.getString("componente"),
-            rs.getString("tipo"), rs.getString("fuente"), rs.getString("modulo_codigo"),
+            rs.getString("tipo"), rs.getString("fuente"), rs.getString("canal_reporte"),
+            rs.getString("reportante_detalle"), rs.getString("modulo_codigo"),
             rs.getString("categoria_sugerida"), rs.getString("categoria_codigo"),
             rs.getString("categoria_motivo"), rs.getString("descripcion"), rs.getString("alcance"),
             rs.getString("impacto"), rs.getString("urgencia"), rs.getBoolean("proceso_esencial"),
             rs.getBoolean("alternativa_disponible"), rs.getBoolean("servicio_bloqueado"),
             rs.getString("prioridad_sugerida"), rs.getString("prioridad"), status,
             displayStatus(status, escalated), escalated, rs.getObject("reportado_por", Long.class),
-            rs.getString("reportante_email"), rs.getObject("responsable_id", Long.class),
+            rs.getString("reportante_email"), rs.getObject("registrado_por", Long.class),
+            rs.getString("registrador_email"), rs.getObject("responsable_id", Long.class),
             rs.getString("responsable_email"), rs.getString("asignacion_fuente"),
             rs.getObject("regla_asignacion_id", Long.class), timestamp(rs, "asignado_at"),
             rs.getObject("verificado_por", Long.class), rs.getString("verificador_email"),
@@ -69,8 +94,9 @@ public class ProductionIncidentRepository {
                 INSERT INTO incidentes_produccion(titulo,componente,tipo,modulo_codigo,categoria_sugerida,categoria_codigo,incidente_tipo_codigo,
                     fuente,descripcion,alcance,impacto,urgencia,proceso_esencial,alternativa_disponible,
                     servicio_bloqueado,prioridad_sugerida,estado,reportado_por,detectado_at,iniciado_at,
-                    recuperado_at,falla_repetida,incidente_previo_id,clave_deduplicacion)
-                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'REGISTRADO',?,?,?,?,?,?,?)
+                    recuperado_at,falla_repetida,incidente_previo_id,clave_deduplicacion,
+                    canal_reporte,reportante_detalle,registrado_por)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'REGISTRADO',?,?,?,?,?,?,?,'WEB',NULL,?)
                 """, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, request.title().trim());
             statement.setString(2, request.component().trim());
@@ -95,6 +121,7 @@ public class ProductionIncidentRepository {
             statement.setBoolean(21, request.repeatedFailure());
             statement.setObject(22, request.previousIncidentId());
             statement.setString(23, deduplicationKey);
+            statement.setLong(24, actorId);
             return statement;
         }, keys);
         Number key = keys.getKey();
@@ -115,6 +142,15 @@ public class ProductionIncidentRepository {
 
     public List<IncidentResponse> listForReporter(long reporterId) {
         return jdbc.query(SELECT + " WHERE i.reportado_por=? ORDER BY i.detectado_at DESC,i.id DESC", mapper, reporterId);
+    }
+
+    public List<IncidentControlResponse> listControlAll() {
+        return jdbc.query(CONTROL_SELECT + " ORDER BY v.fecha_hora_deteccion DESC,i.id DESC", controlMapper);
+    }
+
+    public List<IncidentControlResponse> listControlForTechnician(long technicianId) {
+        return jdbc.query(CONTROL_SELECT + " WHERE i.responsable_id IS NULL OR i.responsable_id=?"
+            + " ORDER BY v.fecha_hora_deteccion DESC,i.id DESC", controlMapper, technicianId);
     }
 
     public IncidentResponse find(long id) {
@@ -317,6 +353,22 @@ public class ProductionIncidentRepository {
         return jdbc.update("INSERT IGNORE INTO incidente_ticket(incidente_id,ticket_id,tipo_relacion,vinculado_por) VALUES(?,?,?,?)", incidentId, ticketId, relationship, actorId);
     }
 
+    public boolean hasOriginTicket(long incidentId) {
+        Long count = jdbc.queryForObject(
+            "SELECT COUNT(*) FROM incidente_ticket WHERE incidente_id=? AND tipo_relacion='ORIGEN'",
+            Long.class, incidentId);
+        return count != null && count > 0;
+    }
+
+    public int synchronizeReporterFromOriginTicket(long incidentId, long ticketId) {
+        return jdbc.update("""
+            UPDATE incidentes_produccion i
+            JOIN tickets_soporte t ON t.id=?
+            SET i.reportado_por=t.solicitante_id,i.updated_at=CURRENT_TIMESTAMP
+            WHERE i.id=?
+            """, ticketId, incidentId);
+    }
+
     public int unlinkTicket(long incidentId, long ticketId) {
         return jdbc.update("DELETE FROM incidente_ticket WHERE incidente_id=? AND ticket_id=?", incidentId, ticketId);
     }
@@ -345,6 +397,11 @@ public class ProductionIncidentRepository {
     private static LocalDateTime timestamp(ResultSet rs, int column) throws SQLException {
         var value = rs.getTimestamp(column);
         return value == null ? null : value.toLocalDateTime();
+    }
+
+    private static Double nullableDouble(ResultSet rs, String column) throws SQLException {
+        Number value = (Number) rs.getObject(column);
+        return value == null ? null : value.doubleValue();
     }
 
     private static String normalized(String value) {

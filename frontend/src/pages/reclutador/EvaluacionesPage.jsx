@@ -4,6 +4,7 @@ import { getRecruiterEvaluations, getRecruiterCandidates, createRecruiterEvaluat
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Download, ChevronDown, Filter, BarChart2, Clock, CheckCircle, XCircle, Plus, Trash2, X, AlertCircle, CheckCircle2 } from "lucide-react";
+import { useOperationNotice } from "../../context/NotificationContext";
 
 const statusConfig = {
   passed: {
@@ -28,6 +29,7 @@ const statusConfig = {
 const fieldClassName = "recruiter-field w-full px-3 py-2 text-sm";
 
 export default function Evaluations() {
+  const notifyOperation = useOperationNotice();
   const { data, loading, error, retry } = useRecruiterData(getRecruiterEvaluations);
   const evaluations = data || [];
   const [filterStatus, setFilterStatus] = useState("all");
@@ -118,10 +120,12 @@ export default function Evaluations() {
           weight: Math.max(1, Number(c.weight) || 1)
         }))
       });
+      const successMessage = `¡Evaluación registrada con éxito! Puntaje final ponderado: ${computedScore}/100.`;
       setFeedback({
         type: "success",
-        message: `¡Evaluación registrada con éxito! Puntaje final ponderado: ${computedScore}/100.`
+        message: successMessage
       });
+      notifyOperation(successMessage);
       setShowModal(false);
       await retry();
     } catch (err) {

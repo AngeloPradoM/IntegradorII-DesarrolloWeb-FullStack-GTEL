@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowLeft, CalendarDays, Check, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Flag, Paperclip, RefreshCw, ServerCrash, ShieldCheck, SlidersHorizontal, Ticket, Wrench } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useOperationNotice } from '../../context/NotificationContext';
 import TechnicalStageProgress from '../../components/technical/TechnicalStageProgress';
 import { formatTechnicalDate, getSupportWorkflow } from '../../utils/technicalWorkflow';
 import {
@@ -35,6 +36,7 @@ const statusTone = {
 const fieldClassName = 'technical-field mt-1 w-full p-3 text-sm';
 
 export default function TechnicianTicketsPage() {
+  const notifyOperation=useOperationNotice();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedQueue = searchParams.get('queue');
@@ -119,6 +121,7 @@ export default function TechnicianTicketsPage() {
       const updated = await callback();
       replace(updated);
       setNotice('Cambios guardados correctamente.');
+      notifyOperation('Cambios guardados correctamente.');
     } catch (failure) {
       setError(failure.message);
     } finally {

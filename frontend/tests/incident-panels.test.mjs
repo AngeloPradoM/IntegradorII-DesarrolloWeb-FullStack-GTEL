@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
-const [adminPage,techPage,adminPanel,techPanel,recruiterPage,incidentService,createForm,indicators] = await Promise.all([
+const [adminPage,techPage,adminPanel,techPanel,recruiterPage,incidentService,createForm,indicators,globalStyles,adminStyles] = await Promise.all([
   read('../src/pages/support/AdminTicketsPage.jsx'), read('../src/pages/support/TechnicianTicketsPage.jsx'),
   read('../src/pages/support/AdminIncidentPanel.jsx'), read('../src/pages/support/TechnicianIncidentPanel.jsx'),
   read('../src/pages/support/RecruiterTicketsPage.jsx'), read('../src/services/incidentService.js'),
   read('../src/components/support/IncidentCreateForm.jsx'),
   read('../src/components/support/IncidentIndicators.jsx'),
+  read('../src/index.css'),
+  read('../src/pages/admin/admin-workspace.css'),
 ]);
 
 assert.match(adminPage,/AdminIncidentPanel/);
@@ -38,18 +40,94 @@ assert.match(recruiterPage,/incidentProblemTypes/);
 assert.match(recruiterPage,/attentionType:mode/);
 assert.match(recruiterPage,/listProductionIncidentsLinkedToMyTickets/);
 assert.match(recruiterPage,/Incidentes operativos relacionados/);
+assert.match(recruiterPage,/xl:grid-cols-\[minmax\(0,3fr\)_minmax\(320px,2fr\)\]/);
+assert.match(recruiterPage,/Mis solicitudes enviadas/);
+assert.match(recruiterPage,/refreshTicketsAfterCreate/);
+assert.match(recruiterPage,/previous\.some\(item=>item\.id===created\.id\)/);
+assert.match(recruiterPage,/Idempotency-Key|idempotencyKey/);
+assert.match(recruiterPage,/xl:grid-cols-\[minmax\(0,3fr\)_minmax\(320px,2fr\)\]/);
+assert.match(recruiterPage,/recruiter-helpdesk-followup/);
+assert.match(recruiterPage,/max-h-\[340px\].*overflow-y-auto/);
+assert.match(recruiterPage,/Mis solicitudes enviadas[\s\S]*Mis gestiones de cambio[\s\S]*Incidentes operativos relacionados/);
+assert.doesNotMatch(recruiterPage,/mode==='SOLICITUD'&&<TicketTracking/);
+assert.match(recruiterPage,/\['SOLICITUD'.*'INCIDENTE'.*'CAMBIO'/s);
+assert.match(globalStyles,/\.recruiter-helpdesk-page/);
+assert.match(globalStyles,/prefers-reduced-motion/);
+assert.equal((recruiterPage.match(/listSupportTickets\(/g)||[]).length,2,'one initial ticket read and one post-create refresh');
 assert.match(incidentService,/linked-to-my-tickets/);
+assert.match(incidentService,/production-incidents\/control/);
+assert.match(adminPanel,/listProductionIncidentControl/);
+assert.match(techPanel,/listProductionIncidentControl/);
+assert.match(adminPanel,/Registrado por/);
+assert.match(techPanel,/Registrado por/);
 assert.match(adminPanel,/getProductionIncidentIndicators/);
 assert.match(techPanel,/getProductionIncidentIndicators/);
 assert.match(adminPanel,/exportProductionIncidentReport/);
+for (const action of ['Exportar XLSX','Actualizar','Nuevo incidente']) assert.match(adminPanel,new RegExp(action));
+assert.match(adminPanel,/aria-controls="incident-register-filters"/);
+assert.match(adminPanel,/Limpiar filtros/);
+assert.match(adminPanel,/activeFilterCount/);
+assert.match(adminPanel,/No existen incidentes con los filtros seleccionados/);
+assert.match(adminPanel,/Sin incidentes registrados/);
+assert.match(adminPanel,/Recuperación/);
+assert.match(adminStyles,/\.incident-filter-panel/);
+assert.match(adminStyles,/\.incident-register-actions/);
+assert.match(adminPanel,/incidentView==='register'/);
+assert.match(adminPanel,/Volver al registro/);
+assert.match(adminPanel,/setIncidentView\('detail'\)/);
+assert.match(adminPanel,/setIncidentView\('register'\)/);
+assert.match(adminPanel,/const select=row=>onSelect\(row\)/);
+assert.match(adminPanel,/if\(!row\?\.id\)/);
+assert.match(adminPanel,/detailLoading/);
+assert.match(adminPanel,/detailError/);
+assert.match(adminPanel,/No se pudo cargar el expediente/);
+assert.match(adminPanel,/Reintentar/);
+assert.match(adminPanel,/useOperationNotice/);
+for (const tab of ['Resumen','SLA y fechas','Resolución técnica','Control administrativo','Relaciones e historial']) assert.match(adminPanel,new RegExp(tab));
+assert.match(adminPanel,/role="tablist" aria-label="Secciones del expediente"/);
+assert.match(adminPanel,/role="tabpanel"/);
+for (const key of ['ArrowRight','ArrowLeft','Home','End']) assert.match(adminPanel,new RegExp(key));
+assert.match(adminStyles,/\.incident-detail-tabs/);
+assert.match(adminStyles,/\[role="tabpanel"\]\[hidden\]/);
+for (const color of ['#EEF2F7','#FFFFFF','#E8EFF7','#F1F5F9','#0F172A','#475569','#E2E8F0','#CBD5E1','#D32F2F','#B71C1C','#020617','#1E293B','#334155','#F8FAFC','#94A3B8']) assert.match(adminStyles,new RegExp(color));
+assert.match(adminStyles,/ADMIN-CI4/);
+assert.match(adminStyles,/prefers-reduced-motion:reduce/);
 assert.match(techPanel,/exportProductionIncidentReport/);
 assert.match(indicators,/averageAttentionHours/);
 assert.match(indicators,/averageResolutionHours/);
 assert.match(indicators,/repeatedFailures/);
 assert.match(indicators,/Indicadores no disponibles/);
+assert.match(indicators,/Mi monitoreo personal/);
+assert.match(indicators,/7 indicadores/);
+assert.match(indicators,/incident-kpi-\$\{tone\}/);
+for (const tone of ['info','success','warning','danger']) assert.match(globalStyles,new RegExp(`\\.technical-page \\.incident-kpi-${tone}`));
+for (const label of ['Total','Abiertos','Cerrados','Prom. atención','Prom. solución','Vencidos','Fallas repetidas']) assert.match(indicators,new RegExp(label));
 assert.match(adminPanel,/linkProductionIncidentTicket/);
 assert.match(adminPanel,/linkProductionIncidentChange/);
 assert.match(techPanel,/technicalIncidentTransitions/);
+assert.match(techPanel,/Siguiente paso/);
+assert.match(techPanel,/Primero guarda la resolución técnica/);
+assert.match(techPanel,/selected\?\.status!=='EN_INVESTIGACION'\|\|value==='EN_MITIGACION'/);
+assert.match(techPanel,/value==='SERVICIO_RECUPERADO'&&!hasResolution/);
+assert.match(techPanel,/Buscar incidente\.\.\./);
+assert.match(techPanel,/aria-controls="technical-incident-filters"/);
+assert.match(techPanel,/Limpiar filtros/);
+assert.match(techPanel,/activeFilterCount/);
+assert.match(techPanel,/No hay coincidencias con la búsqueda o los filtros activos/);
+assert.match(techPanel,/Todavía no tienes incidentes asignados o autorizados/);
+assert.match(techPanel,/No se pudieron cargar los incidentes/);
+assert.match(techPanel,/is-selected/);
+assert.match(techPanel,/El expediente técnico aparecerá aquí cuando selecciones un registro/);
+assert.match(techPanel,/detailLoading/);
+assert.match(techPanel,/setDetail\(null\);setDetailError\(''\);setDetailLoading\(true\)/);
+assert.match(techPanel,/No se pudo cargar el expediente/);
+assert.match(techPanel,/technical-incident-detail-header/);
+assert.match(techPanel,/technical-incident-detail-body/);
+assert.match(techPanel,/problemName\(configuration\.problemTypes,selected\.type\)/);
+assert.match(techPanel,/lg:grid-cols-\[minmax\(320px,35%\)_minmax\(0,1fr\)\]/);
+for (const action of ['Exportar XLSX','Actualizar','Registrar incidente']) assert.match(techPanel,new RegExp(action));
+assert.match(techPanel,/mobileDetail\?'hidden lg:block':'block'/);
+assert.match(techPanel,/mobileDetail\?'block':'hidden lg:block'/);
 assert.match(createForm,/confirmDistinctIncident/);
 assert.match(createForm,/moduleCode/);
 assert.match(createForm,/incidentTypeCode/);

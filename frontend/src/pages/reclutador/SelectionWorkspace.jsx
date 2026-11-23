@@ -3,17 +3,19 @@ import './selection.css';
 import { nextApplicationStates } from '../../utils/applicationStates';
 import { useEffect, useState } from 'react';
 import { request, jsonRequest, downloadCv } from '../../services/workflowService';
+import { useOperationNotice } from '../../context/NotificationContext';
 const blankInterview={applicationId:'',date:'',time:'',minutes:30,type:'video',location:'',status:'programada'};
 const labels={recibida:'Recibida',en_revision:'En revisión',entrevista:'Entrevista',aprobada:'Seleccionada',rechazada:'Rechazada',programada:'Programada',realizada:'Realizada',cancelada:'Cancelada',aprobado:'Aprobado',no_aprobado:'No aprobado'};
 const newEvaluation=(applicationId='')=>({applicationId,test:'Evaluación técnica',minutes:30,status:'en_revision',details:[{area:'Conocimientos técnicos',score:0,note:''},{area:'Habilidades blandas',score:0,note:''}]});
 export default function SelectionWorkspace(){
+ const notifyOperation=useOperationNotice();
  const [section,setSection]=useState('applications');const [page,setPage]=useState(1);
  const [selected,setSelected]=useState('');const [jobFilter,setJobFilter]=useState('');
  const [data,setData]=useState(null);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [busy,setBusy]=useState(false);
  const [revision,setRevision]=useState(0);const [search,setSearch]=useState('');
  const [interview,setInterview]=useState(blankInterview);const [evaluation,setEvaluation]=useState(()=>newEvaluation());
  useEffect(()=>{let active=true;Promise.all([request('/api/recruiter/applications'),request('/api/recruiter/selection/interviews'),request('/api/recruiter/selection/evaluations')]).then(([applications,interviews,evaluations])=>{if(active){setData({applications,interviews,evaluations});setError('');}}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[revision]);
- async function action(fn){if(busy)return;setBusy(true);setError('');setNotice('');try{await fn();setNotice('Cambios guardados.');setRevision(v=>v+1);}catch(e){setError(e.message);}finally{setBusy(false);}}
+ async function action(fn){if(busy)return;setBusy(true);setError('');setNotice('');try{await fn();const message='Cambios guardados.';setNotice(message);notifyOperation(message);setRevision(v=>v+1);}catch(e){setError(e.message);}finally{setBusy(false);}}
  const changeInterview=e=>setInterview(p=>({...p,[e.target.name]:e.target.value}));
  const applications=data?.applications||[];
  const selectedApplication=applications.find(a=>String(a.id)===selected);

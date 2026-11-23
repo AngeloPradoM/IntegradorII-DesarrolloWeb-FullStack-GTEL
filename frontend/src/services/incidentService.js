@@ -9,10 +9,33 @@ const reportPath = (resource, filters = {}) => {
 };
 
 export const listProductionIncidents = signal => request('/api/production-incidents', { signal });
+export const listProductionIncidentControl = signal => request('/api/production-incidents/control', { signal });
 export const listMyReportedProductionIncidents = signal => request('/api/production-incidents/reported-by-me', { signal });
 export const listProductionIncidentsLinkedToMyTickets = signal => request('/api/production-incidents/linked-to-my-tickets', { signal });
 export const getProductionIncidentConfiguration = signal => request('/api/production-incidents/configuration', { signal });
 export const getProductionIncidentIndicators = (filters, signal) => request(reportPath('indicators', filters), { signal });
+export const mergeProductionIncidentControl = (incidents, controlRows) => {
+  const controlById = new Map((Array.isArray(controlRows) ? controlRows : []).map(row => [row.id, row]));
+  return (Array.isArray(incidents) ? incidents : []).map(incident => {
+    const control = controlById.get(incident.id);
+    if (!control) return incident;
+    return {
+      ...incident,
+      reportChannel: control.reportChannel ?? incident.reportChannel,
+      reporterDetail: control.reporterDetail ?? incident.reporterDetail,
+      registeredById: control.registeredById ?? incident.registeredById,
+      registeredByEmail: control.registeredByEmail ?? incident.registeredByEmail,
+      controlReporter: control.reporter,
+      controlCategory: control.category,
+      controlResponsible: control.responsible,
+      attentionHours: control.attentionHours,
+      resolutionHours: control.resolutionHours,
+      timeLimitHours: control.timeLimitHours,
+      overdue: control.overdue,
+      causeAndLearning: control.causeAndLearning,
+    };
+  });
+};
 export const exportProductionIncidentReport = filters => request(reportPath('export', filters), { blob: true });
 export const saveProductionIncidentWorkbook = blob => {
   const url = URL.createObjectURL(blob);

@@ -4,6 +4,7 @@ import { Briefcase, Search, ArrowLeft, Edit3, PauseCircle, PlayCircle, XCircle, 
 import { getRecruiterJobs, getRecruiterJob, updateRecruiterJob, updateRecruiterJobStatus } from '../../services/api';
 import useRecruiterData from '../../hooks/useRecruiterData';
 import DataState from '../../components/ui/DataState';
+import { useOperationNotice } from '../../context/NotificationContext';
 
 const statusLabels = {
   activa: 'Activa',
@@ -109,6 +110,7 @@ export default function RecruiterJobs() {
 
 export function RecruiterJobDetail() {
   const { id } = useParams();
+  const notifyOperation = useOperationNotice();
   const load = useCallback(() => getRecruiterJob(id), [id]);
   const { data: job, loading, error, retry } = useRecruiterData(load);
 
@@ -158,7 +160,9 @@ export function RecruiterJobDetail() {
       const updated = await updateRecruiterJob(id, formData);
       setCurrentJob(updated);
       setEditing(false);
-      setActionSuccess('¡Oferta actualizada exitosamente en MySQL!');
+      const message = '¡Oferta actualizada exitosamente en MySQL!';
+      setActionSuccess(message);
+      notifyOperation(message);
       setTimeout(() => setActionSuccess(''), 4000);
     } catch (err) {
       setActionError(err.message || 'No se pudo actualizar la oferta.');
@@ -173,7 +177,9 @@ export function RecruiterJobDetail() {
     try {
       const updated = await updateRecruiterJobStatus(id, newStatus);
       setCurrentJob(updated);
-      setActionSuccess(`Estado cambiado a: ${statusLabels[newStatus] || newStatus}`);
+      const message = `Estado cambiado a: ${statusLabels[newStatus] || newStatus}`;
+      setActionSuccess(message);
+      notifyOperation(message);
       setTimeout(() => setActionSuccess(''), 4000);
     } catch (err) {
       setActionError(err.message || 'No se pudo cambiar el estado de la oferta.');

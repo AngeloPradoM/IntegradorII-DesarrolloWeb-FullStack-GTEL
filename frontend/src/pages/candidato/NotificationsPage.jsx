@@ -5,6 +5,7 @@ import {
   ExternalLink, FileClock, Headphones, Inbox, LoaderCircle, RefreshCw, Search, UserPlus,
 } from 'lucide-react';
 import { request } from '../../services/workflowService';
+import { useOperationNotice } from '../../context/NotificationContext';
 import '../admin/admin-workspace.css';
 import './notifications-page.css';
 
@@ -56,6 +57,7 @@ function validRelatedRoute(link) {
 }
 
 export default function NotificationsPage() {
+  const notifyOperation=useOperationNotice();
   const navigate = useNavigate();
   const [rows, setRows] = useState(null);
   const [error, setError] = useState('');
@@ -113,7 +115,7 @@ export default function NotificationsPage() {
     try {
       await request(`/api/notifications/${encodeURIComponent(row.id)}/read`, { method: 'PUT' });
       setRows(items => items?.map(item => String(item.id) === String(row.id) ? { ...item, read: true } : item) || []);
-      setNotice('La notificación se marcó como leída.');
+      const message='La notificación se marcó como leída.';setNotice(message);notifyOperation(message);
       window.dispatchEvent(new Event('gtel:notifications-changed'));
     } catch (failure) { setError(failure.message); }
     finally { setBusy(''); }
@@ -125,7 +127,7 @@ export default function NotificationsPage() {
     try {
       await request('/api/notifications/read-all', { method: 'PUT' });
       setRows(items => items?.map(item => ({ ...item, read: true })) || []);
-      setNotice('Todas las notificaciones se marcaron como leídas.');
+      const message='Todas las notificaciones se marcaron como leídas.';setNotice(message);notifyOperation(message);
       window.dispatchEvent(new Event('gtel:notifications-changed'));
     } catch (failure) { setError(failure.message); }
     finally { setBusy(''); }

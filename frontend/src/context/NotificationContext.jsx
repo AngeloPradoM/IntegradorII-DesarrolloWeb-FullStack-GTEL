@@ -108,6 +108,11 @@ export function NotificationProvider({ children }) {
     toastTimeoutsRef.current.set(toastId, timeout);
   }, [dismissToast]);
 
+  const pushOperationToast = useCallback((description, title = "Operación completada") => {
+    if (!description) return;
+    pushToast({ type: "OPERACION_SISTEMA", title, description });
+  }, [pushToast]);
+
   useEffect(() => () => {
     toastTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
     toastTimeoutsRef.current.clear();
@@ -234,6 +239,7 @@ export function NotificationProvider({ children }) {
     loading,
     toasts,
     dismissToast,
+    pushOperationToast,
     markAsRead,
     markAllAsRead,
     refreshNotifications: fetchNotifications,
@@ -252,4 +258,8 @@ export function useNotifications() {
     throw new Error("useNotifications debe usarse dentro de un NotificationProvider");
   }
   return context;
+}
+
+export function useOperationNotice() {
+  return useNotifications().pushOperationToast;
 }

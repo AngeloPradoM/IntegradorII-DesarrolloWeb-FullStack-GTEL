@@ -67,7 +67,6 @@
   .admin-shell .admin-workspace .filter-tabs{width:100%}
   .admin-shell .admin-workspace .filter-tabs button{flex:1;justify-content:center}
 }
-
 /* ADMIN-P3: profundidad, KPI y superficies ejecutivas. */
 .admin-shell{background:#eef2f7}
 .admin-shell .admin-workspace .surface,
@@ -654,6 +653,99 @@
 .admin-workspace .admin-incident-panel{
   padding:22px;
 }
+.admin-workspace .admin-incident-heading{
+  padding-bottom:2px;
+}
+.admin-workspace .admin-incident-panel [aria-label="Indicadores de incidentes"] article,
+.admin-workspace .admin-incident-panel [aria-label="Indicadores de incidentes"] details{
+  border-color:var(--color-app-border);
+  background:var(--color-app-surface);
+  box-shadow:0 1px 3px rgb(15 23 42/.06);
+}
+.admin-workspace .admin-incident-panel .incident-monitor-heading{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:16px;
+  padding:2px 2px 5px;
+}
+.admin-workspace .admin-incident-panel .incident-monitor-heading p{
+  margin:0 0 2px;
+  color:var(--color-app-accent);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.admin-workspace .admin-incident-panel .incident-monitor-heading h3{
+  color:var(--color-app-primary);
+  font-size:16px;
+  font-weight:800;
+}
+.admin-workspace .admin-incident-panel .incident-monitor-heading span,
+.admin-workspace .admin-incident-panel .incident-monitor-heading small{
+  color:var(--color-app-secondary);
+  font-size:11px;
+}
+.admin-workspace .admin-incident-panel .incident-monitor-heading small{
+  flex:none;
+  font-weight:700;
+}
+.admin-workspace .admin-incident-panel .incident-kpi-card{
+  --incident-kpi-accent:var(--color-semantic-info);
+  --incident-kpi-soft:var(--color-semantic-info-soft);
+  position:relative;
+  min-height:86px;
+  overflow:hidden;
+}
+.admin-workspace .admin-incident-panel .incident-kpi-card::before{
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:var(--incident-kpi-accent);
+  content:"";
+}
+.admin-workspace .admin-incident-panel .incident-kpi-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--color-app-secondary);
+  font-size:11px;
+  font-weight:750;
+}
+.admin-workspace .admin-incident-panel .incident-kpi-label i{
+  display:grid;
+  width:28px;
+  height:28px;
+  place-items:center;
+  border-radius:8px;
+  color:var(--incident-kpi-accent);
+  background:var(--incident-kpi-soft);
+  font-style:normal;
+}
+.admin-workspace .admin-incident-panel .incident-kpi-card strong{
+  display:block;
+  margin-top:7px;
+  color:var(--color-app-primary);
+  font-size:19px;
+  font-weight:850;
+  line-height:1;
+}
+.admin-workspace .admin-incident-panel .incident-kpi-success{
+  --incident-kpi-accent:var(--color-semantic-success);
+  --incident-kpi-soft:var(--color-semantic-success-soft);
+}
+.admin-workspace .admin-incident-panel .incident-kpi-warning{
+  --incident-kpi-accent:var(--color-semantic-warning);
+  --incident-kpi-soft:var(--color-semantic-warning-soft);
+}
+.admin-workspace .admin-incident-panel .incident-kpi-danger{
+  --incident-kpi-accent:var(--color-app-accent);
+  --incident-kpi-soft:var(--color-app-danger-soft);
+}
+.admin-workspace .admin-incident-panel .incident-monitor-unavailable{
+  min-height:auto;
+}
 .admin-workspace .admin-incident-panel>.surface[aria-label="Filtros administrativos adicionales"],
 .admin-workspace .admin-incident-panel>.grid>.surface>.toolbar{
   background:var(--color-admin-section);
@@ -681,6 +773,7 @@
   .admin-workspace .admin-flow-steps{width:100%;display:grid;grid-template-columns:1fr;gap:6px}
   .admin-workspace .admin-flow-steps svg{display:none}
   .admin-workspace .admin-incident-panel{padding:14px}
+  .admin-workspace .admin-incident-panel .incident-monitor-heading{align-items:flex-start}
 }
 
 /* UI-5: Tablero SLA y cierre de consistencia administrativa. */
@@ -770,8 +863,62 @@
   font-size:18px;
   font-weight:780;
 }
+.admin-workspace .incident-register-heading{
+  align-items:center;
+}
+.admin-workspace .incident-register-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+}
 .admin-workspace .incident-register .toolbar{
   background:color-mix(in srgb,var(--color-admin-section) 58%,var(--color-app-surface));
+}
+.admin-workspace .incident-register-toolbar .search-field{
+  flex:1 1 340px;
+  max-width:640px;
+}
+.admin-workspace .incident-filter-trigger{
+  flex:none;
+}
+.admin-workspace .incident-filter-trigger>span{
+  display:inline-grid;
+  min-width:20px;
+  height:20px;
+  place-items:center;
+  border-radius:999px;
+  color:#fff;
+  background:var(--color-app-action);
+  font-size:10px;
+}
+.admin-workspace .incident-filter-trigger svg:last-child{
+  transition:transform 160ms ease;
+}
+.admin-workspace .incident-filter-panel{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  padding:14px 16px;
+  border-top:1px solid var(--color-app-border);
+  background:var(--color-app-muted);
+}
+.admin-workspace .incident-filter-panel label{
+  display:grid;
+  gap:5px;
+  color:var(--color-app-secondary);
+  font-size:11px;
+  font-weight:700;
+}
+.admin-workspace .incident-filter-panel .toolbar-select{
+  width:100%;
+  max-width:none;
+  background:var(--color-app-surface);
+}
+.admin-workspace .incident-filter-footer{
+  display:flex;
+  grid-column:1/-1;
+  justify-content:flex-end;
 }
 .admin-workspace .incident-register .table-scroll{
   max-height:560px;
@@ -859,11 +1006,245 @@
 .admin-workspace .incident-detail-layout{
   margin-top:18px;
 }
+.admin-workspace .incident-detail-back{
+  margin-bottom:12px;
+}
 .admin-workspace .incident-detail-layout>.surface{
   width:100%;
 }
+.admin-workspace .incident-expedient-heading{
+  background:var(--color-admin-section);
+}
+.admin-workspace .incident-detail-tabs{
+  display:flex;
+  gap:4px;
+  overflow-x:auto;
+  padding:0 16px;
+  border-bottom:1px solid var(--color-app-border);
+  background:var(--color-app-surface);
+  scrollbar-width:thin;
+}
+.admin-workspace .incident-detail-tabs button{
+  flex:none;
+  padding:12px 14px 10px;
+  border-bottom:2px solid transparent;
+  color:var(--color-app-secondary);
+  font-size:12px;
+  font-weight:750;
+  white-space:nowrap;
+}
+.admin-workspace .incident-detail-tabs button:hover{
+  color:var(--color-app-accent);
+  background:var(--color-app-danger-soft);
+}
+.admin-workspace .incident-detail-tabs button[aria-selected=true]{
+  border-bottom-color:var(--color-app-action);
+  color:var(--color-app-accent);
+}
+.admin-workspace .incident-detail-tabs button:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--color-semantic-info) 38%,transparent);
+  outline-offset:-3px;
+}
+.admin-workspace .incident-expedient-body [role="tabpanel"][hidden]{
+  display:none;
+}
+.admin-workspace .incident-expedient-body [role="tabpanel"]{
+  min-width:0;
+}
 @media(max-width:720px){
   .admin-workspace .incident-register .panel-heading{align-items:flex-start;flex-direction:column}
+  .admin-workspace .incident-register-actions{width:100%;justify-content:stretch}
+  .admin-workspace .incident-register-actions .btn{flex:1 1 auto}
   .admin-workspace .incident-register .toolbar>*{width:100%;max-width:none}
   .admin-workspace .incident-register .count-label{margin-left:0}
+  .admin-workspace .incident-filter-panel{grid-template-columns:1fr}
+  .admin-workspace .incident-expedient-heading{align-items:flex-start;flex-direction:column}
+}
+
+/* ADMIN-CI4: acabado Ejecutivo Bicolor Premium, acotado a Control de Incidentes. */
+.admin-workspace .admin-incident-panel{
+  border-color:#E2E8F0;
+  background:#EEF2F7;
+  box-shadow:0 8px 28px rgb(15 23 42/.05);
+}
+.admin-workspace .admin-incident-heading{
+  padding:2px 2px 4px;
+}
+.admin-workspace .admin-incident-heading h2{
+  color:#0F172A;
+  letter-spacing:-.025em;
+}
+.admin-workspace .admin-incident-panel :is(.surface,.incident-kpi-card,[aria-label="Indicadores de incidentes"] details){
+  border-color:#E2E8F0;
+  background:#FFFFFF;
+  box-shadow:0 3px 14px rgb(15 23 42/.055);
+}
+.admin-workspace .admin-incident-panel :is(.panel-heading,.incident-expedient-heading){
+  border-bottom-color:#E2E8F0;
+  background:#E8EFF7;
+}
+.admin-workspace .admin-incident-panel .incident-register-heading{
+  padding:17px 18px;
+}
+.admin-workspace .admin-incident-panel .incident-register-toolbar{
+  padding:13px 16px;
+  background:#F1F5F9;
+}
+.admin-workspace .admin-incident-panel :is(.search-field input,.toolbar-select,.technical-field){
+  border-color:#CBD5E1;
+  background:#FFFFFF;
+  color:#0F172A;
+}
+.admin-workspace .admin-incident-panel :is(.search-field input,.toolbar-select,.technical-field):hover:not(:disabled){
+  border-color:#94A3B8;
+}
+.admin-workspace .admin-incident-panel :is(.search-field input,.toolbar-select,.technical-field):focus{
+  border-color:#2563EB;
+  box-shadow:0 0 0 3px rgb(37 99 235/.13);
+  outline:none;
+}
+.admin-workspace .admin-incident-panel .incident-filter-panel{
+  border-color:#E2E8F0;
+  background:#F1F5F9;
+}
+.admin-workspace .admin-incident-panel .incident-register th{
+  color:#475569;
+  background:#E8EFF7;
+}
+.admin-workspace .admin-incident-panel .incident-register td{
+  border-color:#E2E8F0;
+  color:#334155;
+  background:#FFFFFF;
+}
+.admin-workspace .admin-incident-panel .incident-register tbody tr:hover td{
+  background:#EFF6FF;
+}
+.admin-workspace .admin-incident-panel .incident-register tbody tr[aria-selected=true] td{
+  background:#EFF6FF;
+}
+.admin-workspace .admin-incident-panel .incident-register td:first-child strong{
+  color:#2563EB;
+  text-decoration-thickness:1px;
+  text-underline-offset:3px;
+}
+.admin-workspace .admin-incident-panel .incident-register tbody tr:hover td:first-child strong,
+.admin-workspace .admin-incident-panel .incident-register tbody tr:focus-visible td:first-child strong{
+  color:#D32F2F;
+  text-decoration-line:underline;
+}
+.admin-workspace .admin-incident-panel .incident-detail-back{
+  border-color:#CBD5E1;
+  background:#FFFFFF;
+}
+.admin-workspace .admin-incident-panel .admin-incident-expedient{
+  border-color:#E2E8F0;
+  background:#FFFFFF;
+  box-shadow:0 8px 26px rgb(15 23 42/.07);
+}
+.admin-workspace .admin-incident-panel .incident-detail-tabs{
+  border-color:#E2E8F0;
+  background:#FFFFFF;
+}
+.admin-workspace .admin-incident-panel .incident-expedient-body{
+  background:#F8FAFC;
+}
+.admin-workspace .admin-incident-panel .incident-expedient-body .support-summary>div{
+  border:1px solid #E2E8F0;
+  background:#FFFFFF;
+}
+.admin-workspace .admin-incident-panel .incident-expedient-body .support-section{
+  border-color:#E2E8F0;
+  background:#FFFFFF;
+  box-shadow:0 1px 3px rgb(15 23 42/.035);
+}
+.admin-workspace .admin-incident-panel .btn{
+  border-color:#CBD5E1;
+  box-shadow:none;
+}
+.admin-workspace .admin-incident-panel .btn:hover:not(:disabled){
+  border-color:#D32F2F;
+  color:#D32F2F;
+  background:#FEF2F2;
+}
+.admin-workspace .admin-incident-panel .btn-primary{
+  border-color:#D32F2F;
+  color:#FFFFFF;
+  background:#D32F2F;
+}
+.admin-workspace .admin-incident-panel .btn-primary:hover:not(:disabled){
+  border-color:#B71C1C;
+  color:#FFFFFF;
+  background:#B71C1C;
+}
+.dark .admin-workspace .admin-incident-panel{
+  border-color:#334155;
+  background:#020617;
+  box-shadow:0 8px 28px rgb(0 0 0/.24);
+}
+.dark .admin-workspace .admin-incident-heading h2{
+  color:#F8FAFC;
+}
+.dark .admin-workspace .admin-incident-panel :is(.surface,.incident-kpi-card,[aria-label="Indicadores de incidentes"] details){
+  border-color:#334155;
+  background:#0F172A;
+  box-shadow:0 3px 14px rgb(0 0 0/.2);
+}
+.dark .admin-workspace .admin-incident-panel :is(.panel-heading,.incident-expedient-heading,.incident-register th){
+  border-color:#334155;
+  color:#F8FAFC;
+  background:#1E293B;
+}
+.dark .admin-workspace .admin-incident-panel :is(.incident-register-toolbar,.incident-filter-panel){
+  border-color:#334155;
+  background:#1E293B;
+}
+.dark .admin-workspace .admin-incident-panel :is(.search-field input,.toolbar-select,.technical-field){
+  border-color:#334155;
+  background:#0F172A;
+  color:#F8FAFC;
+}
+.dark .admin-workspace .admin-incident-panel .incident-register td{
+  border-color:#334155;
+  color:#CBD5E1;
+  background:#0F172A;
+}
+.dark .admin-workspace .admin-incident-panel .incident-register tbody tr:hover td,
+.dark .admin-workspace .admin-incident-panel .incident-register tbody tr[aria-selected=true] td{
+  background:#172554;
+}
+.dark .admin-workspace .admin-incident-panel .incident-detail-back{
+  border-color:#334155;
+  color:#CBD5E1;
+  background:#0F172A;
+}
+.dark .admin-workspace .admin-incident-panel :is(.admin-incident-expedient,.incident-detail-tabs){
+  border-color:#334155;
+  background:#0F172A;
+}
+.dark .admin-workspace .admin-incident-panel .incident-expedient-body{
+  background:#020617;
+}
+.dark .admin-workspace .admin-incident-panel .incident-expedient-body :is(.support-summary>div,.support-section){
+  border-color:#334155;
+  background:#0F172A;
+  box-shadow:0 1px 3px rgb(0 0 0/.2);
+}
+.dark .admin-workspace .admin-incident-panel .btn:hover:not(:disabled){
+  border-color:#F87171;
+  color:#FCA5A5;
+  background:rgb(127 29 29/.28);
+}
+.dark .admin-workspace .admin-incident-panel .btn-primary,
+.dark .admin-workspace .admin-incident-panel .btn-primary:hover:not(:disabled){
+  color:#FFFFFF;
+  background:#DC2626;
+  border-color:#DC2626;
+}
+@media(prefers-reduced-motion:reduce){
+  .admin-workspace .admin-incident-panel *,
+  .admin-workspace .admin-incident-panel *::before,
+  .admin-workspace .admin-incident-panel *::after{
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+  }
 }

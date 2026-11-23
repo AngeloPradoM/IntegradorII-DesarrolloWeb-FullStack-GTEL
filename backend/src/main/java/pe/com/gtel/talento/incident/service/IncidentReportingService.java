@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pe.com.gtel.talento.identity.dto.WorkflowActor;
 import pe.com.gtel.talento.identity.service.WorkflowIdentity;
 import pe.com.gtel.talento.incident.dto.IncidentIndicatorsResponse;
+import pe.com.gtel.talento.incident.dto.IncidentControlResponse;
 import pe.com.gtel.talento.incident.dto.IncidentIndicatorsResponse.DimensionCount;
 import pe.com.gtel.talento.incident.dto.IncidentReportFilter;
 import pe.com.gtel.talento.incident.dto.IncidentResponse;
@@ -46,6 +47,14 @@ public class IncidentReportingService {
     public IncidentIndicatorsResponse indicators(IncidentReportFilter filter, String email) {
         LocalDateTime now = LocalDateTime.now();
         return calculate(filteredRows(actor(email), filter), now);
+    }
+
+    @Transactional(readOnly = true)
+    public List<IncidentControlResponse> control(String email) {
+        WorkflowActor actor = actor(email);
+        return "ADMIN".equals(actor.role())
+            ? repository.listControlAll()
+            : repository.listControlForTechnician(actor.id());
     }
 
     public ExportedWorkbook export(IncidentReportFilter filter, String email) {

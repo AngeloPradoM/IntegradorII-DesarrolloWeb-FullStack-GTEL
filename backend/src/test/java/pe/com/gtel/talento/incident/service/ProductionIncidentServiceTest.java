@@ -97,6 +97,29 @@ class ProductionIncidentServiceTest {
     }
 
     @Test
+    void technicianCanRegisterOperationalIncidentWithAuthenticatedIdentity() {
+        WorkflowActor technician = new WorkflowActor(22L, "TECNICO");
+        IncidentCreateRequest request = request("GENERAL", "CRITICO", "INMEDIATA", true, false, true);
+        IncidentResponse created = incident("REGISTRADO", null, 0, null);
+        when(identity.actor("tech@gtel.test")).thenReturn(technician);
+        when(configuration.categoryForModule("AVAILABILITY"))
+            .thenReturn(new CategoryConfiguration(CATEGORY, "Disponibilidad de plataforma", "AVAILABILITY"));
+        when(configuration.problemTypeByCode("INC_PLATAFORMA_CAIDA"))
+            .thenReturn(new ProblemTypeConfiguration("INC_PLATAFORMA_CAIDA", CATEGORY,
+                "Plataforma caída", "Interrupción total", 10));
+        when(configuration.categoryByCode(CATEGORY))
+            .thenReturn(new CategoryConfiguration(CATEGORY, "Disponibilidad de plataforma", "AVAILABILITY"));
+        when(repository.create(eq(22L), eq(request), eq("P1"), eq(CATEGORY), anyString())).thenReturn(9L);
+        when(repository.find(9L)).thenReturn(created);
+
+        service.create(request, "tech@gtel.test");
+
+        verify(repository).create(eq(22L), eq(request), eq("P1"), eq(CATEGORY), anyString());
+        verify(identity).audit(technician, "incidentes_produccion", 9L, "crear",
+            "Incidente de producción registrado");
+    }
+
+    @Test
     void rejectsProblemTypeThatDoesNotBelongToSelectedModule() {
         WorkflowActor admin=new WorkflowActor(1L,"ADMIN");
         IncidentCreateRequest base=request("GENERAL","ALTO","ALTA",true,false,true);
@@ -353,6 +376,37 @@ class ProductionIncidentServiceTest {
     }
 
     @Test
+    void originTicketSynchronizesReporterWithoutReplacingAuthenticatedRegistrar() {
+        WorkflowActor admin = new WorkflowActor(1L, "ADMIN");
+        IncidentResponse incident = incident("ASIGNADO", "P3", 2, 22L);
+        when(identity.actor("admin@gtel.test")).thenReturn(admin);
+        when(repository.find(9L)).thenReturn(incident);
+        when(repository.ticketExists(12L)).thenReturn(true);
+        when(repository.hasOriginTicket(9L)).thenReturn(false);
+        when(repository.linkTicket(9L, 12L, "ORIGEN", 1L)).thenReturn(1);
+        when(repository.synchronizeReporterFromOriginTicket(9L, 12L)).thenReturn(1);
+
+        service.linkTicket(9L, 12L, new IncidentTicketLinkRequest("ORIGEN"), "admin@gtel.test");
+
+        verify(repository).synchronizeReporterFromOriginTicket(9L, 12L);
+        verify(identity).audit(admin, "incidentes_produccion", 9L, "actualizar", "Ticket vinculado: 12");
+    }
+
+    @Test
+    void rejectsSecondOriginTicketWithoutWritingAnotherRelationship() {
+        when(identity.actor("admin@gtel.test")).thenReturn(new WorkflowActor(1L, "ADMIN"));
+        when(repository.find(9L)).thenReturn(incident("ASIGNADO", "P3", 2, 22L));
+        when(repository.ticketExists(13L)).thenReturn(true);
+        when(repository.hasOriginTicket(9L)).thenReturn(true);
+
+        var error = assertThrows(ResponseStatusException.class, () -> service.linkTicket(
+            9L, 13L, new IncidentTicketLinkRequest("ORIGEN"), "admin@gtel.test"));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
+        verify(repository, never()).linkTicket(9L, 13L, "ORIGEN", 1L);
+    }
+
+    @Test
     void recruiterReadsOnlyRepositorySummaryBoundToOwnTickets() {
         WorkflowActor recruiter = new WorkflowActor(15L, "RECLUTADOR");
         List<IncidentLinkedSummary> summaries = List.of(
@@ -400,9 +454,9 @@ class ProductionIncidentServiceTest {
                                       String solution, boolean activeEscalation) {
         LocalDateTime now = LocalDateTime.of(2026, 11, 19, 10, 0);
         return new IncidentResponse(9L, "INC-2026-00009", "Caída del servicio", "API", "DISPONIBILIDAD",
-            "MANUAL", "AVAILABILITY", CATEGORY, priority == null ? null : CATEGORY, "",
+            "MANUAL", "WEB", null, "AVAILABILITY", CATEGORY, priority == null ? null : CATEGORY, "",
             "Error general", "GENERAL", "CRITICO", "INMEDIATA", true, false, true, "P1",
-            priority, status, status, activeEscalation, 1L, "admin@gtel.test", responsibleId,
+            priority, status, status, activeEscalation, 1L, "admin@gtel.test", 1L, "admin@gtel.test", responsibleId,
             responsibleId == null ? null : "tech@gtel.test",
             responsibleId == null ? "PENDIENTE" : "AUTOMATICA", responsibleId == null ? null : 7L,
             responsibleId == null ? null : now, null, null, now, now.minusMinutes(5), null, null, null, null,

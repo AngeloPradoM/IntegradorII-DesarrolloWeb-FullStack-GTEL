@@ -105,6 +105,8 @@ try {
     const contextSource = readFileSync(new URL('../src/context/NotificationContext.jsx', import.meta.url), 'utf8');
     assert.match(contextSource, /toast\.toastId !== id/);
     assert.match(contextSource, /}, 5000\);/);
+    assert.match(contextSource, /pushOperationToast/);
+    assert.match(contextSource, /OPERACION_SISTEMA/);
     assert.doesNotMatch(contextSource, /prev\.filter\(\(t\) => t\.id !== id\)/);
   });
 } finally {

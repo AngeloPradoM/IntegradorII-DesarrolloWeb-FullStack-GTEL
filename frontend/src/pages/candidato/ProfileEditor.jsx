@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useOperationNotice } from "../../context/NotificationContext";
 import { saveProfile, exportCandidateArcoData, anonymizeCandidateArcoAccount } from "../../services/api";
 import { Download, Trash2, ShieldCheck, AlertTriangle } from "lucide-react";
 import "./perfil.css";
@@ -11,6 +12,7 @@ const fields = user => Object.fromEntries(['nombres','apellidos','email','telefo
 
 export default function ProfileEditor() {
   const { user, updateProfile, logout } = useAuth();
+  const notifyOperation = useOperationNotice();
   const [saved, setSaved] = useState(() => fields(user));
   const [form, setForm] = useState(saved);
   const [message, setMessage] = useState('');
@@ -68,7 +70,7 @@ export default function ProfileEditor() {
     setBusy(true); setMessage('');
     try {
       const result = await saveProfile(user, { ...form, nombres:form.nombres.trim(), apellidos:form.apellidos.trim(), email:form.email.trim().toLowerCase(), correoContacto:form.correoContacto.trim().toLowerCase(), telefono:`+51${form.telefono}` });
-      updateProfile(result); setSaved(fields(result)); setForm(fields(result)); setMessage('Cambios guardados. Tu perfil está actualizado.');
+      const message='Cambios guardados. Tu perfil está actualizado.';updateProfile(result);setSaved(fields(result));setForm(fields(result));setMessage(message);notifyOperation(message);
     } catch (error) { setMessage(error.message || 'No se pudo guardar el perfil.'); }
     finally { setBusy(false); }
   };
@@ -89,7 +91,7 @@ export default function ProfileEditor() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setArcoMessage('Expediente exportado exitosamente conforme a la Ley N° 29733.');
+      const message='Expediente exportado exitosamente conforme a la Ley N° 29733.';setArcoMessage(message);notifyOperation(message);
     } catch (err) {
       setArcoError(err.message || 'Error al exportar los datos.');
     } finally {
@@ -104,7 +106,7 @@ export default function ProfileEditor() {
     try {
       const res = await anonymizeCandidateArcoAccount(true, anonymizeMotivo, user);
       setShowAnonymizeModal(false);
-      setArcoMessage(res.mensaje || 'Tu cuenta ha sido anonimizada permanentemente.');
+      const message=res.mensaje||'Tu cuenta ha sido anonimizada permanentemente.';setArcoMessage(message);notifyOperation(message);
       setTimeout(() => {
         logout();
         window.location.href = '/';

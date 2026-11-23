@@ -9,7 +9,9 @@ import { registerCandidate } from "../services/api";
 import { getDefaultRouteForRole, getSafeAuthRedirect } from "../utils/auth";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import AdminHeader from "../components/layout/AdminHeader";
+import { useOperationNotice } from "../context/NotificationContext";
 export default function PublicLayout() {
+  const notifyOperation = useOperationNotice();
   const {
     login,
     logout,
@@ -50,7 +52,9 @@ export default function PublicLayout() {
   };
   const handleRegister = async (payload) => {
     await registerCandidate(payload);
-    setRegistrationNotice("Cuenta registrada correctamente en el servidor. Ya puedes iniciar sesión con tu correo y contraseña.");
+    const message = "Cuenta registrada correctamente en el servidor. Ya puedes iniciar sesión con tu correo y contraseña.";
+    setRegistrationNotice(message);
+    notifyOperation(message);
     setModal("login");
   };
   return (
