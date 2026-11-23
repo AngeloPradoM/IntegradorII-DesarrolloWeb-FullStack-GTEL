@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Download, FileCheck2, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
 import { listTechnicians } from '../../services/supportService';
 import { assignChangeRequest, decideChangeRequest, downloadChangeDocument, listChangeRequests } from '../../services/changeManagementService';
+import { useOperationNotice } from '../../context/NotificationContext';
 
 const labels = { REGISTRADO:'Registrado', ASIGNADO:'Asignado', PENDIENTE_APROBACION:'Pendiente de aprobación', APROBADO:'Aprobado', AJUSTES_SOLICITADOS:'Requiere ajustes', EN_VALIDACION:'En validación', OBSERVADO:'Observado', CERRADO:'Cerrado' };
 const riskTone = { BAJO:'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200', MEDIO:'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200', ALTO:'bg-red-50 text-red-800 dark:bg-red-950/50 dark:text-red-200' };
@@ -9,6 +10,7 @@ const riskLevel = (probability,impact) => { const p={BAJA:1,MEDIA:2,ALTA:3}[prob
 const formatDate = value => { const date=new Date(value); return value&&!Number.isNaN(date.getTime())?new Intl.DateTimeFormat('es-PE',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Lima'}).format(date):'Sin fecha'; };
 
 export default function AdminChangePanel() {
+  const notifyOperation=useOperationNotice();
   const [rows,setRows]=useState([]), [technicians,setTechnicians]=useState([]), [selectedId,setSelectedId]=useState(null), [loading,setLoading]=useState(true), [busy,setBusy]=useState(false), [error,setError]=useState(''), [notice,setNotice]=useState('');
   const [decision,setDecision]=useState({riskProbability:'MEDIA',riskImpact:'MEDIO',comment:'',cabMembers:''});
   const [query,setQuery]=useState(''), [statusFilter,setStatusFilter]=useState('all'), [detailTab,setDetailTab]=useState('detail');
@@ -19,7 +21,7 @@ export default function AdminChangePanel() {
   useEffect(()=>{const controller=new AbortController();load(controller.signal);return()=>controller.abort();},[]);
   useEffect(()=>{if(!selected)return;setDecision({riskProbability:selected.riskProbability||'MEDIA',riskImpact:selected.riskImpact||'MEDIO',comment:selected.cabComment||'',cabMembers:selected.cabMembers||''});setDetailTab('detail');},[selected]);
   const replace=updated=>setRows(values=>values.map(value=>value.id===updated.id?updated:value));
-  const run=async(callback,message)=>{if(busy)return;setBusy(true);setError('');setNotice('');try{const updated=await callback();if(updated?.id)replace(updated);setNotice(message);}catch(failure){setError(failure.message);}finally{setBusy(false);}};
+  const run=async(callback,message)=>{if(busy)return;setBusy(true);setError('');setNotice('');try{const updated=await callback();if(updated?.id)replace(updated);setNotice(message);notifyOperation(message);}catch(failure){setError(failure.message);}finally{setBusy(false);}};
   const decide=approved=>{if(!approved&&!decision.comment.trim()){setError('Indica los ajustes requeridos.');return;}if(approved&&selected.type==='NORMAL'&&!decision.cabMembers.trim()){setError('Registra los participantes del CAB para aprobar un cambio normal.');return;}run(()=>decideChangeRequest(selected.id,{...decision,approved}),approved?'RFC aprobada; el implementador fue notificado.':'RFC devuelta para ajustes.');};
   const stats={total:rows.length,pending:rows.filter(row=>row.status==='PENDIENTE_APROBACION').length,approved:rows.filter(row=>row.status==='APROBADO').length,closed:rows.filter(row=>row.status==='CERRADO').length};
   const field='technical-field mt-1 w-full px-3 py-2.5 text-sm';

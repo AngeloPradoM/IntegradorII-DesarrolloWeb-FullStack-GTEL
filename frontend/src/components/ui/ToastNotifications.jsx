@@ -1,5 +1,6 @@
 import { useNotifications } from "../../context/NotificationContext";
 import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import {
   Bell,
   Users,
@@ -9,10 +10,18 @@ import {
   Sparkles,
   X,
   ExternalLink,
+  GripHorizontal,
 } from "lucide-react";
 
 function getNotificationVisuals(type) {
   switch (type) {
+    case "OPERACION_SISTEMA":
+      return {
+        icon: CheckCircle,
+        color: "text-emerald-600 dark:text-emerald-400",
+        badgeBg: "bg-emerald-100 dark:bg-emerald-950/50",
+        border: "border-emerald-300 dark:border-emerald-800",
+      };
     case "POSTULACION_NUEVA":
       return {
         icon: Users,
@@ -60,13 +69,38 @@ function getNotificationVisuals(type) {
 
 export default function ToastNotifications() {
   const { toasts, dismissToast, markAsRead } = useNotifications();
+  const [position, setPosition] = useState(null);
+  const dragRef = useRef(null);
+  useEffect(() => { if (toasts?.length === 1) setPosition(null); }, [toasts?.length]);
+
+  const startDrag = (event) => {
+    if (event.button !== 0) return;
+    const container = event.currentTarget.closest('[data-toast-region]');
+    const rect = container.getBoundingClientRect();
+    dragRef.current = { offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const moveDrag = (event) => {
+    if (!dragRef.current) return;
+    const width = Math.min(384, window.innerWidth - 32);
+    setPosition({
+      left: Math.max(16, Math.min(window.innerWidth - width - 16, event.clientX - dragRef.current.offsetX)),
+      top: Math.max(16, Math.min(window.innerHeight - 120, event.clientY - dragRef.current.offsetY)),
+    });
+  };
+  const stopDrag = (event) => {
+    dragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
 
   if (!toasts || toasts.length === 0) return null;
 
   return (
     <div
       role="region"
-      aria-label="Notificaciones en vivo"
+      aria-label="Notificaciones y operaciones en vivo"
+      data-toast-region
+      style={position ? { left: position.left, top: position.top, right: "auto", bottom: "auto" } : undefined}
       className="fixed bottom-5 right-5 z-50 flex max-w-sm w-full flex-col gap-3 pointer-events-none"
     >
       {toasts.map((toast) => {
@@ -87,12 +121,13 @@ export default function ToastNotifications() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex touch-none cursor-move items-center justify-between gap-2" onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={stopDrag} onPointerCancel={stopDrag}>
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  En tiempo real
+                  <GripHorizontal className="mr-1 inline h-3.5 w-3.5" aria-hidden="true"/>{toast.type === "OPERACION_SISTEMA" ? "Operación" : "En tiempo real"}
                 </span>
                 <button
                   type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
                   onClick={(event) => {
                     event.stopPropagation();
                     dismissToast(toast.toastId);

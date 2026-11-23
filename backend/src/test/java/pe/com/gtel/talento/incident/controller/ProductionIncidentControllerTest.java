@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 
 import pe.com.gtel.talento.incident.dto.IncidentReportFilter;
+import pe.com.gtel.talento.incident.dto.IncidentControlResponse;
 import pe.com.gtel.talento.incident.service.IncidentReportingService;
 import pe.com.gtel.talento.incident.service.IncidentReportingService.ExportedWorkbook;
 import pe.com.gtel.talento.incident.service.ProductionIncidentService;
@@ -40,5 +42,16 @@ class ProductionIncidentControllerTest {
         assertTrue(response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION).startsWith("attachment;"));
         assertEquals("no-store", response.getHeaders().getCacheControl());
         assertArrayEquals(content, response.getBody());
+    }
+
+    @Test
+    void controlDelegatesWithAuthenticatedIdentity() {
+        Principal principal = () -> "tech@gtel.test";
+        IncidentControlResponse row = new IncidentControlResponse(9L, "INC-9", null, "reporter", "Falla",
+            "Interfaz", "P3", "tech@gtel.test", "REGISTRADO", null, null, null, null, false,
+            null, null, 24.0, false, "WEB", null, 22L, "tech@gtel.test");
+        when(reporting.control(principal.getName())).thenReturn(List.of(row));
+
+        assertEquals(List.of(row), controller.control(principal));
     }
 }

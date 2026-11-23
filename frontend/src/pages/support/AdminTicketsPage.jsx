@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowRight, CheckCircle2, FileCheck2, RefreshCw, Search, ServerCrash, ShieldCheck, TicketCheck, Users } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { useOperationNotice } from '../../context/NotificationContext';
 import { assignSupportTicket, decideSupportProposal, getAdminSupportSlaDashboard, listSupportTickets, listTechnicians } from '../../services/supportService';
 import '../admin/admin-workspace.css';
 import AdminChangePanel from './AdminChangePanel';
@@ -10,6 +11,7 @@ const labels = { NUEVO:'Nuevo', ASIGNADO:'Asignado', EN_ATENCION:'En atención',
 const formatDate = value => { const date = new Date(value); return value && !Number.isNaN(date.getTime()) ? new Intl.DateTimeFormat('es-PE',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Lima'}).format(date) : 'Sin fecha'; };
 
 export default function AdminTicketsPage() {
+  const notifyOperation=useOperationNotice();
   const [searchParams,setSearchParams] = useSearchParams();
   const requestedQueue = searchParams.get('queue');
   const queue = ['changes','incidents'].includes(requestedQueue) ? requestedQueue : 'tickets';
@@ -24,7 +26,7 @@ export default function AdminTicketsPage() {
   const visible=useMemo(()=>{const term=query.trim().toLowerCase();return tickets.filter(ticket=>(!term||[ticket.code,ticket.title,ticket.requesterEmail,ticket.area].some(value=>String(value||'').toLowerCase().includes(term)))&&(statusFilter==='all'||ticket.status===statusFilter));},[query,statusFilter,tickets]);
   const selected=useMemo(()=>tickets.find(ticket=>ticket.id===selectedId)||null,[selectedId,tickets]);
   const replace=updated=>setTickets(rows=>rows.map(row=>row.id===updated.id?updated:row));
-  const run=async(id,callback,message)=>{if(busyId)return;setBusyId(id);setError('');setNotice('');try{replace(await callback());setNotice(message);}catch(failure){setError(failure.message);}finally{setBusyId(null);}};
+  const run=async(id,callback,message)=>{if(busyId)return;setBusyId(id);setError('');setNotice('');try{replace(await callback());setNotice(message);notifyOperation(message);}catch(failure){setError(failure.message);}finally{setBusyId(null);}};
   const assign=(ticket,id)=>{if(!id)return;run(ticket.id,()=>assignSupportTicket(ticket.id,Number(id)),`Responsable asignado a ${ticket.code}.`);};
   const decide=(ticket,approved)=>{const comment=(comments[ticket.id]||'').trim();if(!approved&&!comment){setError('Escribe una observación antes de solicitar ajustes.');return;}run(ticket.id,()=>decideSupportProposal(ticket.id,approved,comment),approved?'Ejecución autorizada. El técnico ya puede realizar la solución.':'La propuesta fue devuelta al técnico.');};
   const setQueue=value=>{const next=new URLSearchParams(searchParams);if(value==='tickets')next.delete('queue');else next.set('queue',value);setSearchParams(next,{replace:true});};

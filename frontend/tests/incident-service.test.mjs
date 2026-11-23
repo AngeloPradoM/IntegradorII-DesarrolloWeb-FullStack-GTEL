@@ -14,6 +14,7 @@ try {
   const reportBlob = new Blob(['xlsx'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   globalThis.fetch = async (url, options = {}) => { calls.push({ url: String(url), options }); return { ok: true, status: 200, json: async () => ({ incident: { id: 9, version: 3 } }), blob: async () => reportBlob }; };
   await api.listProductionIncidents();
+  await api.listProductionIncidentControl();
   await api.listMyReportedProductionIncidents();
   await api.getProductionIncidentConfiguration();
   const filters = { query: 'api', status: 'ESCALADO', priority: 'P1', categoryCode: 'DISPONIBILIDAD_PLATAFORMA', responsibleId: '7', fromDate: '2026-11-01', toDate: '2026-11-30' };
@@ -49,8 +50,17 @@ try {
   await api.linkProductionIncidentChange(9, 4, 'CORRECCION');
   await api.unlinkProductionIncidentChange(9, 4);
 
+  const merged = api.mergeProductionIncidentControl(
+    [{ id: 9, reporterEmail: 'reporter@gtel.test', reportChannel: null }],
+    [{ id: 9, reporter: 'reporter@gtel.test', reportChannel: 'WEB', registeredById: 22,
+      registeredByEmail: 'tech@gtel.test', attentionHours: 1.25, overdue: false }],
+  );
+  assert.equal(merged[0].reportChannel, 'WEB');
+  assert.equal(merged[0].registeredByEmail, 'tech@gtel.test');
+  assert.equal(merged[0].attentionHours, 1.25);
+
   assert.deepEqual(calls.map(call => new URL(call.url).pathname), [
-    '/api/production-incidents','/api/production-incidents/reported-by-me','/api/production-incidents/configuration','/api/production-incidents/indicators','/api/production-incidents/export',
+    '/api/production-incidents','/api/production-incidents/control','/api/production-incidents/reported-by-me','/api/production-incidents/configuration','/api/production-incidents/indicators','/api/production-incidents/export',
     '/api/production-incidents/9','/api/production-incidents',
     '/api/production-incidents/9/classification','/api/production-incidents/9/assignment',
     '/api/production-incidents/9/activities','/api/production-incidents/9/resolution',
@@ -59,12 +69,12 @@ try {
     '/api/production-incidents/9/tickets/12','/api/production-incidents/9/changes/4',
     '/api/production-incidents/9/changes/4',
   ]);
-  assert.deepEqual(calls.map(call => call.options.method || 'GET'), ['GET','GET','GET','GET','GET','GET','POST','PATCH','PATCH','POST','PATCH','POST','PATCH','PATCH','POST','DELETE','POST','DELETE']);
+  assert.deepEqual(calls.map(call => call.options.method || 'GET'), ['GET','GET','GET','GET','GET','GET','GET','POST','PATCH','PATCH','POST','PATCH','POST','PATCH','PATCH','POST','DELETE','POST','DELETE']);
   assert.ok(calls.every(call => call.options.headers.Authorization === 'Bearer incident-token'));
-  for (const index of [3,4]) assert.deepEqual(Object.fromEntries(new URL(calls[index].url).searchParams), filters);
-  assert.deepEqual(JSON.parse(calls[7].options.body), { priority: 'P1', reason: 'Impacto general', categoryCode: 'DISPONIBILIDAD_PLATAFORMA', categoryReason: '', expectedVersion: 3 });
-  assert.deepEqual(JSON.parse(calls[14].options.body), { relationship: 'ORIGEN' });
-  assert.deepEqual(JSON.parse(calls[16].options.body), { purpose: 'CORRECCION' });
+  for (const index of [4,5]) assert.deepEqual(Object.fromEntries(new URL(calls[index].url).searchParams), filters);
+  assert.deepEqual(JSON.parse(calls[8].options.body), { priority: 'P1', reason: 'Impacto general', categoryCode: 'DISPONIBILIDAD_PLATAFORMA', categoryReason: '', expectedVersion: 3 });
+  assert.deepEqual(JSON.parse(calls[15].options.body), { relationship: 'ORIGEN' });
+  assert.deepEqual(JSON.parse(calls[17].options.body), { purpose: 'CORRECCION' });
   console.log('PASS incidentService: authenticated Phase 5 indicators and export contract.');
 } finally {
   globalThis.fetch = originalFetch;

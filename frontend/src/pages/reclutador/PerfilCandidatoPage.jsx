@@ -5,7 +5,9 @@ import { useParams } from "react-router-dom";
 import { getRecruiterCandidate, updateCandidateStatus, getCandidateTimeline } from "../../services/api";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Calendar, Download, CheckCircle, XCircle, MessageSquare, ArrowLeft, Briefcase, GraduationCap, Star, FileText, Globe, Clock, History } from "lucide-react";
+import { useOperationNotice } from "../../context/NotificationContext";
 export default function CandidateProfile() {
+  const notifyOperation=useOperationNotice();
   const {
     id
   } = useParams();
@@ -43,7 +45,7 @@ export default function CandidateProfile() {
       await updateCandidateStatus(id, status);
       retry();
       await fetchTimeline();
-      setNotice(status === "aprobada" ? "Candidato aprobado correctamente." : status === "entrevista" ? "Candidato movido a entrevista." : "Candidato descartado.");
+      const message=status === "aprobada" ? "Candidato aprobado correctamente." : status === "entrevista" ? "Candidato movido a entrevista." : "Candidato descartado.";setNotice(message);notifyOperation(message);
     } catch (requestError) { setError(requestError.message); }
     finally { setSaving(false); }
   };

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Pencil, Plus, Search, ShieldCheck, Trash2, UserCheck, UserCog, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useOperationNotice } from '../../context/NotificationContext';
 import { deleteUser, listUsers, saveUser } from '../../services/adminService';
 import './admin-workspace.css';
 
@@ -10,6 +11,7 @@ const roleLabels = { ADMIN: 'Administrador', RECLUTADOR: 'Reclutador', CANDIDATO
 
 export default function UsersPage() {
   const { user, logout } = useAuth();
+  const notifyOperation = useOperationNotice();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
@@ -63,7 +65,7 @@ export default function UsersPage() {
       await saveUser(editor.id, { ...editor, password: editor.password || null });
       if (String(editor.id) === String(user.id)) { logout(); navigate('/?auth=login', { replace: true }); return; }
       setEditor(null); setRevision(value => value + 1);
-      setNotice('Usuario guardado correctamente. Sus sesiones anteriores quedaron invalidadas.');
+      const message='Usuario guardado correctamente. Sus sesiones anteriores quedaron invalidadas.';setNotice(message);notifyOperation(message);
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }
   };
@@ -73,7 +75,7 @@ export default function UsersPage() {
     setBusy(true); setError(''); setNotice('');
     try {
       await deleteUser(deleteTarget.id);
-      setNotice(`La cuenta ${deleteTarget.email} y sus datos asociados fueron eliminados.`);
+      const message=`La cuenta ${deleteTarget.email} y sus datos asociados fueron eliminados.`;setNotice(message);notifyOperation(message);
       setDeleteTarget(null); setRevision(value => value + 1);
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }

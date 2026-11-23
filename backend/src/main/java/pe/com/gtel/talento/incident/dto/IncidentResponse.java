@@ -4,11 +4,13 @@ import java.time.LocalDateTime;
 
 public record IncidentResponse(
     long id, String code, String title, String component, String type, String source,
+    String reportChannel, String reporterDetail,
     String moduleCode, String suggestedCategory, String categoryCode, String categoryReason,
     String description, String scope, String impact, String urgency, boolean essentialProcess,
     boolean workaroundAvailable, boolean serviceBlocked, String suggestedPriority, String priority, String status,
     String displayStatus, boolean activeEscalation,
-    Long reporterId, String reporterEmail, Long responsibleId, String responsibleEmail,
+    Long reporterId, String reporterEmail, Long registeredById, String registeredByEmail,
+    Long responsibleId, String responsibleEmail,
     String assignmentSource, Long assignmentRuleId, LocalDateTime assignedAt,
     Long verifierId, String verifierEmail, LocalDateTime detectedAt, LocalDateTime startedAt,
     LocalDateTime firstAttentionAt, LocalDateTime recoveredAt, LocalDateTime verifiedAt, LocalDateTime closedAt,

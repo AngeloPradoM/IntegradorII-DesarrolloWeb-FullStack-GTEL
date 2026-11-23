@@ -66,10 +66,10 @@ class IncidentWorkbookExporterTest {
     }
 
     private IncidentResponse incident(String title, LocalDateTime now) {
-        return new IncidentResponse(1L, "INC-1", title, "Frontend", "ERROR", "MANUAL", "UI",
+        return new IncidentResponse(1L, "INC-1", title, "Frontend", "ERROR", "MANUAL", "WEB", null, "UI",
             "INTERFAZ", "INTERFAZ", "", "Detalle", "LIMITADO", "MEDIO", "MEDIA",
             false, true, false, "P3", "P3", "EN_INVESTIGACION", "EN_DIAGNOSTICO", false,
-            1L, "admin@gtel.test", 22L, "tech@gtel.test", "MANUAL", null, now.minusHours(1),
+            1L, "admin@gtel.test", 1L, "admin@gtel.test", 22L, "tech@gtel.test", "MANUAL", null, now.minusHours(1),
             null, null, now.minusHours(2), null, now.minusHours(1), null, null, null,
             null, null, null, false, null, now, now.plusHours(4), 2, now.minusHours(2), now);
     }

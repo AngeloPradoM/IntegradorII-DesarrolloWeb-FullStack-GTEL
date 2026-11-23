@@ -359,8 +359,15 @@ public class ProductionIncidentService {
         WorkflowActor actor = admin(email);
         requireIncident(id);
         if (!repository.ticketExists(ticketId)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket no encontrado.");
+        if ("ORIGEN".equals(request.relationship()) && repository.hasOriginTicket(id)) {
+            throw conflict("El incidente ya tiene un ticket de origen.");
+        }
         if (repository.linkTicket(id, ticketId, request.relationship(), actor.id()) == 0) {
             throw conflict("El ticket ya está vinculado al incidente.");
+        }
+        if ("ORIGEN".equals(request.relationship())
+                && repository.synchronizeReporterFromOriginTicket(id, ticketId) != 1) {
+            throw conflict("No se pudo sincronizar el reportante desde el ticket de origen.");
         }
         identity.audit(actor, "incidentes_produccion", id, "actualizar", "Ticket vinculado: " + ticketId);
         return detail(requireIncident(id));

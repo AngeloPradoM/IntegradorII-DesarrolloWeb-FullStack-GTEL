@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, Download, FileCog, RefreshCw, Send } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useOperationNotice } from '../../context/NotificationContext';
 import TechnicalStageProgress from '../../components/technical/TechnicalStageProgress';
 import { formatTechnicalDate, getChangeWorkflow } from '../../utils/technicalWorkflow';
 import {
@@ -35,6 +36,7 @@ const priorityTone = {
 const fieldClassName = 'technical-field mt-1 w-full p-3 text-sm';
 
 export default function TechnicianChangePanel({ active, onCountChange, search = '', onClearSearch }) {
+  const notifyOperation=useOperationNotice();
   const { user } = useAuth();
   const [rows, setRows] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -103,6 +105,7 @@ export default function TechnicianChangePanel({ active, onCountChange, search = 
       const updated = await callback();
       if (updated?.id) setRows(values => values.map(value => value.id === updated.id ? updated : value));
       setNotice('Gestión de cambio actualizada.');
+      notifyOperation('Gestión de cambio actualizada.');
     } catch (failure) {
       setError(failure.message);
     } finally {
