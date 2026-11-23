@@ -7,7 +7,7 @@ import { DatePicker } from "../../components/ui/DateTimePickers";
 const localISODate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 const cardClassName = "overflow-hidden rounded-xl border border-app-border bg-app-surface shadow-sm";
-const cardHeaderClassName = "flex items-center gap-2 border-b border-app-border bg-app-muted px-5 py-3";
+const cardHeaderClassName = "recruiter-section-header flex items-center gap-2 border-b border-app-border px-5 py-3";
 const cardTitleClassName = "text-sm font-bold text-app-primary";
 const labelClassName = "mb-1.5 block text-xs font-semibold text-app-primary";
 const iconLabelClassName = "mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-app-primary";
@@ -87,19 +87,19 @@ export default function PublishJob() {
         </div>
       </div>;
   }
-  return <div className="max-w-4xl p-4 text-app-primary sm:p-6">
+  return <div className="recruiter-page max-w-4xl p-4 text-app-primary sm:p-6">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="recruiter-page-header">
         <div>
           <h1 className="text-xl font-bold text-app-primary">Publicar Nueva Oferta</h1>
           <p className="text-sm text-app-secondary">Completa los campos para crear una nueva vacante</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link to="/reclutador/dashboard" className="flex items-center gap-2 rounded-lg border border-app-border-strong px-4 py-2 text-sm font-medium text-app-secondary transition-colors hover:bg-app-muted hover:text-app-primary">
+          <Link to="/reclutador/dashboard" className="recruiter-action-secondary">
             <X className="w-4 h-4" />
             Cancelar
           </Link>
-          <button disabled={saving} onClick={publishJob} className="flex items-center gap-2 rounded-lg bg-app-action px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-app-action-hover">
+          <button disabled={saving} onClick={publishJob} className="recruiter-action-primary">
             <Save className="w-4 h-4" />
             {saving ? "Publicando…" : "Publicar Oferta"}
           </button>

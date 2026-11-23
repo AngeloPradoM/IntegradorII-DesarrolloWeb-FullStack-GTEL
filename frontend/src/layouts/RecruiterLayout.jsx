@@ -125,7 +125,7 @@ export default function RecruiterLayout() {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-app-bg font-sans text-app-primary">
+    <div className="recruiter-shell flex h-dvh overflow-hidden bg-app-bg font-sans text-app-primary">
       <a href="#contenido" className="skip-link">
         Saltar al contenido principal
       </a>

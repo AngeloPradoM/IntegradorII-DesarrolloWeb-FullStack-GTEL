@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ArrowRight, CheckCircle2, FileCheck2, RefreshCw, Search, ShieldCheck, TicketCheck, Users } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, FileCheck2, RefreshCw, Search, ServerCrash, ShieldCheck, TicketCheck, Users } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { assignSupportTicket, decideSupportProposal, getAdminSupportSlaDashboard, listSupportTickets, listTechnicians } from '../../services/supportService';
 import '../admin/admin-workspace.css';
 import AdminChangePanel from './AdminChangePanel';
+import AdminIncidentPanel from './AdminIncidentPanel';
 
 const labels = { NUEVO:'Nuevo', ASIGNADO:'Asignado', EN_ATENCION:'En atención', EN_ESPERA:'En espera', RESUELTO:'Resuelto', CERRADO:'Cerrado' };
 const formatDate = value => { const date = new Date(value); return value && !Number.isNaN(date.getTime()) ? new Intl.DateTimeFormat('es-PE',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Lima'}).format(date) : 'Sin fecha'; };
 
 export default function AdminTicketsPage() {
   const [searchParams,setSearchParams] = useSearchParams();
-  const queue = searchParams.get('queue') === 'changes' ? 'changes' : 'tickets';
+  const requestedQueue = searchParams.get('queue');
+  const queue = ['changes','incidents'].includes(requestedQueue) ? requestedQueue : 'tickets';
   const [tickets,setTickets] = useState([]), [technicians,setTechnicians] = useState([]), [sla,setSla] = useState([]);
   const [selectedId,setSelectedId] = useState(null), [loading,setLoading] = useState(true), [busyId,setBusyId] = useState(null), [error,setError] = useState(''), [notice,setNotice] = useState(''), [comments,setComments] = useState({});
   const [query,setQuery] = useState(''), [statusFilter,setStatusFilter] = useState('all');
@@ -25,19 +27,21 @@ export default function AdminTicketsPage() {
   const run=async(id,callback,message)=>{if(busyId)return;setBusyId(id);setError('');setNotice('');try{replace(await callback());setNotice(message);}catch(failure){setError(failure.message);}finally{setBusyId(null);}};
   const assign=(ticket,id)=>{if(!id)return;run(ticket.id,()=>assignSupportTicket(ticket.id,Number(id)),`Responsable asignado a ${ticket.code}.`);};
   const decide=(ticket,approved)=>{const comment=(comments[ticket.id]||'').trim();if(!approved&&!comment){setError('Escribe una observación antes de solicitar ajustes.');return;}run(ticket.id,()=>decideSupportProposal(ticket.id,approved,comment),approved?'Ejecución autorizada. El técnico ya puede realizar la solución.':'La propuesta fue devuelta al técnico.');};
-  const setQueue=value=>{const next=new URLSearchParams(searchParams);if(value==='changes')next.set('queue','changes');else next.delete('queue');setSearchParams(next,{replace:true});};
+  const setQueue=value=>{const next=new URLSearchParams(searchParams);if(value==='tickets')next.delete('queue');else next.set('queue',value);setSearchParams(next,{replace:true});};
   const slaRow=selected?slaById.get(selected.id):null;
 
-  return <main className="admin-workspace admin-workspace-wide">
+  const metricTones=['info','warning','info','warning'];
+
+  return <main className="admin-workspace admin-workspace-wide admin-helpdesk">
     <div className="page-heading"><div><p className="eyebrow">Control administrativo</p><h1>Mesa de ayuda</h1><p className="subtitle text-app-secondary">Asigna responsables, revisa propuestas y autoriza operaciones sin confundir autorización con resolución.</p></div><button className="btn" onClick={()=>load()}><RefreshCw size={15}/>Actualizar</button></div>
     {error&&<div role="alert" className="alert"><span><AlertCircle size={16}/>{error}</span></div>}
     {notice&&<div role="status" className="alert success"><span><CheckCircle2 size={16}/>{notice}</span></div>}
 
-    <div className="filter-tabs admin-queue-tabs" role="tablist" aria-label="Módulos de la mesa de ayuda"><button role="tab" aria-selected={queue==='tickets'} aria-pressed={queue==='tickets'} onClick={()=>setQueue('tickets')}><TicketCheck size={16}/>Tickets y solicitudes</button><button role="tab" aria-selected={queue==='changes'} aria-pressed={queue==='changes'} onClick={()=>setQueue('changes')}><FileCheck2 size={16}/>Cambios RFC</button></div>
+    <div className="filter-tabs admin-queue-tabs" role="tablist" aria-label="Módulos de la mesa de ayuda"><button role="tab" aria-selected={queue==='tickets'} aria-pressed={queue==='tickets'} onClick={()=>setQueue('tickets')}><TicketCheck size={16}/>Tickets y solicitudes</button><button role="tab" aria-selected={queue==='changes'} aria-pressed={queue==='changes'} onClick={()=>setQueue('changes')}><FileCheck2 size={16}/>Cambios RFC</button><button role="tab" aria-selected={queue==='incidents'} aria-pressed={queue==='incidents'} onClick={()=>setQueue('incidents')}><ServerCrash size={16}/>Control de Incidentes</button></div>
 
-    {queue==='changes'?<AdminChangePanel/>:<>
-      <section className="metric-grid" aria-label="Resumen de tickets">{[[TicketCheck,'Total',stats.total],[AlertCircle,'Nuevos',stats.new],[Users,'En seguimiento',stats.progress],[ShieldCheck,'Por autorizar',stats.pending]].map(([Icon,label,value],index)=><article key={label} className="metric-card"><span className={`metric-icon ${index===2?'blue':index===3?'violet':''}`}><Icon/></span><div><span className="metric-label">{label}</span><strong className="metric-value">{value}</strong><small>Tickets actuales</small></div></article>)}</section>
-      <div className="rounded-xl border border-app-info-border bg-app-info p-4 text-app-body"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong className="text-sm text-app-primary">Flujo de autorización</strong><p className="mt-1 text-xs">Aprobar habilita la ejecución; no marca el ticket como resuelto.</p></div><div className="flex flex-wrap items-center gap-2 text-[11px] font-bold"><span>Solicitud</span><ArrowRight size={13}/><span>Propuesta</span><ArrowRight size={13}/><span>Autorización</span><ArrowRight size={13}/><span>Ejecución</span></div></div></div>
+    {queue==='changes'?<AdminChangePanel/>:queue==='incidents'?<AdminIncidentPanel/>:<>
+      <section className="metric-grid" aria-label="Resumen de tickets">{[[TicketCheck,'Total',stats.total],[AlertCircle,'Nuevos',stats.new],[Users,'En seguimiento',stats.progress],[ShieldCheck,'Por autorizar',stats.pending]].map(([Icon,label,value],index)=><article key={label} className={`metric-card metric-card-${metricTones[index]}`}><span className={`metric-icon ${metricTones[index]}`}><Icon/></span><div><span className="metric-label">{label}</span><strong className="metric-value">{value}</strong><small>Tickets actuales</small></div></article>)}</section>
+      <div className="admin-authorization-flow rounded-xl border border-app-info-border bg-app-info p-4 text-app-body"><div className="flex flex-wrap items-center justify-between gap-3"><div><strong className="text-sm text-app-primary">Flujo de autorización</strong><p className="mt-1 text-xs">Aprobar habilita la ejecución; no marca el ticket como resuelto.</p></div><div className="admin-flow-steps flex flex-wrap items-center gap-2 text-[11px] font-bold"><span>Solicitud</span><ArrowRight size={13}/><span>Propuesta</span><ArrowRight size={13}/><span>Autorización</span><ArrowRight size={13}/><span>Ejecución</span></div></div></div>
 
       <div className="admin-support-grid">
         <section className="surface border-app-border bg-app-surface" aria-label="Listado de tickets">

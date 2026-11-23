@@ -1,17 +1,20 @@
 -- Read-only verification for a freshly created gtel_talento database.
 SELECT DATABASE() AS selected_database;
 
-SELECT 'core tables (29)' AS requirement, COUNT(*) AS present
+SELECT 'core tables (41)' AS requirement, COUNT(*) AS present
 FROM information_schema.tables
 WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND table_name IN (
   'roles','departamentos','usuarios','postulantes','requerimientos_personal','vacantes',
   'postulaciones','postulacion_timeline','entrevistas','evaluaciones','evaluacion_detalle',
   'auditoria','auth_email_challenges','perfiles_contacto','documentos_postulacion',
   'recuperacion_acceso','notificaciones','vacantes_papelera','solicitudes_arco',
-  'ticket_soporte_estados','tickets_soporte','ticket_soporte_historial',
+  'ticket_soporte_estados','solicitud_tipos','incidente_tipos_problema',
+  'tickets_soporte','ticket_creacion_idempotencia','ticket_soporte_historial',
   'tickets_soporte_archivo','ticket_sla_politicas','solicitudes_cambio',
   'solicitud_cambio_documentos','solicitud_cambio_aprobaciones',
-  'solicitud_cambio_historial','db_migration_history'
+  'solicitud_cambio_historial','incidentes_produccion','incidente_historial',
+  'incidente_actividades','incidente_ticket','incidente_cambio','incidente_categorias',
+  'incidente_sla_politicas','incidente_asignacion_reglas','incidente_escalamientos','db_migration_history'
 )
 UNION ALL
 SELECT 'tables using utf8mb4', COUNT(*) FROM information_schema.tables
@@ -66,5 +69,49 @@ WHERE table_schema=DATABASE() AND table_name IN (
   'solicitud_cambio_aprobaciones','solicitud_cambio_historial'
 )
 UNION ALL
+SELECT 'production incident tables (9)', COUNT(*) FROM information_schema.tables
+WHERE table_schema=DATABASE() AND table_name IN (
+  'incidentes_produccion','incidente_historial','incidente_actividades',
+  'incidente_ticket','incidente_cambio','incidente_categorias',
+  'incidente_sla_politicas','incidente_asignacion_reglas','incidente_escalamientos'
+)
+UNION ALL
+SELECT 'incident reporting columns (16)', COUNT(*) FROM information_schema.columns
+WHERE table_schema=DATABASE() AND table_name='incidentes_produccion' AND column_name IN (
+  'modulo_codigo','categoria_sugerida','categoria_codigo','categoria_motivo','servicio_bloqueado',
+  'primera_atencion_at','solucion_aplicada','causa_raiz','aprendizaje','falla_repetida',
+  'incidente_previo_id','sla_primera_atencion_at','sla_resolucion_at','asignacion_fuente',
+  'regla_asignacion_id','asignado_at'
+)
+UNION ALL
+SELECT 'incident control columns (5)', COUNT(*) FROM information_schema.columns
+WHERE table_schema=DATABASE() AND table_name='incidentes_produccion' AND column_name IN (
+  'incidente_tipo_codigo','sla_politica_id','canal_reporte','reportante_detalle','registrado_por'
+)
+UNION ALL
+SELECT 'request catalog (11)', COUNT(*) FROM solicitud_tipos WHERE activa=TRUE
+UNION ALL
+SELECT 'incident problem catalog (16)', COUNT(*) FROM incidente_tipos_problema WHERE activa=TRUE
+UNION ALL
+SELECT 'incident control view (1)', COUNT(*) FROM information_schema.views
+WHERE table_schema=DATABASE() AND table_name='vw_control_incidentes'
+UNION ALL
+SELECT 'migration baselines 015-020 (6)', COUNT(*) FROM db_migration_history
+WHERE version IN ('015','016','017','018','019','020') AND result='BASELINE'
+UNION ALL
 SELECT 'migration history table', COUNT(*) FROM information_schema.tables
 WHERE table_schema=DATABASE() AND table_name='db_migration_history';
+
+SET @incident_reporting_seed_sql = IF(
+  (SELECT COUNT(*) FROM information_schema.tables
+   WHERE table_schema=DATABASE() AND table_name IN (
+     'incidente_categorias','incidente_sla_politicas','incidente_asignacion_reglas'
+   )) = 3,
+  'SELECT ''incident categories (10)'' AS requirement,COUNT(*) AS present FROM incidente_categorias WHERE activa=TRUE
+   UNION ALL SELECT ''incident SLA policies (4)'',COUNT(*) FROM incidente_sla_politicas WHERE activa=TRUE
+   UNION ALL SELECT ''active incident assignment rules'',COUNT(*) FROM incidente_asignacion_reglas WHERE activa=TRUE',
+  'SELECT ''incident reporting seed tables pending'' AS requirement,0 AS present'
+);
+PREPARE incident_reporting_seed_statement FROM @incident_reporting_seed_sql;
+EXECUTE incident_reporting_seed_statement;
+DEALLOCATE PREPARE incident_reporting_seed_statement;

@@ -10,7 +10,9 @@ export async function request(path, { publicAccess = false, ...options } = {}) {
   catch (e) { if (e.name === 'AbortError') throw e; throw new Error('No se pudo conectar con el servidor.', { cause: e }); }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    const failure = new Error(error.detail || error.message || ({ 401: 'Tu sesión venció. Inicia sesión nuevamente.', 403: 'No tienes permisos.', 404: 'Registro no disponible.', 413: 'El archivo es demasiado grande.' }[response.status]) || 'No se pudo completar la operación. Revisa los datos.');
+    const reference = response.headers.get('X-Error-Id');
+    const baseMessage = error.detail || error.message || ({ 401: 'Tu sesión venció. Inicia sesión nuevamente.', 403: 'No tienes permisos.', 404: 'Registro no disponible.', 413: 'El archivo es demasiado grande.' }[response.status]) || 'No se pudo completar la operación. Revisa los datos.';
+    const failure = new Error(reference ? `${baseMessage} Referencia: ${reference}` : baseMessage);
     failure.status = response.status;
     failure.userFacing = true;
     throw failure;

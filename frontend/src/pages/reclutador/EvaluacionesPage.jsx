@@ -144,17 +144,17 @@ export default function Evaluations() {
       <DataState loading={loading} error={error} retry={retry} />
 
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="recruiter-page-header">
         <div>
           <h1 className="recruiter-title text-xl">Evaluaciones</h1>
           <p className="recruiter-copy text-sm">Resultados de pruebas y criterios de candidatos</p>
         </div>
         <button
           onClick={handleOpenModal}
-          className="inline-flex items-center gap-2 rounded-lg bg-app-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-action-hover"
+          className="recruiter-action-primary"
         >
           <Plus className="w-4 h-4" />
-          + Nueva Evaluación
+          Nueva Evaluación
         </button>
       </div>
 
@@ -453,7 +453,7 @@ export default function Evaluations() {
                     className="inline-flex items-center gap-1 text-xs font-bold text-[#D32F2F] hover:text-[#B71C1C] transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    + Criterio
+                    Criterio
                   </button>
                 </div>
 

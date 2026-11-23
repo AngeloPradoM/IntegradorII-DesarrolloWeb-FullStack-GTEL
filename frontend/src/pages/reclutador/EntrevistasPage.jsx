@@ -99,17 +99,17 @@ export function InterviewSchedule() {
   return (
     <div className="recruiter-page p-4 sm:p-6"><DataState loading={loading} error={error} retry={retry} />
       {/* Header */}
-      <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="recruiter-page-header">
         <div>
           <h1 className="recruiter-title text-xl">Agenda de Entrevistas</h1>
             <p className="recruiter-copy text-sm">{loading || error ? '—' : monthly.length} entrevistas programadas este mes</p>
         </div>
         <button
           onClick={handleOpenModal}
-          className="inline-flex items-center gap-2 rounded-lg bg-app-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-action-hover"
+          className="recruiter-action-primary"
         >
           <Plus className="w-4 h-4" />
-          + Programar Entrevista
+          Programar Entrevista
         </button>
       </div>
 

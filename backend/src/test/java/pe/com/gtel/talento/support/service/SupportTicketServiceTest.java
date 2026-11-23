@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +19,12 @@ import pe.com.gtel.talento.support.dto.SupportTicketResponse;
 import pe.com.gtel.talento.support.dto.TicketDecisionRequest;
 import pe.com.gtel.talento.support.dto.TicketExecutionRequest;
 import pe.com.gtel.talento.support.dto.TicketStatusRequest;
+import pe.com.gtel.talento.support.dto.TicketCreateRequest;
 import pe.com.gtel.talento.support.repository.SupportTicketRepository;
+import pe.com.gtel.talento.support.repository.SupportCatalogRepository;
+import pe.com.gtel.talento.incident.repository.IncidentConfigurationRepository;
+import pe.com.gtel.talento.incident.repository.IncidentConfigurationRepository.CategoryConfiguration;
+import pe.com.gtel.talento.incident.repository.IncidentConfigurationRepository.ProblemTypeConfiguration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,14 +32,108 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class SupportTicketServiceTest {
 
     @Mock private SupportTicketRepository repository;
+    @Mock private SupportCatalogRepository catalogs;
+    @Mock private IncidentConfigurationRepository incidentCatalogs;
     @Mock private WorkflowIdentity identity;
     @Mock private NotificationService notifications;
     @InjectMocks private SupportTicketService service;
+
+    @Test
+    void rejectsInactiveStructuredRequestTypeBeforePersistence() {
+        when(identity.actor("reclutador1@gmail.com")).thenReturn(new WorkflowActor(15L,"RECLUTADOR"));
+        TicketCreateRequest request=new TicketCreateRequest("Ayuda con CV","CV","Carga","SOLICITUD",
+            "MEDIA","Necesito orientación para cargar el documento.","Impacto individual.",
+            "SOL_INACTIVA",null,"WEB","UN_USUARIO","BAJO","MEDIA",false,"PRIMERA_VEZ");
+
+        ResponseStatusException error=assertThrows(ResponseStatusException.class,
+            () -> service.create(request,"reclutador1@gmail.com"));
+
+        assertEquals(HttpStatus.BAD_REQUEST,error.getStatusCode());
+        verify(catalogs).findActive("SOL_INACTIVA");
+        verifyNoInteractions(notifications);
+    }
+
+    @Test
+    void structuredRequestUsesServerPriorityAndCatalogLabels() {
+        when(identity.actor("reclutador1@gmail.com")).thenReturn(new WorkflowActor(15L,"RECLUTADOR"));
+        when(catalogs.findActive("SOL_PUBLICAR_OFERTA")).thenReturn(
+            new SupportCatalogRepository.RequestType("SOL_PUBLICAR_OFERTA","Ayuda con ofertas",
+                "Asistencia para publicar una oferta.","JOBS",60));
+        TicketCreateRequest request=new TicketCreateRequest("Necesito publicar","Manipulada","Manipulada",
+            "SOLICITUD","BAJA","Necesito orientación para publicar una oferta.",
+            "Prioridad manipulada por cliente.","SOL_PUBLICAR_OFERTA",null,"WEB",
+            "VARIOS_USUARIOS","BAJO","BAJA",false,"PRIMERA_VEZ");
+        when(repository.reserveCreation(eq(15L),eq("request-00000001"),anyString())).thenReturn(true);
+        when(repository.create(15L,request,"ALTA","JOBS","Ayuda con ofertas",
+            "Clasificación automática del servidor. Código: SOL_PUBLICAR_OFERTA. Alcance: VARIOS_USUARIOS. Impacto: BAJO. Urgencia: BAJA. Continuidad: DISPONIBLE. Frecuencia: PRIMERA_VEZ. Prioridad: ALTA."))
+            .thenReturn(8L);
+        when(repository.find(8L)).thenReturn(ticket(null,"SIN_PROPUESTA","NUEVO"));
+
+        service.create(request,"reclutador1@gmail.com","request-00000001");
+
+        verify(repository).create(eq(15L),eq(request),eq("ALTA"),eq("JOBS"),eq("Ayuda con ofertas"),
+            contains("Prioridad: ALTA."));
+        verify(repository).completeCreation(15L,"request-00000001",8L);
+    }
+
+    @Test
+    void incidentReportUsesServerProblemCategoryAndTicketPriorityWithoutCreatingIncident() {
+        when(identity.actor("reclutador1@gmail.com")).thenReturn(new WorkflowActor(15L,"RECLUTADOR"));
+        when(incidentCatalogs.problemTypeByCode("INC_PLATAFORMA_CAIDA")).thenReturn(
+            new ProblemTypeConfiguration("INC_PLATAFORMA_CAIDA","DISPONIBILIDAD_PLATAFORMA",
+                "Página inaccesible","Interrupción total o parcial",10));
+        when(incidentCatalogs.categoryByCode("DISPONIBILIDAD_PLATAFORMA")).thenReturn(
+            new CategoryConfiguration("DISPONIBILIDAD_PLATAFORMA","Disponibilidad","AVAILABILITY"));
+        TicketCreateRequest request=new TicketCreateRequest("No puedo ingresar","Manipulada","Manipulada",
+            "INCIDENTE","BAJA","La plataforma no responde desde el navegador.",
+            "Prioridad manipulada por cliente.",null,"INC_PLATAFORMA_CAIDA","WEB",
+            "SERVICIO_GENERAL","ALTO","ALTA",true,"RECURRENTE");
+        when(repository.reserveCreation(eq(15L),eq("incident-00000001"),anyString())).thenReturn(true);
+        when(repository.create(eq(15L),eq(request),eq("ALTA"),eq("AVAILABILITY"),
+            eq("Página inaccesible"),contains("La prioridad P1-P4 corresponde únicamente"))).thenReturn(8L);
+        when(repository.find(8L)).thenReturn(ticket(null,"SIN_PROPUESTA","NUEVO"));
+
+        service.create(request,"reclutador1@gmail.com","incident-00000001");
+
+        verify(repository).create(eq(15L),eq(request),eq("ALTA"),eq("AVAILABILITY"),
+            eq("Página inaccesible"),contains("Código: INC_PLATAFORMA_CAIDA"));
+        verify(repository).completeCreation(15L,"incident-00000001",8L);
+    }
+
+    @Test
+    void repeatedIdempotencyKeyReturnsExistingTicketWithoutCreatingAnother() {
+        when(identity.actor("reclutador1@gmail.com")).thenReturn(new WorkflowActor(15L,"RECLUTADOR"));
+        when(catalogs.findActive("SOL_PUBLICAR_OFERTA")).thenReturn(
+            new SupportCatalogRepository.RequestType("SOL_PUBLICAR_OFERTA","Ayuda con ofertas",
+                "Asistencia para publicar una oferta.","JOBS",60));
+        TicketCreateRequest request=new TicketCreateRequest("Necesito publicar","JOBS","Ayuda con ofertas",
+            "SOLICITUD","ALTA","Necesito orientación para publicar una oferta.",
+            "Clasificación preliminar.","SOL_PUBLICAR_OFERTA",null,"WEB",
+            "VARIOS_USUARIOS","BAJO","BAJA",false,"PRIMERA_VEZ");
+        AtomicReference<String> hash=new AtomicReference<>();
+        when(repository.reserveCreation(eq(15L),eq("request-00000002"),anyString())).thenAnswer(call->{
+            hash.set(call.getArgument(2)); return false;
+        });
+        when(repository.findCreation(15L,"request-00000002")).thenAnswer(call->
+            new SupportTicketRepository.IdempotencyRecord(hash.get(),8L));
+        when(repository.find(8L)).thenReturn(ticket(null,"SIN_PROPUESTA","NUEVO"));
+
+        SupportTicketResponse response=service.create(
+            request,"reclutador1@gmail.com","request-00000002");
+
+        assertEquals("SR-000008",response.code());
+        verify(repository,never()).create(eq(15L),eq(request),anyString(),anyString(),anyString(),anyString());
+        verifyNoInteractions(notifications);
+    }
 
     @Test
     void migrationStoresABcryptHashForTechnicianAccount() throws Exception {
@@ -100,6 +200,7 @@ class SupportTicketServiceTest {
         return new SupportTicketResponse(
             8L, "SR-000008", "Error al confirmar postulación", "Postulaciones", "No puedo postular", "INCIDENTE",
             "ALTA", "El sistema rechaza el formulario.", "Bloquea el proceso de selección.", "Reclutamiento",
+            null, null, "WEB", 1L, now.plusHours(4), now.plusHours(24), null,
             status, 15L, "reclutador1@gmail.com", technicianId,
             technicianId == null ? null : "tecnico1@gmail.com", "Diagnóstico", "Solución propuesta",
             proposalStatus, null, status.equals("RESUELTO") ? "Evidencia" : null, now, now,

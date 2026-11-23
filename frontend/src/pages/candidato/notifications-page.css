@@ -108,3 +108,17 @@
   .notifications-page .notification-detail-content{padding:18px 15px}
   .notifications-page .notification-detail-actions{padding:15px}
 }
+
+/* UI-3: presentación ejecutiva aplicada únicamente a la perspectiva Administrador. */
+.admin-shell .notifications-page .notification-summary-card{box-shadow:var(--admin-panel-shadow,0 10px 30px rgb(15 23 42/.055))}
+.admin-shell .notifications-page .notification-summary-icon.is-unread{color:var(--color-semantic-info);background:var(--color-semantic-info-soft)}
+.admin-shell .notifications-page .notification-summary-icon.is-read{color:var(--color-semantic-success);background:var(--color-semantic-success-soft)}
+.admin-shell .notifications-page .notification-live-region:not(:empty){color:var(--color-semantic-success);background:var(--color-semantic-success-soft);border-color:color-mix(in srgb,var(--color-semantic-success) 30%,transparent)}
+.admin-shell .notifications-page .notification-controls,.admin-shell .notifications-page .notification-pane-heading{background:color-mix(in srgb,var(--color-admin-section) 62%,var(--color-app-surface))}
+.admin-shell .notifications-page .notification-list-item.is-unread{background:color-mix(in srgb,var(--color-semantic-info-soft) 55%,var(--color-app-surface))}
+.admin-shell .notifications-page .notification-list-item[aria-pressed=true]{background:var(--color-semantic-info-soft);box-shadow:inset 3px 0 var(--color-semantic-info)}
+.admin-shell .notifications-page .is-unread .notification-event-icon,.admin-shell .notifications-page .notification-detail-icon{color:var(--color-semantic-info);background:var(--color-semantic-info-soft)}
+.admin-shell .notifications-page .notification-read-state i,.admin-shell .notifications-page .notification-status-badge i{background:var(--color-semantic-info);box-shadow:0 0 0 3px color-mix(in srgb,var(--color-semantic-info) 14%,transparent)}
+.admin-shell .notifications-page .notification-detail-data>div{background:var(--color-admin-control)}
+.admin-shell .notifications-page .notification-detail-empty>span{color:var(--color-semantic-info);background:var(--color-semantic-info-soft)}
+.admin-shell .notifications-page .notification-state>svg{color:var(--color-semantic-info)}

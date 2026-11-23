@@ -28,7 +28,7 @@ try {
 
   await api.listSupportTickets();
   await api.listTechnicians();
-  await api.createSupportTicket({ title: 'Incidencia' });
+  await api.createSupportTicket({ title: 'Incidencia' }, 'request-00000001');
   await api.assignSupportTicket(12, 7);
   await api.updateSupportTicketStatus(12, 'EN_ATENCION');
   await api.submitSupportProposal(12, 'Diagnóstico', 'Solución');
@@ -47,6 +47,7 @@ try {
   ]);
   assert.deepEqual(calls.map(call => call.options.method || 'GET'), ['GET', 'GET', 'POST', 'PATCH', 'PATCH', 'PUT', 'PATCH', 'PUT']);
   assert.ok(calls.every(call => call.options.headers.Authorization === 'Bearer ticket-test-token'));
+  assert.equal(calls[2].options.headers['Idempotency-Key'], 'request-00000001');
   assert.deepEqual(JSON.parse(calls[3].options.body), { technicianId: 7 });
   assert.deepEqual(JSON.parse(calls[5].options.body), { diagnosis: 'Diagnóstico', proposedSolution: 'Solución' });
   assert.deepEqual(JSON.parse(calls[6].options.body), { approved: true, comment: 'Aprobado' });

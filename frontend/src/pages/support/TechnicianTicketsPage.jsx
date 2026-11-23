@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ArrowLeft, CalendarDays, Check, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Flag, Paperclip, RefreshCw, ShieldCheck, SlidersHorizontal, Ticket, Wrench } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CalendarDays, Check, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Flag, Paperclip, RefreshCw, ServerCrash, ShieldCheck, SlidersHorizontal, Ticket, Wrench } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import TechnicalStageProgress from '../../components/technical/TechnicalStageProgress';
@@ -12,6 +12,7 @@ import {
   updateSupportTicketStatus,
 } from '../../services/supportService';
 import TechnicianChangePanel from './TechnicianChangePanel';
+import TechnicianIncidentPanel from './TechnicianIncidentPanel';
 
 const PAGE_SIZE = 6;
 const states = ['NUEVO', 'ASIGNADO', 'EN_ATENCION', 'EN_ESPERA', 'RESUELTO', 'CERRADO'];
@@ -36,9 +37,11 @@ const fieldClassName = 'technical-field mt-1 w-full p-3 text-sm';
 export default function TechnicianTicketsPage() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const queue = searchParams.get('queue') === 'changes' ? 'changes' : 'support';
+  const requestedQueue = searchParams.get('queue');
+  const queue = ['changes','incidents'].includes(requestedQueue) ? requestedQueue : 'support';
   const search = searchParams.get('q') || '';
   const [rfcCount, setRfcCount] = useState(0);
+  const [incidentCount, setIncidentCount] = useState(0);
   const [tickets, setTickets] = useState([]);
   const [sla, setSla] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -138,7 +141,9 @@ export default function TechnicianTicketsPage() {
   const handleTabKeys = event => {
     if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
     event.preventDefault();
-    switchQueue(queue === 'support' ? 'changes' : 'support');
+    const queues = ['support','changes','incidents'];
+    const offset = event.key === 'ArrowRight' ? 1 : -1;
+    switchQueue(queues[(queues.indexOf(queue) + offset + queues.length) % queues.length]);
   };
   const chooseTicket = id => {
     setSelectedId(id);
@@ -152,7 +157,7 @@ export default function TechnicianTicketsPage() {
 
   return (
     <div className="technical-page mx-auto max-w-[1660px] space-y-4 p-4 sm:p-6 lg:p-7">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <header className="technical-page-header flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-app-primary sm:text-3xl">Bandeja de tickets</h1>
           <p className="mt-1 text-sm text-app-body sm:text-base">Gestiona solicitudes, incidencias y cambios de manera eficiente.</p>
@@ -166,12 +171,15 @@ export default function TechnicianTicketsPage() {
       {notice && <p role="status" className="flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200"><CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />{notice}</p>}
 
       <div className="w-full sm:w-fit">
-        <div role="tablist" aria-label="Tipos de atención técnica" className="grid grid-cols-2 overflow-hidden rounded-xl border border-app-border bg-app-muted p-1" onKeyDown={handleTabKeys}>
-          <button id="support-tab" type="button" role="tab" aria-selected={queue === 'support'} aria-controls="support-panel" tabIndex={queue === 'support' ? 0 : -1} onClick={() => switchQueue('support')} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-colors sm:min-w-[280px] ${queue === 'support' ? 'bg-app-surface text-app-accent shadow-sm' : 'text-app-secondary hover:text-app-primary'}`}>
+        <div role="tablist" aria-label="Tipos de atención técnica" className="technical-tabs grid grid-cols-1 overflow-hidden rounded-xl border p-1 sm:grid-cols-3" onKeyDown={handleTabKeys}>
+          <button id="support-tab" type="button" role="tab" aria-selected={queue === 'support'} aria-controls="support-panel" tabIndex={queue === 'support' ? 0 : -1} onClick={() => switchQueue('support')} className={`technical-tab inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold sm:min-w-[280px] ${queue === 'support' ? 'is-active' : ''}`}>
             <Ticket className="h-5 w-5" aria-hidden="true" />Solicitudes e incidencias <span className={`rounded-full px-2 py-0.5 text-xs ${queue === 'support' ? 'bg-app-action text-white' : 'bg-app-border text-app-body'}`}>{tickets.length}</span>
           </button>
-          <button id="changes-tab" type="button" role="tab" aria-selected={queue === 'changes'} aria-controls="changes-panel" tabIndex={queue === 'changes' ? 0 : -1} onClick={() => switchQueue('changes')} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-colors sm:min-w-[220px] ${queue === 'changes' ? 'bg-app-surface text-violet-700 shadow-sm dark:text-violet-300' : 'text-app-secondary hover:text-app-primary'}`}>
-            Cambios RFC <span className={`rounded-full px-2 py-0.5 text-xs ${queue === 'changes' ? 'bg-violet-700 text-white' : 'bg-app-border text-app-body'}`}>{rfcCount}</span>
+          <button id="changes-tab" type="button" role="tab" aria-selected={queue === 'changes'} aria-controls="changes-panel" tabIndex={queue === 'changes' ? 0 : -1} onClick={() => switchQueue('changes')} className={`technical-tab inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold sm:min-w-[220px] ${queue === 'changes' ? 'is-active' : ''}`}>
+            Cambios RFC <span className={`rounded-full px-2 py-0.5 text-xs ${queue === 'changes' ? 'bg-app-action text-white' : 'bg-app-border text-app-body'}`}>{rfcCount}</span>
+          </button>
+          <button id="incidents-tab" type="button" role="tab" aria-selected={queue === 'incidents'} aria-controls="incidents-panel" tabIndex={queue === 'incidents' ? 0 : -1} onClick={() => switchQueue('incidents')} className={`technical-tab inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold sm:min-w-[240px] ${queue === 'incidents' ? 'is-active' : ''}`}>
+            <ServerCrash className="h-5 w-5" aria-hidden="true" />Control de Incidentes <span className={`rounded-full px-2 py-0.5 text-xs ${queue === 'incidents' ? 'bg-app-action text-white' : 'bg-app-border text-app-body'}`}>{incidentCount}</span>
           </button>
         </div>
       </div>
@@ -179,7 +187,7 @@ export default function TechnicianTicketsPage() {
       <section id="support-panel" role="tabpanel" aria-labelledby="support-tab" className={queue === 'support' ? 'block' : 'hidden'}>
         <div className="grid items-start gap-3 lg:grid-cols-[minmax(330px,31%)_minmax(0,1fr)]">
           <section className={`technical-card min-w-0 overflow-hidden ${mobileDetail ? 'hidden lg:block' : 'block'}`} aria-label="Lista de solicitudes e incidencias">
-            <header className="flex items-center justify-between border-b border-app-border p-4">
+            <header className="technical-section-header flex items-center justify-between border-b border-app-border p-4">
               <div><h2 className="font-bold text-app-primary">Tickets asignados a mí ({filteredTickets.length})</h2><p className="mt-1 text-xs text-app-secondary">Selecciona un ticket para gestionarlo</p></div>
               <SlidersHorizontal className="h-5 w-5 text-app-secondary" aria-hidden="true" />
             </header>
@@ -204,7 +212,7 @@ export default function TechnicianTicketsPage() {
 
           <section className={`technical-card min-w-0 overflow-hidden ${mobileDetail ? 'block' : 'hidden lg:block'}`} aria-label="Detalle de la solicitud seleccionada">
             {!selected ? <div className="grid min-h-[420px] place-items-center p-8 text-center text-app-secondary"><div><Wrench className="mx-auto mb-3 h-8 w-8" />Selecciona una solicitud.</div></div> : <div>
-              <header className="border-b border-app-border p-4 sm:p-5">
+              <header className="technical-section-header border-b border-app-border p-4 sm:p-5">
                 <button type="button" onClick={() => setMobileDetail(false)} className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-app-accent lg:hidden"><ArrowLeft className="h-4 w-4" />Volver a la bandeja</button>
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="grid h-9 w-9 place-items-center rounded-lg bg-app-danger-soft text-app-accent"><Ticket className="h-5 w-5" /></span><span className="text-lg font-black text-app-primary">{selected.code}</span><span className={`rounded-full px-3 py-1 text-[10px] font-bold ${statusTone[selected.status] || 'bg-app-muted text-app-body'}`}>{labels[selected.status] || selected.status}</span></div><h2 className="mt-1 text-xl font-extrabold text-app-primary sm:text-2xl">{selected.title}</h2><p className="mt-1 text-sm text-app-secondary">{selected.category} · Solicitado por {selected.requesterEmail}</p></div>
@@ -234,6 +242,9 @@ export default function TechnicianTicketsPage() {
 
       <div id="changes-panel" role="tabpanel" aria-labelledby="changes-tab" className={queue === 'changes' ? 'block' : 'hidden'}>
         <TechnicianChangePanel active={queue === 'changes'} onCountChange={setRfcCount} search={search} onClearSearch={clearSearch} />
+      </div>
+      <div id="incidents-panel" role="tabpanel" aria-labelledby="incidents-tab" className={queue === 'incidents' ? 'block' : 'hidden'}>
+        <TechnicianIncidentPanel active={queue === 'incidents'} onCountChange={setIncidentCount} search={search} />
       </div>
     </div>
   );

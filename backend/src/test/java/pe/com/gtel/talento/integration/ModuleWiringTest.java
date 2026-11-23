@@ -3,6 +3,7 @@ package pe.com.gtel.talento.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -46,6 +48,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ModuleWiringTest {
 
+    private static final String QA_DATABASE_PATTERN = "gtel_qa_[A-Za-z0-9_]+";
+
     @Autowired
     private JdbcTemplate jdbc;
 
@@ -68,18 +72,36 @@ class ModuleWiringTest {
     static void isolatedDatabase(org.springframework.test.context.DynamicPropertyRegistry registry) {
         String url = System.getenv("QA_MYSQL_URL");
         if (url != null && !url.isBlank()) {
-            if (!url.matches("jdbc:mysql://[^/]+/gtel_qa_[A-Za-z0-9_]+(?:[?].*)?")) {
+            if (!url.matches("jdbc:mysql://[^/]+/" + QA_DATABASE_PATTERN + "(?:[?].*)?")) {
                 throw new IllegalArgumentException("QA_MYSQL_URL must target an isolated gtel_qa_* database");
             }
+            String normalizedUrl = url.toLowerCase(Locale.ROOT);
+            if (normalizedUrl.matches(".*(?:allowmultiqueries|allowloadlocalinfile|allowurlinlocalinfile|autodeserialize)=true.*")) {
+                throw new IllegalArgumentException("QA_MYSQL_URL enables an unsafe JDBC option");
+            }
+            String username = requiredEnvironment("QA_MYSQL_USER");
+            String password = requiredEnvironment("QA_MYSQL_PASSWORD");
             registry.add("spring.datasource.url", () -> url);
             registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
-            registry.add("spring.datasource.username", () -> System.getenv("QA_MYSQL_USER"));
-            registry.add("spring.datasource.password", () -> System.getenv("QA_MYSQL_PASSWORD"));
+            registry.add("spring.datasource.username", () -> username);
+            registry.add("spring.datasource.password", () -> password);
         }
+    }
+
+    private static String requiredEnvironment(String name) {
+        String value = System.getenv(name);
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " is required when QA_MYSQL_URL is configured");
+        }
+        return value;
     }
 
     @BeforeAll
     void schema() throws Exception {
+        boolean h2 = isH2Database();
+        if (!h2) {
+            verifyIsolatedQaDatabase();
+        }
         Path schemaPath = Files.exists(Path.of("database/schema/gtel_talento.sql"))
             ? Path.of("database/schema/gtel_talento.sql")
             : Path.of("../database/schema/gtel_talento.sql");
@@ -91,6 +113,20 @@ class ModuleWiringTest {
             .replaceAll("(?i)USE gtel_talento;", "")
             .replaceAll("(?is)INSERT INTO vacantes\\s*\\(.*?;", "")
             .replaceAll("(?i) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", "");
+
+        // H2 validates wiring locally but does not implement MySQL's STORED/VIRTUAL keywords.
+        // It also keeps COALESCE typed as ENUM unless the value is cast explicitly.
+        // Keep the canonical MySQL schema unchanged and adapt only the in-memory copy.
+        if (h2) {
+            schema = schema
+                .replaceAll("(?i)\\s+STORED\\b", "")
+                .replaceAll(
+                    "(?i)(incidente_activo_id\\s+BIGINT\\s+GENERATED\\s+ALWAYS\\s+AS\\s*"
+                        + "\\(CASE\\s+WHEN\\s+resuelto_at\\s+IS\\s+NULL\\s+THEN\\s+incidente_id\\s+"
+                        + "ELSE\\s+NULL\\s+END\\))\\s+VIRTUAL\\b",
+                    "$1")
+                .replace("COALESCE(prioridad,'*')", "COALESCE(CAST(prioridad AS VARCHAR(2)),'*')");
+        }
 
         for (String sql : schema.split(";")) {
             String trimmed = sql.trim();
@@ -109,13 +145,30 @@ class ModuleWiringTest {
             """);
     }
 
+    private boolean isH2Database() {
+        String product = jdbc.execute((ConnectionCallback<String>) connection ->
+            connection.getMetaData().getDatabaseProductName());
+        return "H2".equalsIgnoreCase(product);
+    }
+
+    private void verifyIsolatedQaDatabase() {
+        String database = jdbc.queryForObject("SELECT DATABASE()", String.class);
+        if (database == null || !database.matches(QA_DATABASE_PATTERN)) {
+            throw new IllegalStateException("Integration tests may only initialize an isolated gtel_qa_* database");
+        }
+    }
+
     private String token(String email, String role) {
         return "Bearer " + jwt.createToken(email, role);
     }
 
     @Test
     void publicRoutesAndSchedulersAreDiscovered() throws Exception {
-        mvc.perform(get("/api/health")).andExpect(status().isOk());
+        mvc.perform(get("/api/health"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(
+                        "Permissions-Policy",
+                        "geolocation=(), camera=(), microphone=()"));
         mvc.perform(get("/actuator/health")).andExpect(status().isOk());
         mvc.perform(get("/api/jobs")).andExpect(status().isOk());
         assertNotNull(context.getBean(JobTrashScheduler.class), "JobTrashScheduler bean must be present");
@@ -126,6 +179,9 @@ class ModuleWiringTest {
         mvc.perform(get("/api/admin/audit")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/recruiter/jobs/trash")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/recruiter/applications")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/production-incidents")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/production-incidents/indicators")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/production-incidents/export")).andExpect(status().isUnauthorized());
     }
 
     @Test

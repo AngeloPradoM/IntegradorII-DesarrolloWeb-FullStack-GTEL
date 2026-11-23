@@ -50,6 +50,7 @@ export function NotificationProvider({ children }) {
   const eventSourceRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const retryDelayRef = useRef(3000);
+  const toastTimeoutsRef = useRef(new Map());
 
   // Cargar notificaciones iniciales desde el backend o fallback
   const fetchNotifications = useCallback(async () => {
@@ -85,7 +86,12 @@ export function NotificationProvider({ children }) {
 
   // Descartar un toast específico
   const dismissToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+    const timeout = toastTimeoutsRef.current.get(id);
+    if (timeout) {
+      clearTimeout(timeout);
+      toastTimeoutsRef.current.delete(id);
+    }
+    setToasts((prev) => prev.filter((toast) => toast.toastId !== id));
   }, []);
 
   // Agregar toast con auto-cierre
@@ -95,10 +101,17 @@ export function NotificationProvider({ children }) {
 
     setToasts((prev) => [newToast, ...prev].slice(0, 4));
 
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
+      toastTimeoutsRef.current.delete(toastId);
       dismissToast(toastId);
-    }, 6000);
+    }, 5000);
+    toastTimeoutsRef.current.set(toastId, timeout);
   }, [dismissToast]);
+
+  useEffect(() => () => {
+    toastTimeoutsRef.current.forEach((timeout) => clearTimeout(timeout));
+    toastTimeoutsRef.current.clear();
+  }, []);
 
   // Manejo de conexión Server-Sent Events (SSE) en vivo
   useEffect(() => {

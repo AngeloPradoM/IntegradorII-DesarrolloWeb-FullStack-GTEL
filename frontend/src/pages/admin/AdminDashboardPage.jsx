@@ -69,10 +69,10 @@ export default function AdminDashboardPage() {
 
   const activity = data?.audit?.items || [];
   const metricCards = [
-    [Users, 'Usuarios registrados', summary.users],
-    [Headphones, 'Tickets pendientes', summary.pendingTickets],
-    [FileCheck2, 'RFC por aprobar', summary.pendingChanges],
-    [Bell, 'Notificaciones sin leer', summary.unread],
+    { icon: Users, label: 'Usuarios registrados', value: summary.users, tone: 'success', description: 'Cuentas registradas en el sistema' },
+    { icon: Headphones, label: 'Tickets pendientes', value: summary.pendingTickets, tone: 'info', description: 'Solicitudes aún no finalizadas' },
+    { icon: FileCheck2, label: 'RFC por aprobar', value: summary.pendingChanges, tone: 'warning', description: 'Cambios pendientes de decisión' },
+    { icon: Bell, label: 'Notificaciones sin leer', value: summary.unread, tone: 'info', description: 'Avisos pendientes de revisión' },
   ];
 
   return <main className="admin-workspace admin-workspace-wide">
@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
     </div>
 
     <section className="metric-grid" aria-label="Indicadores principales">
-      {metricCards.map(([Icon, label, value], index) => <article key={label} className="metric-card"><span className={`metric-icon ${index === 1 ? 'blue' : index === 2 ? 'violet' : index === 3 ? 'success' : ''}`}><Icon/></span><div><span className="metric-label">{label}</span><strong className="metric-value">{data ? value ?? 'N/D' : '—'}</strong><small>{value === undefined && data ? 'Fuente no disponible' : 'Dato actual del sistema'}</small></div></article>)}
+      {metricCards.map(({ icon: Icon, label, value, tone, description }) => <article key={label} className={`metric-card metric-card-${tone}`}><span className={`metric-icon ${tone}`}><Icon/></span><div><span className="metric-label">{label}</span><strong className="metric-value">{data ? value ?? 'N/D' : '—'}</strong><small>{value === undefined && data ? 'Fuente no disponible' : description}</small></div></article>)}
     </section>
 
     {data?.unavailable.length > 0 && <div role="status" className="alert"><span><AlertTriangle size={16}/>Algunos indicadores no están disponibles. Las secciones operativas siguen accesibles.</span></div>}
@@ -90,11 +90,11 @@ export default function AdminDashboardPage() {
     <section className="surface executive-panel quick-actions" aria-labelledby="quick-actions-title">
       <header className="panel-heading"><div><p className="eyebrow">Operación</p><h2 id="quick-actions-title">Acciones rápidas</h2></div><Clock3 size={19}/></header>
       <div className="quick-action-grid">
-        <Link to="/admin/usuarios"><UserPlus/><span><strong>Registrar usuario</strong><small>Crear y administrar cuentas</small></span></Link>
-        <Link to="/admin/auditoria"><ScrollText/><span><strong>Consultar auditoría</strong><small>Revisar trazabilidad</small></span></Link>
-        <Link to="/admin/tickets"><Headphones/><span><strong>Gestionar soporte</strong><small>Asignar y autorizar tickets</small></span></Link>
-        <Link to="/admin/tickets?queue=changes"><FileCheck2/><span><strong>Revisar RFC</strong><small>Evaluar cambios pendientes</small></span></Link>
-        <Link to="/admin/tablero-sla"><Clock3/><span><strong>Consultar SLA</strong><small>Supervisar cumplimiento</small></span></Link>
+        <Link to="/admin/usuarios" className="quick-action-item success"><UserPlus/><span><strong>Registrar usuario</strong><small>Crear y administrar cuentas</small></span></Link>
+        <Link to="/admin/auditoria" className="quick-action-item info"><ScrollText/><span><strong>Consultar auditoría</strong><small>Revisar trazabilidad</small></span></Link>
+        <Link to="/admin/tickets" className="quick-action-item info"><Headphones/><span><strong>Gestionar soporte</strong><small>Asignar y autorizar tickets</small></span></Link>
+        <Link to="/admin/tickets?queue=changes" className="quick-action-item warning"><FileCheck2/><span><strong>Revisar RFC</strong><small>Evaluar cambios pendientes</small></span></Link>
+        <Link to="/admin/tablero-sla" className="quick-action-item warning"><Clock3/><span><strong>Consultar SLA</strong><small>Supervisar cumplimiento</small></span></Link>
       </div>
     </section>
 
@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
       <section className="surface executive-panel" aria-labelledby="attention-title">
         <header className="panel-heading"><div><p className="eyebrow">Prioridades</p><h2 id="attention-title">Atención requerida</h2></div><AlertTriangle size={19}/></header>
         <div className="attention-list">
-          {attention.map(item => <Link key={item.label} to={item.to} className="attention-item"><span className={`status-dot ${item.tone}`} aria-hidden="true"/><span><strong>{item.label}</strong><small>{data ? `${item.value} registro${item.value === 1 ? '' : 's'}` : 'Consultando…'}</small></span><ArrowRight size={16}/></Link>)}
+          {attention.map(item => <Link key={item.label} to={item.to} className={`attention-item attention-${item.tone}`}><span className={`status-dot ${item.tone}`} aria-hidden="true"/><span><strong>{item.label}</strong><small>{data ? `${item.value} registro${item.value === 1 ? '' : 's'} · ${item.value ? 'Requiere revisión' : 'Sin pendientes'}` : 'Consultando…'}</small></span><ArrowRight size={16}/></Link>)}
         </div>
       </section>
 

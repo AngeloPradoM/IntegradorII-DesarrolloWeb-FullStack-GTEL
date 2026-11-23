@@ -29,14 +29,14 @@ export default function RecruiterJobs() {
 
   return (
     <div className="recruiter-page space-y-5 p-4 sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="recruiter-page-header">
         <div>
           <h1 className="recruiter-title text-xl">Ofertas publicadas</h1>
           <p className="recruiter-copy text-sm">Gestiona las convocatorias de tu organización conectadas a MySQL.</p>
         </div>
         <Link
           to="/reclutador/publicar-oferta"
-          className="rounded-lg bg-app-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-app-action-hover"
+          className="recruiter-action-primary"
         >
           + Publicar Oferta
         </Link>
