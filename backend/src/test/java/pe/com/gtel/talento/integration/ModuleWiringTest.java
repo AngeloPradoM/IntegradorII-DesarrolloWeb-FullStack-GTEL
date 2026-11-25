@@ -40,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "jwt.secret=isolated-test-key-not-valid-outside-this-test-2026",
     "jwt.expiration-ms=60000",
     "otp.hash-secret=isolated-test-otp-secret-never-used-in-production",
-    "app.security.test-access-enabled=false",
     "management.health.mail.enabled=false",
     "management.endpoints.web.exposure.include=health,info,metrics"
 })

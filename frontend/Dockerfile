@@ -16,9 +16,14 @@ RUN npm ci
 # Copia del código fuente del frontend
 COPY . .
 
-# Argumento para la URL de la API (vacío para usar proxy inverso relativo /api/)
+# Configuración pública incorporada por Vite durante la compilación.
 ARG VITE_API_URL=""
+ARG VITE_DATA_MODE="api"
+ARG VITE_RECRUITER_EMAIL="talento@gtel.com.pe"
+
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_DATA_MODE=$VITE_DATA_MODE
+ENV VITE_RECRUITER_EMAIL=$VITE_RECRUITER_EMAIL
 
 # Compilación de producción optimizada
 RUN npm run build
