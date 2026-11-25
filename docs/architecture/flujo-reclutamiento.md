@@ -62,9 +62,10 @@ En `backend/config/local.properties`, conservar la configuración local de MySQL
 
 ```properties
 app.recovery-url=http://localhost:5173/recuperar-acceso
+app.notifications.email-enabled=false
 ```
 
-La recuperación envía el enlace con la configuración SMTP existente. Las novedades de postulaciones y entrevistas se guardan en MySQL y se entregan en la aplicación mediante SSE; actualmente no existe una cola de correo para esas notificaciones. OTP y recuperación de acceso son flujos SMTP independientes y requieren credenciales válidas.
+La recuperación envía el enlace con la configuración SMTP existente. La opción de notificaciones controla únicamente el envío automático de novedades de postulaciones y entrevistas: se guardan y se pueden consultar en la web incluso si vale `false`. Cambiarla a `true` y reiniciar habilita el envío de la cola pendiente; usar destinatarios propios durante las pruebas.
 
 Desde la raíz, en dos terminales:
 

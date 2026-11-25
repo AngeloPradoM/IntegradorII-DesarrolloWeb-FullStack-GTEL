@@ -100,6 +100,6 @@ Aplicar una vez `../database/migrations/004_admin_access.sql` en bases existente
 
 El panel React `/admin` consume GET/POST `/api/admin/users` y PUT `/api/admin/users/{id}`. Las rutas requieren ADMIN. Spring Security permite también a ADMIN los módulos de candidato y reclutador. Los JWT comprueban estado, rol y versión en cada petición. Una edición revoca sesiones anteriores y desafíos OTP pendientes.
 
-El bypass OTP está desactivado por defecto. Para habilitarlo localmente define `TEST_ACCESS_ENABLED=true` en el entorno del backend. Solo las cuatro cuentas sembradas por `database/schema/gtel_talento.sql`, con rol correcto y `otp_exempt=true`, omiten OTP después de validar su contraseña. El backend no crea ni sobrescribe cuentas al arrancar. Desactivar el bypass invalida sus sesiones de prueba.
+El bypass OTP está desactivado por defecto. Para habilitarlo localmente define únicamente `TEST_ACCESS_ENABLED=true` en el entorno del backend. La propiedad `app.security.test-access-enabled` por sí sola no lo habilita. Solo las cuatro cuentas sembradas por `database/schema/gtel_talento.sql`, con rol correcto y `otp_exempt=true`, omiten OTP después de validar su contraseña. El backend no crea ni sobrescribe cuentas al arrancar. Desactivar el bypass invalida sus sesiones de prueba.
 
 Pruebas: `mvn.cmd test`; revisar además la sección de validación y los recorridos de navegador del README general. El registro público no permite seleccionar ni asignar ADMIN.

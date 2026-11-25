@@ -54,7 +54,7 @@ No todos los módulos necesitan todas las carpetas. Los servicios mantienen `@Tr
 
 `SchedulingConfig` centraliza `@EnableScheduling`. `app.scheduling.enabled` es `true` por defecto; las pruebas de contexto lo desactivan para evitar tareas en segundo plano. No hace falta agregar la propiedad a la configuración local.
 
-`JobTrashScheduler` permanece con espera inicial de 60 segundos y ejecución cada hora. Las notificaciones de la aplicación se persisten y se publican en tiempo real mediante `NotificationSseService`; no existe un programador de correo para esa cola. El intervalo de reenvío de OTP no cambia.
+`JobTrashScheduler` permanece con espera inicial de 60 segundos y ejecución cada hora. `NotificationScheduler` mantiene su intervalo de 10 segundos y depende de `app.notifications.email-enabled=true`. El intervalo de reenvío de OTP no cambia.
 
 ## Ejecutar las verificaciones
 

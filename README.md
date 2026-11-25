@@ -301,7 +301,8 @@ Para el caso de una base local desactualizada, seguir la guía [Incorporación d
 
 La instalación limpia crea estas cuatro cuentas y la base almacena únicamente sus hashes BCrypt.
 El bypass OTP está desactivado por defecto; para omitirlo durante las pruebas locales, define
-`TEST_ACCESS_ENABLED=true`.
+`TEST_ACCESS_ENABLED=true`. La propiedad `app.security.test-access-enabled` por sí sola no lo
+habilita.
 
 ### 3. Configurar el proyecto
 
@@ -316,6 +317,7 @@ jwt.secret=TU_CLAVE_ALEATORIA_PRIVADA_DE_AL_MENOS_32_BYTES
 otp.hash-secret=OTRA_CLAVE_ALEATORIA_PRIVADA_DE_AL_MENOS_32_BYTES
 spring.mail.username=TU_REMITENTE@gmail.com
 spring.mail.password=TU_CONTRASENA_DE_APLICACION
+app.security.test-access-enabled=false
 ```
 
 Sustituir `TU_PASSWORD_AQUI` por la contraseña de MySQL. Dejarla vacía únicamente si ese usuario MySQL realmente no tiene contraseña.
@@ -522,7 +524,7 @@ El login tiene un solo formulario. Redirige a candidatos a `/mis-postulaciones`,
 
 ### Habilitar las pruebas locales
 
-Con el esquema actualizado según el apartado 2, define `TEST_ACCESS_ENABLED=true` en el entorno del backend y reinicia. El bypass está desactivado por defecto. Usa exclusivamente las credenciales de prueba documentadas en este README; las excepciones nunca se deciden desde el navegador.
+Con el esquema actualizado según el apartado 2, define únicamente `TEST_ACCESS_ENABLED=true` en el entorno del backend y reinicia. El bypass está desactivado por defecto; `app.security.test-access-enabled` por sí sola no lo habilita. Usa exclusivamente las credenciales de prueba documentadas en este README; las excepciones nunca se deciden desde el navegador.
 
 **Despliegue:** dejar `TEST_ACCESS_ENABLED=false` y no cargar las cuentas semilla de desarrollo antes de exponer el sistema. Desactivar esta opción invalida también los JWT emitidos con el método de prueba.
 

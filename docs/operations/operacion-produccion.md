@@ -13,7 +13,7 @@ Activar SPRING_PROFILES_ACTIVE=prod en el servidor. No copiar config/local.prope
 | FRONTEND_URL | Origen HTTPS exacto; varios orígenes separados por comas, sin comodines |
 | RECOVERY_URL | URL HTTPS completa de /recuperar-acceso |
 
-Este perfil mantiene desactivado el acceso especial de pruebas mientras `TEST_ACCESS_ENABLED` no se defina o permanezca en `false`, configura SMTP para OTP y recuperación de acceso y valida entidades JPA. Las notificaciones internas se persisten y se entregan mediante SSE. La validación JPA no cubre todas las tablas consultadas por JDBC: revisar también las migraciones. El perfil no instala certificados ni un proxy. Configurar TLS en el punto de entrada, restringir el puerto interno del backend y comprobar CORS desde el navegador del dominio autorizado y desde uno no autorizado. Nunca configurar `TEST_ACCESS_ENABLED=true` en producción.
+Este perfil deshabilita el acceso especial de pruebas, habilita notificaciones por correo y valida entidades JPA. La validación JPA no cubre todas las tablas consultadas por JDBC: revisar también las migraciones. El perfil no instala certificados ni un proxy. Configurar TLS en el punto de entrada, restringir el puerto interno del backend y comprobar CORS desde el navegador del dominio autorizado y desde uno no autorizado. No configurar variables de entorno que reactiven app.security.test-access-enabled en producción.
 
 ## Migraciones
 

@@ -16,7 +16,7 @@ Fecha de preparación: 12/10/2026. Estado general: **Pendiente**. Esta entrega c
 - Usar `SPRING_PROFILES_ACTIVE=prod` y variables del gestor de secretos del entorno.
 - Configurar una cuenta MySQL exclusiva para la aplicación con los permisos mínimos necesarios.
 - Configurar `FRONTEND_URL` y `RECOVERY_URL` con direcciones HTTPS definitivas.
-- Mantener `TEST_ACCESS_ENABLED=false` y no desplegar cuentas de prueba.
+- Mantener `app.security.test-access-enabled=false` y no desplegar cuentas de prueba.
 - Instalar TLS en el proxy o plataforma de entrada y mantener el puerto interno del backend restringido.
 - Compilar frontend y backend desde un commit identificado y un workflow satisfactorio.
 
