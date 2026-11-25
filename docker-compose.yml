@@ -75,6 +75,8 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_DATA_MODE: ${VITE_DATA_MODE:-api}
+        VITE_RECRUITER_EMAIL: ${VITE_RECRUITER_EMAIL:-talento@gtel.com.pe}
     container_name: gtel-frontend
     restart: unless-stopped
     depends_on:
